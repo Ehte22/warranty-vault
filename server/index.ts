@@ -9,6 +9,8 @@ import { app, server } from "./utils/socket";
 import redisClient from "./services/redisClient";
 import passport from "./services/passport"
 import authRouter from "./routes/auth.routes";
+import brandRouter from "./routes/brand.routes";
+import { protectedRoute } from "./utils/protected";
 
 dotenv.config()
 app.use(express.json())
@@ -34,6 +36,7 @@ redisClient.on("connect", () => {
 })
 
 app.use("/api/v1/auth", authRouter)
+app.use("/api/v1/auth", protectedRoute, brandRouter)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({ message: "Resource not found", });

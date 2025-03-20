@@ -9,6 +9,9 @@ import PageNotFound from "./pages/PageNotFound";
 import Dashboard from "./pages/Dashboard";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import Brands from "./pages/brand/Brands";
+import AddBrand from "./pages/brand/AddBrand";
+import { ImageContextProvider } from "./context/ImageContext";
 
 const theme = createTheme({
   palette: {
@@ -39,28 +42,36 @@ const theme = createTheme({
 const App = () => {
   return <>
     <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />} >
+      <ImageContextProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />} >
 
-            <Route index element={<Dashboard />} />
+              <Route index element={<Dashboard />} />
 
-            <Route path="products">
-              <Route index element={<Products />} />
-              <Route path="add" element={<AddProduct />} />
-              <Route path="update/:id" element={<AddProduct />} />
+              <Route path="products">
+                <Route index element={<Products />} />
+                <Route path="add" element={<AddProduct />} />
+                <Route path="update/:id" element={<AddProduct />} />
+              </Route>
+
+              <Route path="brands">
+                <Route index element={<Brands />} />
+                <Route path="add" element={<AddBrand />} />
+                <Route path="update/:id" element={<AddBrand />} />
+              </Route>
+
             </Route>
-          </Route>
 
+            <Route path="sign-in" element={<Login />} />
+            <Route path="sign-up" element={<Register />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="*" element={<PageNotFound />} />
 
-          <Route path="sign-in" element={<Login />} />
-          <Route path="sign-up" element={<Register />} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="reset-password" element={<ResetPassword />} />
-          <Route path="*" element={<PageNotFound />} />
-
-        </Routes>
-      </BrowserRouter >
+          </Routes>
+        </BrowserRouter >
+      </ImageContextProvider>
     </ThemeProvider>
   </>
 }

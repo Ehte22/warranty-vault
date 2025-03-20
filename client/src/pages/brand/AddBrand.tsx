@@ -12,67 +12,51 @@ const fields: FieldConfig[] = [
         rules: { required: true, min: 2, max: 100 }
     },
     {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
+        name: "description",
+        type: "textarea",
+        placeholder: "Description",
+        rules: { required: false, min: 2, max: 500 }
     },
     {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
+        name: "logo",
+        type: "file",
+        label: "Logo",
+        multiple: true,
+        placeholder: "Logo",
+        rules: { required: false, file: true }
     },
 ]
 
 const defaultValues = {
     name: "",
-    brand: "",
+    description: "",
+    logo: ""
 }
 
-const AddProduct = () => {
+const AddBrand = () => {
     const config: DataContainerConfig = {
-        pageTitle: "Add Product",
+        pageTitle: "Add Brand",
         backLink: "../",
     }
-
 
     const schema = customValidator(fields)
 
     type FormValues = z.infer<typeof schema>
 
     const onSubmit = (values: FormValues) => {
+        console.log(values);
 
+        const formData = new FormData()
+
+        Object.keys(values).forEach((key) => {
+            if (typeof values[key] === "object") {
+                Object.keys(values[key]).forEach((item) => {
+                    formData.append(key, values[item])
+                })
+            } else {
+                formData.append(key, values[key])
+            }
+        })
     }
 
     const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
@@ -84,18 +68,18 @@ const AddProduct = () => {
                 <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                     {/* Name */}
-                    <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
+                    <Grid2 size={{ xs: 12, md: 6 }}>
                         {renderSingleInput("name")}
                     </Grid2>
 
-                    {/* Brand */}
-                    <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                        {renderSingleInput("brand")}
+                    {/* Description */}
+                    <Grid2 size={{ xs: 12, md: 6 }} >
+                        {renderSingleInput("description")}
                     </Grid2>
 
                     {/* Name */}
-                    <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
-                        {renderSingleInput("name")}
+                    <Grid2 size={{ xs: 12 }}>
+                        {renderSingleInput("logo")}
                     </Grid2>
 
                 </Grid2>
@@ -123,4 +107,4 @@ const AddProduct = () => {
     </>
 }
 
-export default AddProduct
+export default AddBrand

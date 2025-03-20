@@ -4,8 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { ValidationRules } from "../utils/validator";
 import Inputs from "../components/Inputs";
-import { Typography } from "@mui/material";
+import { InputLabel, Typography } from "@mui/material";
 import Selects from "../components/Selects";
+import Textarea from "../components/Textarea";
+import InputFile from "../components/InputFile";
 
 export interface FieldConfig {
     name: string;
@@ -106,9 +108,9 @@ const useDynamicForm = <T extends FieldValues>({
 
         return <>
             <div key={field.name}>
-                <label htmlFor={field.name} className="block text-sm/6 font-medium text-gray-900">
+                <InputLabel htmlFor={field.name} sx={{ fontWeight: 500, color: "black", my: 1 }}>
                     {field.label}
-                </label>
+                </InputLabel>
                 <Controller
                     key={field.name}
                     name={field.name as Path<T>}
@@ -151,19 +153,24 @@ const useDynamicForm = <T extends FieldValues>({
                             //         <Checkboxes controllerField={controllerField} field={field} />
                             //     </>
 
-                            // case "file":
-                            //     return <>
-                            //         <InputFile
-                            //             controllerField={controllerField}
-                            //             field={field}
-                            //             setValue={setValue}
-                            //         />
-                            //     </>
+                            case "file":
+                                return <>
+                                    <InputFile
+                                        controllerField={controllerField}
+                                        field={field}
+                                        setValue={setValue}
+                                        errors={errors[field.name as keyof T]?.message?.toString()}
+                                    />
+                                </>
 
-                            // case "textarea":
-                            //     return <>
-                            //         <Textarea controllerField={controllerField} field={field} />
-                            //     </>
+                            case "textarea":
+                                return <>
+                                    <Textarea
+                                        controllerField={controllerField}
+                                        field={field}
+                                        errors={errors[field.name as keyof T]?.message?.toString()}
+                                    />
+                                </>
 
                             // case "formGroup":
                             //     return <>
