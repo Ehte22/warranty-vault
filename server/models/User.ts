@@ -5,7 +5,7 @@ export interface IUser extends Document {
     name: string;
     email: string;
     password: string;
-    phone: number
+    phone: string
     confirmPassword?: string
     profile?: string
     role: 'Admin' | 'User'
@@ -20,10 +20,10 @@ export interface IOTP extends Document {
 }
 
 const userSchema = new Schema<IUser>({
-    name: { type: String, required: true, unique: true, trim: true },
+    name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true },
-    phone: { type: Number, required: true, unique: true, trim: true },
-    password: { type: String, required: true, trim: true },
+    phone: { type: String, default: "", trim: true },
+    password: { type: String, trim: true },
     profile: { type: String, trim: true },
     role: {
         type: String,

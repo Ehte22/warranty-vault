@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
@@ -8,19 +8,50 @@ import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
 import Logout from '@mui/icons-material/Logout';
 import { Button } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { useSignOutMutation } from '../redux/apis/auth.api';
+import { useNavigate } from 'react-router-dom';
+import Toast from './Toast';
 
 const AccountMenu = () => {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+    const [signOut, { data, error, isLoading, isSuccess, isError }] = useSignOutMutation()
+
+    const { user } = useSelector((state: RootState) => state.auth)
+
+    const navigate = useNavigate()
+
     const open = Boolean(anchorEl);
+
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    const handleSignOut = () => {
+        if (user) {
+            signOut()
+        }
+    }
+
+    useEffect(() => {
+        if (isSuccess) {
+            setTimeout(() => {
+                navigate("/sign-in")
+            }, 2000);
+        }
+    }, [isSuccess, navigate])
+
+
     return <>
+        {isSuccess && <Toast type="success" message={data} />}
+        {isError && <Toast type="error" message={error as string} />}
         <Box >
-            <Tooltip title="John Doe">
+            <Tooltip title={user?.name}>
                 <IconButton
                     onClick={handleClick}
                     size="small"
@@ -30,8 +61,8 @@ const AccountMenu = () => {
                     aria-expanded={open ? 'true' : undefined}
                 >
                     <Avatar
-                        src='https://avatars.githubusercontent.com/u/19550456'
-                        alt='John Doe'
+                        src={user?.profile || 'https://avatars.githubusercontent.com/u/19550456'}
+                        alt={user?.name}
                         sx={{ width: 32, height: 32 }}
                     ></Avatar>
                 </IconButton>
@@ -76,19 +107,19 @@ const AccountMenu = () => {
         >
             <Box sx={{ display: "flex", px: "16px", py: "8px", gap: 1.5 }}>
                 <Avatar
-                    src='https://avatars.githubusercontent.com/u/19550456'
-                    alt='John Doe'
+                    src={user?.profile || "https://avatars.githubusercontent.com/u/19550456"}
+                    alt={user?.name}
                 />
                 <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>John Doe</Typography>
-                    <Typography sx={{ fontSize: "12px", mt: "4px" }}>johndoeexample22@gmail.com</Typography>
+                    <Typography sx={{ fontWeight: "bold" }}>{user?.name}</Typography>
+                    <Typography sx={{ fontSize: "12px", mt: "4px" }}>{user?.email}</Typography>
                 </Box>
             </Box>
 
             <Divider />
 
             <Box sx={{ px: "12px", pt: "16px", textAlign: "end" }}>
-                <Button color='inherit' sx={{ border: "1px solid black", fontSize: "13px", fontWeight: "normal", textTransform: "none" }}>
+                <Button onClick={handleSignOut} loading={isLoading} color='inherit' sx={{ border: "1px solid black", fontSize: "13px", fontWeight: "normal", textTransform: "none" }}>
                     <Logout sx={{ fontSize: "18px", color: "black", marginRight: "6px" }} />
                     Sign Out
                 </Button>

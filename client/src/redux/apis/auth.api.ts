@@ -39,6 +39,23 @@ export const authApi = createApi({
     baseQuery: customBaseQuery,
     endpoints: (builder) => {
         return {
+            signUp: builder.mutation<{ message: string, result: IUser }, IUser>({
+                query: userData => {
+                    return {
+                        url: "/sign-up",
+                        method: "POST",
+                        body: userData
+                    }
+                },
+                transformResponse: (data: { message: string, result: IUser }) => {
+                    localStorage.setItem("user", JSON.stringify(data.result))
+                    return data
+                },
+                transformErrorResponse: (error: { status: number, data: { message: string } }) => {
+                    return error.data?.message
+                }
+            }),
+
             signIn: builder.mutation<{ message: string, result: IUser }, { email: string, password: string }>({
                 query: userData => {
                     return {
@@ -142,11 +159,11 @@ export const authApi = createApi({
 })
 
 export const {
+    useSignUpMutation,
     useSignInMutation,
     useSignOutMutation,
     useSendOTPMutation,
     useVerifyOTPMutation,
     useForgotPasswordMutation,
     useResetPasswordMutation
-
 } = authApi

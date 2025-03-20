@@ -13,12 +13,15 @@ import { resetPasswordTemplate } from "../templates/resetPasswordTemplate"
 import dotenv from "dotenv";
 import { IUserProtected } from "../utils/protected"
 import cloudinary from "../utils/uploadConfig"
+import passport from "../services/passport"
+
 dotenv.config({})
 
+// Sign Up
 export const SignUp = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { name, email, phone, password, confirmPassword }: IUser = req.body
 
-    const user = await User.findOne({ $or: [{ email }, { phone }] })
+    const user = await User.findOne({ $or: [{ email }, { phone }] }).select("-password, -__v, -updatedAt, -createdAt").lean()
 
     if (user) {
         if (user.email == email) {
@@ -39,7 +42,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         profile = secure_url
     }
 
-    const { isError, error } = customValidator({ ...req.body, profile }, registerRules)
+    const { isError, error } = customValidator({ ...req.body, profile, role: "User" }, registerRules)
 
     if (isError) {
         return res.status(422).json({ message: "Validation errors", error });
@@ -47,7 +50,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
 
     const hashPassword = await bcryptjs.hash(password, 10)
 
-    const result = await User.create({
+    await User.create({
         name,
         email,
         phone,
@@ -55,7 +58,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         profile
     })
 
-    return res.status(200).json({ message: "User registered and email sent successfully", result })
+    return res.status(200).json({ message: "Sign up successfully" })
 })
 
 // Sign In
@@ -94,9 +97,10 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         email: user.email,
         phone: user.phone,
         profile: user.profile,
-        role: user.role, token
+        role: user.role,
+        token
     }
-    res.status(200).json({ message: "Logged in successfully", result })
+    res.status(200).json({ message: "Sign in successfully", result })
 })
 
 // Sign Out
@@ -111,8 +115,47 @@ export const signOut = asyncHandler(async (req: Request, res: Response, next: Ne
 
     await User.findByIdAndUpdate(userId, { sessionToken: null })
 
-    res.status(200).json({ message: "Logged out successfully" });
+    res.status(200).json({ message: "Sign out successfully" });
 });
+
+// Google Login
+export const googleLogin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        prompt: 'select_account'
+    })(req, res, next)
+})
+
+// Google Login Response
+export const googleLoginResponse = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('google', { session: false }, (err: Error, user: IUser, info: any) => {
+        if (err) {
+            return res.status(400).json({ message: err.message })
+        }
+
+        if (!user) {
+            return res.status(400).json({ message: info.message })
+        }
+
+        const token = generateToken({ userId: user._id, role: user.role })
+
+        // await User.findByIdAndUpdate(user._id, { sessionToken: token })
+
+        const result = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            profile: user.profile,
+            role: user.role,
+            token
+        }
+
+        const redirectUrl = `${process.env.FRONTEND_URL}?result=${encodeURIComponent(JSON.stringify(result))}`
+        res.redirect(redirectUrl)
+
+    })(req, res, next)
+})
 
 // Send OTP
 export const sendOTP = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {

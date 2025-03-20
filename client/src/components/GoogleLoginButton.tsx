@@ -4,9 +4,12 @@ import { FcGoogle } from "react-icons/fc"; // Google icon
 
 const GoogleLoginButton: React.FC = () => {
     const handleGoogleLogin = () => {
-        console.log("Google Login Clicked");
-        // Replace this with actual Google OAuth logic
+        window.location.href = "http://localhost:5000/api/v1/auth/google"
     };
+
+    // const handleGoogleLogin = () => {
+    //     window.open("http://localhost:5000/api/v1/auth/google", "_self")
+    // };s
 
     return (
         <Button

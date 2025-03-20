@@ -12,7 +12,7 @@ export interface IUserProtected {
 }
 
 export const protectedRoute = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate("jwt", { session: false }, async (err: Error, user: any, info: any) => {
+    passport.authenticate(['jwt', 'google'], { session: false }, async (err: Error, user: any, info: any) => {
         if (err) {
             return res.status(500).json({ message: "Internal Server Error", error: err.message });
         }

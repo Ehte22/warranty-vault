@@ -6,6 +6,9 @@ import AddProduct from "./pages/products/AddProduct";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import PageNotFound from "./pages/PageNotFound";
+import Dashboard from "./pages/Dashboard";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 const theme = createTheme({
   palette: {
@@ -40,6 +43,8 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Layout />} >
 
+            <Route index element={<Dashboard />} />
+
             <Route path="products">
               <Route index element={<Products />} />
               <Route path="add" element={<AddProduct />} />
@@ -50,6 +55,8 @@ const App = () => {
 
           <Route path="sign-in" element={<Login />} />
           <Route path="sign-up" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="*" element={<PageNotFound />} />
 
         </Routes>

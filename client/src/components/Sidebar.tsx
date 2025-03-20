@@ -13,7 +13,7 @@ import { Link, useLocation } from "react-router-dom";
 const NAVIGATION = [
 
     {
-        segment: 'dashboard',
+        segment: '/',
         title: 'Dashboard',
         icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
     },
@@ -90,7 +90,7 @@ const Sidebar = ({ open }: { open: boolean }) => {
         <Drawer sx={{ position: "fixed" }} variant="permanent" open={open}>
             <List>
                 {NAVIGATION.map((item, index) => {
-                    const isActive = location.pathname.includes(item.segment);
+                    const isActive = location.pathname.startsWith(item.segment);
 
                     return <ListItem key={index} disablePadding sx={{ display: "block" }}>
                         <ListItemButton
@@ -100,7 +100,7 @@ const Sidebar = ({ open }: { open: boolean }) => {
                                 minHeight: 48,
                                 px: 2.5,
                                 justifyContent: open ? "initial" : "center",
-                                backgroundColor: isActive ? "#f0f0f0" : "transparent",
+                                // backgroundColor: isActive ? "#f0f0f0" : "transparent",
 
                             }}
                         >

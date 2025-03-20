@@ -1,21 +1,19 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
     Container,
     Paper,
     Typography,
     TextField,
     Button,
-    Divider,
     Box,
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
-import GoogleLoginButton from "../../components/GoogleLoginButton";
+import { Link } from "react-router-dom";
 import { FieldConfig } from "../../hooks/useDynamicForm";
 import { customValidator } from "../../utils/validator";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSignInMutation } from "../../redux/apis/auth.api";
+import { useForgotPasswordMutation } from "../../redux/apis/auth.api";
 import Toast from "../../components/Toast";
 
 const textFieldStyles = {
@@ -54,20 +52,12 @@ const fields: FieldConfig[] = [
         type: "text",
         rules: { required: true }
     },
-    {
-        name: "password",
-        label: "Password",
-        type: "text",
-        rules: { required: true }
-    },
 ]
 
 
-const Login: React.FC = () => {
+const ForgotPassword: React.FC = () => {
 
-    const [signIn, { data, error, isSuccess, isError, isLoading }] = useSignInMutation()
-
-    const navigate = useNavigate()
+    const [forgotPassword, { data, error, isSuccess, isError, isLoading }] = useForgotPasswordMutation()
 
     const schema = customValidator(fields)
 
@@ -76,20 +66,11 @@ const Login: React.FC = () => {
     const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } })
 
     const onSubmit = (values: FormValues) => {
-        signIn({ email: values.email, password: values.password })
+        forgotPassword(values.email)
     }
 
-    useEffect(() => {
-        if (isSuccess) {
-            setTimeout(() => {
-                navigate("/")
-            }, 2000);
-        }
-    }, [isSuccess, navigate])
-
-
     return <>
-        {isSuccess && <Toast type="success" message={data.message} />}
+        {isSuccess && <Toast type="success" message={data} />}
         {isError && <Toast type="error" message={error as string} />}
         <Container
             component="main"
@@ -98,10 +79,14 @@ const Login: React.FC = () => {
         >
             <Paper elevation={3} sx={{ padding: 4, width: "100%", textAlign: "center" }}>
                 <Typography variant="h5" fontWeight="bold" mb={3}>
-                    Sign In
+                    Forgot Password?
                 </Typography>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
 
+                <Typography sx={{ color: "gray" }} mb={3}>
+                    Enter your email address below, and we’ll send you a password reset link.
+                </Typography>
+
+                <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
                     {/* Email */}
                     <TextField
                         {...register("email")}
@@ -115,26 +100,6 @@ const Login: React.FC = () => {
                         helperText={errors.email?.message as string}
                     />
 
-                    {/* Password */}
-                    <TextField
-                        {...register("password")}
-                        fullWidth
-                        label="Password"
-                        type="password"
-                        variant="outlined"
-                        margin="normal"
-                        sx={textFieldStyles}
-                        error={!!errors.password}
-                        helperText={errors.password?.message as string}
-                    />
-
-                    {/* Forgot Link */}
-                    <Box sx={{ textAlign: "end", mb: 1 }}>
-                        <Link to="/forgot-password" style={{ textDecoration: "none", color: "black", fontWeight: 550 }}>
-                            Forgot Password?
-                        </Link>
-                    </Box>
-
                     {/* Submit Button */}
                     <Button
                         fullWidth
@@ -142,30 +107,20 @@ const Login: React.FC = () => {
                         loading={isLoading}
                         variant="contained"
                         color="primary"
-                        sx={{ mt: 2, backgroundColor: "#00c979", color: "white" }}
+                        sx={{ my: 2, backgroundColor: "#00c979", color: "white" }}
                     >
-                        Login
+                        Send
                     </Button>
 
-                    <Divider sx={{ my: 2 }}>OR</Divider>
-
-                    {/* Google Login Button */}
-                    <Box mt={2} display="flex" justifyContent="center">
-                        <GoogleLoginButton />
-                    </Box>
-                </Box>
-
-                {/* Register Link */}
-                <Typography variant="body2" mt={3}>
-                    Don't have an account?{" "}
-                    <Link to="/sign-up" style={{ color: "#00c979", textDecoration: "none" }}>
-                        Sign Up here
+                    {/* Back Link */}
+                    <Link to="/sign-in" style={{ textDecoration: "none", color: "black" }}>
+                        Back to Sign in
                     </Link>
-                </Typography>
+                </Box>
             </Paper>
         </Container>
     </>
 
 };
 
-export default Login;
+export default ForgotPassword;

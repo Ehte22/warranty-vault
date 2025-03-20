@@ -1,16 +1,26 @@
-import { Box, Button, Container, FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput, Paper, TextField, Typography } from '@mui/material'
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from "react";
+import {
+    Container,
+    Paper,
+    Typography,
+    Button,
+    Box,
+    FormControl,
+    InputLabel,
+    OutlinedInput,
+    InputAdornment,
+    IconButton,
+} from "@mui/material";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { FieldConfig } from "../../hooks/useDynamicForm";
+import { customValidator } from "../../utils/validator";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useResetPasswordMutation } from "../../redux/apis/auth.api";
+import Toast from "../../components/Toast";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { FieldConfig } from '../../hooks/useDynamicForm';
-import { customValidator } from '../../utils/validator';
-import { useSignUpMutation } from '../../redux/apis/auth.api';
-import { IUser } from '../../models/user.interface';
-import Toast from '../../components/Toast';
 
 const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -40,24 +50,6 @@ const textFieldStyles = {
 
 const fields: FieldConfig[] = [
     {
-        name: "name",
-        label: "Name",
-        type: "text",
-        rules: { required: true }
-    },
-    {
-        name: "email",
-        label: "Email Address",
-        type: "text",
-        rules: { required: true, email: true }
-    },
-    {
-        name: "phone",
-        label: "Phone Number",
-        type: "text",
-        rules: { required: true, pattern: /^[6-9]\d{9}$/, patternMessage: "Please enter a valid phone number" }
-    },
-    {
         name: "password",
         label: "Password",
         type: "text",
@@ -71,50 +63,43 @@ const fields: FieldConfig[] = [
     },
 ]
 
-const defaultValues = {
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-}
 
+const ResetPassword: React.FC = () => {
 
-const Register = () => {
-    const [signUp, { data, error, isSuccess, isLoading, isError }] = useSignUpMutation()
-
+    const [isPassMatchError, setIsPassMatchError] = useState<boolean>(false)
     const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({
         password: false,
         cpassword: false
-    });
-    const [isPassMatchError, setIsPassMatchError] = useState<boolean>(false)
+    })
+
+    const [ResetPassword, { data, error, isSuccess, isError, isLoading }] = useResetPasswordMutation()
 
     const navigate = useNavigate()
 
     const handleClickShowPassword = (field: string) => {
-        setShowPassword((prevState) => ({
-            ...prevState,
-            [field]: !prevState[field],
-        }));
-    };
+        setShowPassword({ ...showPassword, [field]: !showPassword[field] })
+    }
 
     const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-    };
+        event.preventDefault()
+    }
 
     const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-    };
+        event.preventDefault()
+    }
+
+    const [searchParams] = useSearchParams()
+    const token = searchParams.get("token")
 
     const schema = customValidator(fields)
 
     type FormValues = z.infer<typeof schema>
 
-    const { register, handleSubmit, formState: { errors }, watch } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues })
+    const { register, handleSubmit, formState: { errors }, watch } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } })
 
     const onSubmit = (values: FormValues) => {
-        if (!isPassMatchError) {
-            signUp(values as IUser)
+        if (!isPassMatchError && token) {
+            ResetPassword({ password: values.password, confirmPassword: values.confirmPassword, token })
         }
     }
 
@@ -138,9 +123,10 @@ const Register = () => {
         }
     }, [isSuccess, navigate])
 
+
     return <>
-        {isSuccess && <Toast type='success' message={data.message} />}
-        {isError && <Toast type='error' message={error as string} />}
+        {isSuccess && <Toast type="success" message={data} />}
+        {isError && <Toast type="error" message={error as string} />}
         <Container
             component="main"
             maxWidth={false}
@@ -148,49 +134,14 @@ const Register = () => {
         >
             <Paper elevation={3} sx={{ padding: 4, width: "100%", textAlign: "center" }}>
                 <Typography variant="h5" fontWeight="bold" mb={3}>
-                    Sign Up
+                    Create a New Password
                 </Typography>
+
+                <Typography sx={{ color: "gray" }} mb={3}>
+                    Your password must be at least 8 characters long and match the confirmation.
+                </Typography>
+
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
-
-                    {/* Name  */}
-                    <TextField
-                        {...register("name")}
-                        fullWidth
-                        label="Name"
-                        type="text"
-                        variant="outlined"
-                        margin="normal"
-                        sx={textFieldStyles}
-                        error={!!errors.name}
-                        helperText={errors.name?.message as string}
-                    />
-
-                    {/* Email Address */}
-                    <TextField
-                        {...register("email")}
-                        fullWidth
-                        label="Email Address"
-                        type="text"
-                        variant="outlined"
-                        margin="normal"
-                        sx={textFieldStyles}
-                        error={!!errors.email}
-                        helperText={errors.email?.message as string}
-                    />
-
-                    {/* Phone Number */}
-                    <TextField
-                        {...register("phone")}
-                        fullWidth
-                        label="Phone Number"
-                        type="text"
-                        variant="outlined"
-                        margin="normal"
-                        sx={textFieldStyles}
-                        error={!!errors.phone}
-                        helperText={errors.phone?.message as string}
-                    />
-
                     {/* Password */}
                     <FormControl fullWidth margin="normal" variant="outlined" sx={textFieldStyles} error={!!errors.password} >
                         <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
@@ -260,27 +211,19 @@ const Register = () => {
                     {/* Submit Button */}
                     <Button
                         fullWidth
-                        loading={isLoading}
                         type="submit"
+                        loading={isLoading}
                         variant="contained"
                         color="primary"
-                        sx={{ mt: 2, backgroundColor: "#00c979", color: "white" }}
+                        sx={{ my: 2, backgroundColor: "#00c979", color: "white" }}
                     >
-                        Sign Up
+                        Reset Password
                     </Button>
-
                 </Box>
-
-                {/* Register Link */}
-                <Typography variant="body2" mt={3}>
-                    Already have an account?{" "}
-                    <Link to="/sign-in" style={{ color: "#00c979", textDecoration: "none" }}>
-                        Sign In here
-                    </Link>
-                </Typography>
             </Paper>
         </Container>
     </>
-}
 
-export default Register
+};
+
+export default ResetPassword;

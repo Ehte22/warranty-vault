@@ -12,5 +12,7 @@ authRouter
     .post("/verify-otp", authController.verifyOTP)
     .post("/forgot-password", authController.forgotPassword)
     .put("/reset-password", authController.resetPassword)
+    .get("/google", authController.googleLogin)
+    .get("/google/callback", authController.googleLoginResponse)
 
 export default authRouter

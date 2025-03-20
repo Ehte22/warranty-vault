@@ -13,7 +13,7 @@ interface INavbarProps {
 }
 
 const Navbar: React.FC<INavbarProps> = ({ open, toggleSideBar }) => {
-    return (
+    return <>
         <AppBar position="fixed" sx={{ height: "64px", width: "100%", boxShadow: "none", borderBottom: "1px solid lightgray" }}>
             <Toolbar>
                 <IconButton
@@ -31,7 +31,7 @@ const Navbar: React.FC<INavbarProps> = ({ open, toggleSideBar }) => {
                 <AccountMenu />
             </Toolbar >
         </AppBar >
-    );
+    </>
 }
 
 export default Navbar
