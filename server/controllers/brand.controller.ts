@@ -121,7 +121,6 @@ export const updateBrand = asyncHandler(async (req: Request, res: Response, next
         return res.status(200).json({ message: "No Changes Detected" });
     }
 
-    // Proceed with update if changes are detected
     await Brand.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
 
     res.status(200).json({ message: "Brand Update Successfully" })

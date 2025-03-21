@@ -1,18 +1,18 @@
 import { validationRulesSchema } from "../utils/validator";
 
-export const productRules: validationRulesSchema = {
+export const policyRules: validationRulesSchema = {
     user: {
         object: true,
         _id: { required: true },
         name: { required: true }
     },
-    brand: {
+    product: {
         object: true,
         _id: { required: true },
         name: { required: true }
     },
-    name: { required: true, min: 2, max: 100 },
-    model: { required: true },
-    purchaseDate: { required: true },
-    image: { required: false },
+    type: { required: true },
+    provider: { required: true },
+    expiryDate: { required: true },
+    document: { required: false },
 }

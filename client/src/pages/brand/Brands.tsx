@@ -6,48 +6,7 @@ import { useEffect, useState } from 'react';
 import { IBrand } from '../../models/brand.interface';
 import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
-
-const columns: GridColDef[] = [
-    { field: 'serialNo', headerName: 'Sr. No.', minWidth: 80, flex: 0.5, },
-    { field: 'name', headerName: 'Brand Name', minWidth: 200, flex: 1 },
-    { field: 'description', headerName: 'Description', minWidth: 300, flex: 2 },
-    {
-        field: 'logo',
-        headerName: 'Logo',
-        minWidth: 100,
-        flex: 0.7,
-        sortable: false,
-        renderCell: (params) => (
-            <div style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-            }}>
-                <img
-                    src={`${params.value}` || "/logo.jpg"}
-                    alt="Brand Logo"
-                    style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px", border: "1px solid grey" }}
-                />
-            </div>
-        ),
-    },
-    {
-        field: 'actions',
-        headerName: 'Actions',
-        minWidth: 150,
-        flex: 0.8,
-        sortable: false,
-        filterable: false,
-        renderCell: (params) => {
-            const [deleteBrand, { data, isSuccess }] = useDeleteBrandMutation()
-            return <>
-                <ActionsMenu id={params.row._id} deleteAction={deleteBrand} isSuccess={isSuccess} message={data} />
-            </>
-        }
-    }
-];
-
+import Toast from '../../components/Toast';
 
 const Brands = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
@@ -69,6 +28,47 @@ const Brands = () => {
         limit: pagination.pageSize,
         searchQuery: debounceSearchQuery.toLowerCase()
     })
+    const [deleteBrand, { data: message, isSuccess }] = useDeleteBrandMutation()
+
+    const columns: GridColDef[] = [
+        { field: 'serialNo', headerName: 'Sr. No.', minWidth: 80, flex: 0.5, },
+        { field: 'name', headerName: 'Brand Name', minWidth: 200, flex: 1 },
+        { field: 'description', headerName: 'Description', minWidth: 300, flex: 2 },
+        {
+            field: 'logo',
+            headerName: 'Logo',
+            minWidth: 100,
+            flex: 0.7,
+            sortable: false,
+            renderCell: (params) => (
+                <div style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                }}>
+                    <img
+                        src={`${params.value}` || "/logo.jpg"}
+                        alt="Brand Logo"
+                        style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px", border: "1px solid grey" }}
+                    />
+                </div>
+            ),
+        },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            minWidth: 100,
+            flex: 0.6,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                return <>
+                    <ActionsMenu id={params.row._id} deleteAction={deleteBrand} />
+                </>
+            }
+        }
+    ];
 
     useEffect(() => {
         if (data?.result) {
@@ -80,6 +80,7 @@ const Brands = () => {
     }, [data?.result])
 
     return <>
+        {isSuccess && <Toast type='success' message={message as string} />}
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid

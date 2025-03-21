@@ -11,7 +11,7 @@ const AutoComplete: React.FC<IFieldProps> = ({ controllerField, field, errors })
                 value={field.options?.find(opt => opt.value === controllerField.value) || null}
                 onChange={(_, newValue) => {
                     if (newValue) {
-                        controllerField.onChange(newValue.value);
+                        controllerField.onChange(newValue.value)
                     }
                 }}
                 sx={textFieldStyles}

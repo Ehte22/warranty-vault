@@ -83,14 +83,27 @@ const AddProduct = () => {
         const formData = new FormData()
 
         Object.keys(updatedData).forEach((key) => {
-            if (typeof updatedData[key] === "object") {
-                Object.keys(updatedData[key]).forEach((item) => {
-                    formData.append(key, updatedData[key][item])
-                })
+            const value = updatedData[key];
+
+            if (value instanceof FileList) {
+                Array.from(value).forEach((file) => {
+                    formData.append(key, file);
+                });
+            } else if (typeof value === "object" && value !== null) {
+                if (Array.isArray(value)) {
+                    value.forEach((item, index) => {
+                        formData.append(`${key}[${index}]`, JSON.stringify(item));
+                    });
+                } else {
+                    Object.entries(value).forEach(([objKey, objValue]) => {
+                        formData.append(`${key}[${objKey}]`, objValue as any);
+                    });
+                }
             } else {
-                formData.append(key, updatedData[key])
+                formData.append(key, value);
             }
-        })
+        });
+
 
         if (id && data) {
             updateProduct({ id, productData: formData })
@@ -100,17 +113,19 @@ const AddProduct = () => {
 
     }
 
-    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
 
     useEffect(() => {
         if (id && data) {
             setValue("name", data.name)
-            // setValue("brand", data.brand.name)
+            setValue("brand", data.brand?._id || '')
+            setValue("model", data.model)
+            setValue("purchaseDate", data.purchaseDate)
 
-            // if (data.image) {
-            //     setValue("image", data.image)
-            //     setPreviewImages([data.image])
-            // }
+            if (data.image) {
+                setValue("image", data.image)
+                setPreviewImages([data.image])
+            }
         }
     }, [id, data])
 

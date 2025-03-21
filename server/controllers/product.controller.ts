@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express"
 import asyncHandler from "express-async-handler"
 import { IUserProtected } from "../utils/protected"
-import Brand, { IBrand } from "../models/Brand"
 import { customValidator } from "../utils/validator"
-import { addBrandRules } from "../rules/brand.rules"
 import cloudinary from "../utils/uploadConfig"
+import { productRules } from "../rules/product.rules"
+import Product from "../models/Product"
 
 // Get All
 export const getAllProducts = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -23,21 +23,23 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response, n
             searchQuery
                 ? {
                     $or: [
-                        { name: { $regex: searchQuery, $options: "i" } }
+                        { name: { $regex: searchQuery, $options: "i" } },
+                        { "brand.name": { $regex: searchQuery, $options: "i" } },
+                        { model: { $regex: searchQuery, $options: "i" } }
                     ]
                 }
                 : {}
         ]
     }
 
-    const totalBrands = await Brand.countDocuments(query)
+    const totalBrands = await Product.countDocuments(query)
     const totalPages = Math.ceil(totalBrands / pageLimit)
 
     let result = []
     if (isFetchAll) {
-        result = await Brand.find({ "user._id": userId }).sort({ createdAt: -1 }).lean()
+        result = await Product.find({ "user._id": userId }).sort({ createdAt: -1 }).lean()
     } else {
-        result = await Brand.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
+        result = await Product.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
 
     const pagination = {
@@ -47,111 +49,102 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response, n
         totalPages: totalPages
     }
 
-    res.status(200).json({ message: "Brands Fetch Successfully", result, pagination })
+    res.status(200).json({ message: "Products Fetch Successfully", result, pagination })
 })
 
 // Get By ID
-export const getBrandById = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+export const getProductById = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
 
-    const result = await Brand.findById(id).lean()
+    const result = await Product.findById(id).lean()
 
     if (!result) {
-        return res.status(404).json({ message: "Brand Not Found" })
+        return res.status(404).json({ message: "Product Not Found" })
     }
 
-    res.status(200).json({ message: "Brand Fetch Successfully", result })
+    res.status(200).json({ message: "Product Fetch Successfully", result })
 })
 
 // Add
-export const addBrand = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+export const addProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { name } = req.body
 
-    let logo = ""
+    let image = ""
     if (req.file) {
         const { secure_url } = await cloudinary.uploader.upload(req.file.path)
-        logo = secure_url
+        image = secure_url
     }
 
     const { userId, name: userName } = req.user as IUserProtected
 
-    const data = { ...req.body, logo, user: { _id: userId, name: userName } }
+    const data = { ...req.body, image, user: { _id: userId, name: userName } }
 
-    const { isError, error } = customValidator(data, addBrandRules)
+    const { isError, error } = customValidator(data, productRules)
 
     if (isError) {
         return res.status(422).json({ message: "Validation Error", error })
     }
 
-    const brand = await Brand.findOne({ name }).lean()
-    if (brand) {
-        return res.status(400).json({ message: "Brand Already Exist" })
+    const product = await Product.findOne({ name }).lean()
+    if (product) {
+        return res.status(400).json({ message: "Product Already Exist" })
     }
 
-    const result = await Brand.create(data)
+    const result = await Product.create(data)
 
-    res.status(200).json({ message: "Brand Add Successfully", result })
+    res.status(200).json({ message: "Product Add Successfully", result })
 })
 
 // Update
-export const updateBrand = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+export const updateProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
 
-    const brand = await Brand.findById(id).lean()
-    if (!brand) {
-        return res.status(404).json({ message: "Brand Not Found" })
+    const product = await Product.findById(id).lean()
+    if (!product) {
+        return res.status(404).json({ message: "Product Not Found" })
     }
 
-    let logo = brand.logo
+    let image = product.image
     if (req.file) {
-        const publicId = brand.logo?.split("/").pop()?.split(".")[0]
+        const publicId = product.image?.split("/").pop()?.split(".")[0]
         publicId && await cloudinary.uploader.destroy(publicId)
 
         const { secure_url } = await cloudinary.uploader.upload(req.file.path)
-        logo = secure_url
+        image = secure_url
     }
 
-    const updatedData = { ...req.body, logo };
-    const isSame = Object.keys(updatedData).every(key =>
-        updatedData[key as keyof IBrand] == brand[key as keyof IBrand]
-    );
+    const updatedData = { ...req.body, image };
 
+    await Product.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
 
-    if (isSame) {
-        return res.status(200).json({ message: "No Changes Detected" });
-    }
-
-    // Proceed with update if changes are detected
-    await Brand.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
-
-    res.status(200).json({ message: "Brand Update Successfully" })
+    res.status(200).json({ message: "Product Update Successfully" })
 })
 
 // Update Status
-export const updateBrandStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+export const updateProductStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
     const { status } = req.body
 
-    const brand = await Brand.findById(id).lean()
-    if (!brand) {
-        return res.status(404).json({ message: "Brand Not Found" })
+    const product = await Product.findById(id).lean()
+    if (!product) {
+        return res.status(404).json({ message: "Product Not Found" })
     }
 
-    await Brand.findByIdAndUpdate(id, { isActive: status }, { new: true, runValidators: true })
-    res.status(200).json({ message: "Brand Status Update Successfully" })
+    await Product.findByIdAndUpdate(id, { isActive: status }, { new: true, runValidators: true })
+    res.status(200).json({ message: "Product Status Update Successfully" })
 })
 
 // Delete
-export const deleteBrand = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+export const deleteProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
 
-    const brand = await Brand.findById(id)
+    const product = await Product.findById(id)
 
-    if (!brand) {
-        return res.status(404).json({ message: "Brand Not Found" })
+    if (!product) {
+        return res.status(404).json({ message: "Product Not Found" })
     }
 
-    await Brand.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
+    await Product.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
     res.status(200).json({ message: "User delete successfully" })
 })

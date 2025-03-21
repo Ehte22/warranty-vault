@@ -21,12 +21,13 @@ const productSchema = new Schema<IProduct>({
         _id: { type: mongoose.Schema.ObjectId, required: true },
         name: { type: String, required: true }
     },
-    name: { type: String, required: true, unique: true },
-    model: { type: String },
+    name: { type: String, required: true },
+    model: { type: String, required: true },
+    purchaseDate: { type: Date, required: true },
     image: { type: String },
     isActive: { type: Boolean, default: true },
-    deletedAt: { type: Date, default: null },
     policies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Policy" }],
+    deletedAt: { type: Date, default: null },
 }, { timestamps: true })
 
 const Product: Model<IProduct> = mongoose.model<IProduct>("product", productSchema)

@@ -12,6 +12,8 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import Brands from "./pages/brand/Brands";
 import AddBrand from "./pages/brand/AddBrand";
 import { ImageContextProvider } from "./context/ImageContext";
+import Policies from "./pages/policy/Policies";
+import AddPolicy from "./pages/policy/AddPolicy";
 
 const theme = createTheme({
   palette: {
@@ -59,6 +61,12 @@ const App = () => {
                 <Route index element={<Brands />} />
                 <Route path="add" element={<AddBrand />} />
                 <Route path="update/:id" element={<AddBrand />} />
+              </Route>
+
+              <Route path="policies">
+                <Route index element={<Policies />} />
+                <Route path="add" element={<AddPolicy />} />
+                <Route path="update/:id" element={<AddPolicy />} />
               </Route>
 
             </Route>

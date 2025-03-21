@@ -3,7 +3,6 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GridCloseIcon } from '@mui/x-data-grid';
-import Toast from './Toast';
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -17,11 +16,9 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 interface IActionsProps {
     id: string
     deleteAction: (id: string) => any
-    isSuccess: boolean
-    message: string | undefined
 }
 
-const ActionsMenu: React.FC<IActionsProps> = ({ id, deleteAction, isSuccess, message }) => {
+const ActionsMenu: React.FC<IActionsProps> = ({ id, deleteAction }) => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [openDialog, setOpenDialog] = useState(false)
@@ -47,7 +44,6 @@ const ActionsMenu: React.FC<IActionsProps> = ({ id, deleteAction, isSuccess, mes
     };
 
     return <>
-        {isSuccess && <Toast type='success' message={message as string} />}
         <Box >
             <Tooltip title="Actions">
                 <IconButton
