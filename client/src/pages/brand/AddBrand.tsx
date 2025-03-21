@@ -39,11 +39,6 @@ const defaultValues = {
 }
 
 const AddBrand = () => {
-    const config: DataContainerConfig = {
-        pageTitle: "Add Brand",
-        backLink: "../",
-    }
-
     const { id } = useParams()
     const { setPreviewImages } = useImagePreview()
     const navigate = useNavigate()
@@ -51,6 +46,11 @@ const AddBrand = () => {
     const [addBrand, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddBrandMutation()
     const [updateBrand, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateBrandMutation()
     const { data } = useGetBrandByIdQuery(id as string, { skip: !id })
+
+    const config: DataContainerConfig = {
+        pageTitle: id ? "Edit Brand" : "Add Brand",
+        backLink: "../",
+    }
 
     const schema = customValidator(fields)
 

@@ -19,12 +19,6 @@ const defaultValues = {
 }
 
 const AddProduct = () => {
-    const config: DataContainerConfig = {
-        pageTitle: "Add Product",
-        backLink: "../",
-    }
-    const [brandOptions, setBrandOptions] = useState<{ label: string, value: string | undefined }[]>([])
-
     const { id } = useParams()
     const { setPreviewImages } = useImagePreview()
     const navigate = useNavigate()
@@ -33,6 +27,12 @@ const AddProduct = () => {
     const [addProduct, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddProductMutation()
     const [updateProduct, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateProductMutation()
     const { data } = useGetProductByIdQuery(id as string, { skip: !id })
+
+    const config: DataContainerConfig = {
+        pageTitle: id ? "Edit Product" : "Add Product",
+        backLink: "../",
+    }
+    const [brandOptions, setBrandOptions] = useState<{ label: string, value: string | undefined }[]>([])
 
     const fields: FieldConfig[] = [
         {

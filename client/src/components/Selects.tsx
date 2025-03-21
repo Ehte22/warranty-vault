@@ -44,7 +44,7 @@ const Selects: React.FC<IFieldProps> = ({ controllerField, field, errors }) => {
                         {...controllerField}
                         value={controllerField.value || ""}
                         onChange={controllerField.onChange}
-
+                        label={field.placeholder}
                     >
                         {field.options && field.options.length > 0 ? (
                             field.options.map((item, i) => (
