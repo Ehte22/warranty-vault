@@ -1,12 +1,12 @@
 import React, { ChangeEvent, useEffect, useState } from "react";
-import { Box, Typography, Button, IconButton, Paper, Grid2, InputLabel, TextField } from "@mui/material";
+import { Box, Typography, Button, IconButton, Paper, Grid2 } from "@mui/material";
 import BurstModeIcon from '@mui/icons-material/BurstMode';
 import { FieldValues, UseFormSetValue } from "react-hook-form";
 import { IFieldProps } from "../hooks/useDynamicForm";
 import { useImagePreview } from "../context/ImageContext";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 
-const InputFile: React.FC<IFieldProps> = ({ field, setValue, errors }) => {
+const InputFile: React.FC<IFieldProps> = ({ field, setValue }) => {
     const [isDragging, setIsDragging] = useState(false);
     const { previewImages, setPreviewImages } = useImagePreview()
 

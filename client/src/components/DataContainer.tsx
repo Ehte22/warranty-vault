@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Button, Grid2, IconButton, Paper, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faRotate } from '@fortawesome/free-solid-svg-icons';
@@ -17,7 +17,7 @@ export interface DataContainerConfig {
     tableColumns?: any
     totalRecords?: any
     totalPages?: any
-    onSearch?: any
+    onSearch?: (query: string) => void;
     onPageChange?: any
     pageIndex?: number
     pageSize?: number
@@ -28,11 +28,13 @@ export interface DataContainerProps {
 }
 
 const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
-    const theme = useTheme()
-    const isXsScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const [searchQuery, setSearchQuery] = useState<string>("")
 
+    const theme = useTheme()
     const location = useLocation()
     const navigate = useNavigate()
+
+    const isXsScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
     const handleAdd = () => {
         navigate(`${location.pathname.replace(/\/$/, '')}/add`)
@@ -45,6 +47,13 @@ const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
     const handleReload = () => {
         window.location.reload()
     }
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(event.target.value);
+        if (config.onSearch) {
+            config.onSearch(event.target.value);
+        }
+    };
 
     return <>
         <Paper sx={{ p: 2 }}>
@@ -113,6 +122,7 @@ const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
                                     label="Search"
                                     variant="outlined"
                                     size="small"
+                                    onChange={handleSearchChange}
                                     slotProps={{
                                         input: {
                                             endAdornment: (

@@ -13,5 +13,5 @@ export const useDebounce = <T>(value: T, delay = 500) => {
         }
     }, [value, delay])
 
-        return debounceValue
+    return debounceValue
 }

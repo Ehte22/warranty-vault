@@ -33,12 +33,14 @@ const selectStyles = {
 };
 
 const Selects: React.FC<IFieldProps> = ({ controllerField, field, errors }) => {
+    const isError = Boolean(errors)
     return <>
         <Paper >
             <Stack>
                 <FormControl fullWidth sx={selectStyles} error={Boolean(errors)}>
                     <InputLabel>{field.placeholder}</InputLabel>
                     <Select
+                        error={isError}
                         {...controllerField}
                         value={controllerField.value || ""}
                         onChange={controllerField.onChange}

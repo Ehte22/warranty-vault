@@ -7,7 +7,7 @@ import { addBrandRules } from "../rules/brand.rules"
 import cloudinary from "../utils/uploadConfig"
 
 // Get All
-export const getAllBrands = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+export const getAllProducts = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
 
     const { userId } = req.user as IUserProtected

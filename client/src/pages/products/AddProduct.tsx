@@ -3,61 +3,19 @@ import DataContainer, { DataContainerConfig } from '../../components/DataContain
 import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
-
-const fields: FieldConfig[] = [
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "brand",
-        type: "text",
-        placeholder: "Brand",
-        rules: { required: true, min: 2, max: 100 }
-    },
-]
+import { useGetBrandsQuery } from '../../redux/apis/brand.api'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useImagePreview } from '../../context/ImageContext'
+import { useAddProductMutation, useGetProductByIdQuery, useUpdateProductMutation } from '../../redux/apis/product.api'
+import Toast from '../../components/Toast'
 
 const defaultValues = {
     name: "",
     brand: "",
+    model: "",
+    purchaseDate: "",
+    image: ""
 }
 
 const AddProduct = () => {
@@ -65,61 +23,184 @@ const AddProduct = () => {
         pageTitle: "Add Product",
         backLink: "../",
     }
+    const [brandOptions, setBrandOptions] = useState<{ label: string, value: string | undefined }[]>([])
 
+    const { id } = useParams()
+    const { setPreviewImages } = useImagePreview()
+    const navigate = useNavigate()
+
+    const { data: brands } = useGetBrandsQuery({ isFetchAll: true })
+    const [addProduct, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddProductMutation()
+    const [updateProduct, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateProductMutation()
+    const { data } = useGetProductByIdQuery(id as string, { skip: !id })
+
+    const fields: FieldConfig[] = [
+        {
+            name: "name",
+            type: "text",
+            placeholder: "Name",
+            rules: { required: true, min: 2, max: 100 }
+        },
+        {
+            name: "brand",
+            type: "autoComplete",
+            placeholder: "Select Brand",
+            options: brandOptions,
+            rules: { required: true }
+        },
+        {
+            name: "model",
+            type: "text",
+            placeholder: "Model",
+            rules: { required: true, min: 2, max: 100 }
+        },
+        {
+            name: "purchaseDate",
+            type: "date",
+            placeholder: "Purchase Date",
+            rules: { required: true }
+        },
+        {
+            name: "image",
+            type: "file",
+            label: "Image",
+            rules: { required: false, file: true }
+        },
+    ]
 
     const schema = customValidator(fields)
 
     type FormValues = z.infer<typeof schema>
 
     const onSubmit = (values: FormValues) => {
+        const brand = brands?.result.find(item => item._id === values.brand)
+
+        let updatedData = values
+        if (brand) {
+            updatedData = { ...values, brand: { _id: brand._id, name: brand.name } }
+        }
+
+        const formData = new FormData()
+
+        Object.keys(updatedData).forEach((key) => {
+            if (typeof updatedData[key] === "object") {
+                Object.keys(updatedData[key]).forEach((item) => {
+                    formData.append(key, updatedData[key][item])
+                })
+            } else {
+                formData.append(key, updatedData[key])
+            }
+        })
+
+        if (id && data) {
+            updateProduct({ id, productData: formData })
+        } else {
+            addProduct(formData)
+        }
 
     }
 
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+
+    useEffect(() => {
+        if (id && data) {
+            setValue("name", data.name)
+            // setValue("brand", data.brand.name)
+
+            // if (data.image) {
+            //     setValue("image", data.image)
+            //     setPreviewImages([data.image])
+            // }
+        }
+    }, [id, data])
+
+    useEffect(() => {
+        if (brands?.result) {
+            const transformedData = brands.result.map((item) => {
+                return { label: item.name, value: item._id }
+            })
+            setBrandOptions(transformedData)
+        }
+    }, [brands?.result])
+
+    useEffect(() => {
+        if (isAddSuccess) {
+            setTimeout(() => {
+                navigate("/products")
+            }, 2000);
+        }
+    }, [isAddSuccess])
+
+    useEffect(() => {
+        if (isUpdateSuccess) {
+            setTimeout(() => {
+                navigate("/products")
+            }, 2000);
+        }
+    }, [isUpdateSuccess])
+
 
     return <>
-        <DataContainer config={config} />
-        <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-            <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-                <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
+        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
+        {isAddError && !id && <Toast type="error" message={addError as string} />}
 
-                    {/* Name */}
-                    <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
-                        {renderSingleInput("name")}
+        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
+        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+
+        <Box>
+            <DataContainer config={config} />
+            <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
+                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                    <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
+
+                        {/* Name */}
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
+                            {renderSingleInput("name")}
+                        </Grid2>
+
+                        {/* Brand */}
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                            {renderSingleInput("brand")}
+                        </Grid2>
+
+                        {/* Model */}
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                            {renderSingleInput("model")}
+                        </Grid2>
+
+                        {/* Purchase Date */}
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                            {renderSingleInput("purchaseDate")}
+                        </Grid2>
+
+                        {/* Image */}
+                        <Grid2 size={{ xs: 12 }} >
+                            {renderSingleInput("image")}
+                        </Grid2>
+
                     </Grid2>
 
-                    {/* Brand */}
-                    <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                        {renderSingleInput("brand")}
-                    </Grid2>
+                    <Divider sx={{ mt: 4, mb: 3 }} />
 
-                    {/* Name */}
-                    <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
-                        {renderSingleInput("name")}
-                    </Grid2>
-
-                </Grid2>
-
-                <Divider sx={{ my: 4 }} />
-
-                <Box sx={{ textAlign: "end", px: 3 }}>
-                    <Button
-                        type='button'
-                        onClick={() => reset()}
-                        variant='contained'
-                        sx={{ backgroundColor: "#F3F3F3", py: 0.65 }}>
-                        Reset
-                    </Button>
-                    <Button
-                        type='submit'
-                        variant='contained'
-                        sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
-                        Save
-                    </Button>
+                    <Box sx={{ textAlign: "end", px: 3 }}>
+                        <Button
+                            type='button'
+                            onClick={() => reset()}
+                            variant='contained'
+                            sx={{ backgroundColor: "#F3F3F3", py: 0.65 }}>
+                            Reset
+                        </Button>
+                        <Button
+                            type='submit'
+                            loading={addLoading || updateLoading}
+                            variant='contained'
+                            sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
+                            Save
+                        </Button>
+                    </Box>
                 </Box>
-            </Box>
-        </Paper>
-
+            </Paper>
+        </Box>
     </>
 }
 

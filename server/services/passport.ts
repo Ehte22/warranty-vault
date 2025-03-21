@@ -29,8 +29,6 @@ passport.use(new GoogleStrategy(
         scope: ["profile", "email"]
     },
     async (accessToken, refreshToken, profile, cb) => {
-        console.log(profile);
-
         try {
             let user = await User.findOne({ email: profile._json.email }).lean()
             if (!user) {

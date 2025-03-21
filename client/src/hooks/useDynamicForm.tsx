@@ -8,11 +8,13 @@ import { InputLabel, Typography } from "@mui/material";
 import Selects from "../components/Selects";
 import Textarea from "../components/Textarea";
 import InputFile from "../components/InputFile";
+import AutoComplete from "../components/AutoComplete";
+import DateField from "../components/DateField";
 
 export interface FieldConfig {
     name: string;
     label?: string;
-    type: "text" | "password" | "email" | "number" | "color" | "range" | "date" | "time" | "select" | "radio" | "checkbox" | "file" | "textarea" | "formGroup" | "formArray" | "submit" | "searchSelect";
+    type: "text" | "password" | "email" | "number" | "color" | "range" | "date" | "time" | "select" | "radio" | "checkbox" | "file" | "textarea" | "formGroup" | "formArray" | "submit" | "autoComplete";
     placeholder?: string;
     options?: { name?: string | number, label?: string; value?: string | number, description?: string | number, disabled?: boolean, className?: string }[];
     className?: string
@@ -123,7 +125,6 @@ const useDynamicForm = <T extends FieldValues>({
                             case "number":
                             case "color":
                             case "range":
-                            case "date":
                             case "time":
                                 return <>
                                     <Inputs
@@ -133,15 +134,27 @@ const useDynamicForm = <T extends FieldValues>({
                                         disabled={disabledFields.includes(field.name)} />
                                 </>
 
+                            case "date":
+                                return <>
+                                    <DateField
+                                        controllerField={controllerField}
+                                        field={field}
+                                        errors={errors[field.name as keyof T]?.message?.toString()} />
+                                </>
+
                             case "select":
                                 return <>
                                     <Selects controllerField={controllerField} field={field} errors={errors[field.name as keyof T]?.message?.toString()} />
                                 </>
 
-                            // case "searchSelect":
-                            //     return <>
-                            //         <SearchSelect controllerField={controllerField} field={field} />
-                            //     </>
+                            case "autoComplete":
+                                return <>
+                                    <AutoComplete
+                                        controllerField={controllerField}
+                                        field={field}
+                                        errors={errors[field.name as keyof T]?.message?.toString()}
+                                    />
+                                </>
 
                             // case "radio":
                             //     return <>

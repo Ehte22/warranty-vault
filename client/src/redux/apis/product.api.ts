@@ -1,18 +1,18 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { createCustomBaseQuery } from "./customBaseQuery.api"
-import { IBrand } from "../../models/brand.interface"
 import { IPagination } from "../../models/pagination.interface"
+import { IProduct } from "../../models/product.interface"
 
-const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/brand`
+const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/product`
 const customBaseQuery = createCustomBaseQuery(baseUrl)
 
-export const brandApi = createApi({
-    reducerPath: "brandApi",
+export const productApi = createApi({
+    reducerPath: "productApi",
     baseQuery: customBaseQuery,
-    tagTypes: ["brand"],
+    tagTypes: ["product"],
     endpoints: (builder) => {
         return {
-            getBrands: builder.query<{ result: IBrand[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getProducts: builder.query<{ result: IProduct[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",
@@ -20,54 +20,54 @@ export const brandApi = createApi({
                         params: queryParams
                     }
                 },
-                transformResponse: (data: { result: IBrand[], pagination: IPagination }) => {
+                transformResponse: (data: { result: IProduct[], pagination: IPagination }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["brand"]
+                providesTags: ["product"]
             }),
 
-            getBrandById: builder.query<IBrand, string>({
+            getProductById: builder.query<IProduct, string>({
                 query: (id) => {
                     return {
                         url: `/${id}`,
                         method: "GET"
                     }
                 },
-                transformResponse: (data: { result: IBrand }) => {
+                transformResponse: (data: { result: IProduct }) => {
                     return data.result
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["brand"]
+                providesTags: ["product"]
             }),
 
-            addBrand: builder.mutation<{ message: string, result: IBrand }, FormData>({
-                query: brandData => {
+            addProduct: builder.mutation<{ message: string, result: IProduct }, FormData>({
+                query: productData => {
                     return {
                         url: "/add",
                         method: "POST",
-                        body: brandData
+                        body: productData
                     }
                 },
-                transformResponse: (data: { message: string, result: IBrand }) => {
+                transformResponse: (data: { message: string, result: IProduct }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["brand"]
+                invalidatesTags: ["product"]
             }),
 
-            updateBrand: builder.mutation<string, { id: string, brandData: FormData }>({
-                query: ({ id, brandData }) => {
+            updateProduct: builder.mutation<string, { id: string, productData: FormData }>({
+                query: ({ id, productData }) => {
                     return {
                         url: `/update/${id}`,
                         method: "PUT",
-                        body: brandData
+                        body: productData
                     }
                 },
                 transformResponse: (data: { message: string }) => {
@@ -76,10 +76,10 @@ export const brandApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["brand"]
+                invalidatesTags: ["product"]
             }),
 
-            updateStatus: builder.mutation<string, { id: string, status: string }>({
+            updateProductStatus: builder.mutation<string, { id: string, status: string }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,
@@ -93,10 +93,10 @@ export const brandApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["brand"]
+                invalidatesTags: ["product"]
             }),
 
-            deleteBrand: builder.mutation<string, string>({
+            deleteProduct: builder.mutation<string, string>({
                 query: (id) => {
                     return {
                         url: `/delete/${id}`,
@@ -109,7 +109,7 @@ export const brandApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["brand"]
+                invalidatesTags: ["product"]
             }),
 
         }
@@ -117,10 +117,10 @@ export const brandApi = createApi({
 })
 
 export const {
-    useGetBrandsQuery,
-    useGetBrandByIdQuery,
-    useAddBrandMutation,
-    useUpdateBrandMutation,
-    useUpdateStatusMutation,
-    useDeleteBrandMutation
-} = brandApi
+    useGetProductsQuery,
+    useGetProductByIdQuery,
+    useAddProductMutation,
+    useUpdateProductMutation,
+    useUpdateProductStatusMutation,
+    useDeleteProductMutation
+} = productApi

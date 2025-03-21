@@ -6,6 +6,7 @@ dotenv.config()
 
 export interface IUserProtected {
     userId: string;
+    name: string;
     role: string;
     [key: string]: any;
 }

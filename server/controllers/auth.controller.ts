@@ -87,7 +87,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         return res.status(403).json({ message: "Your account has been deactivated. Contact support." });
     }
 
-    const token = generateToken({ userId: user._id, role: user.role })
+    const token = generateToken({ userId: user._id, name: user.name, role: user.role })
 
     // await User.findByIdAndUpdate(user._id, { sessionToken: token })
 
@@ -137,7 +137,7 @@ export const googleLoginResponse = asyncHandler(async (req: Request, res: Respon
             return res.status(400).json({ message: info.message })
         }
 
-        const token = generateToken({ userId: user._id, role: user.role })
+        const token = generateToken({ userId: user._id, name: user.name, role: user.role })
 
         // await User.findByIdAndUpdate(user._id, { sessionToken: token })
 
