@@ -11,8 +11,12 @@ export const policyRules: validationRulesSchema = {
         _id: { required: true },
         name: { required: true }
     },
-    type: { required: true },
+    type: {
+        object: true,
+        _id: { required: true },
+        name: { required: true }
+    },
     provider: { required: true },
     expiryDate: { required: true },
-    document: { required: false },
+    document: { required: true },
 }

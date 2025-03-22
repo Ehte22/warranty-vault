@@ -5,6 +5,7 @@ import { customValidator } from "../utils/validator"
 import cloudinary from "../utils/uploadConfig"
 import Policy from "../models/Policy"
 import { policyRules } from "../rules/policy.rules"
+import Product from "../models/Product"
 
 // Get All
 export const getAllPolicies = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -23,6 +24,7 @@ export const getAllPolicies = asyncHandler(async (req: Request, res: Response, n
             searchQuery
                 ? {
                     $or: [
+                        { "product.name": { $regex: searchQuery, $options: "i" } },
                         { type: { $regex: searchQuery, $options: "i" } },
                         { provider: { $regex: searchQuery, $options: "i" } }
                     ]
@@ -66,7 +68,7 @@ export const getPolicyById = asyncHandler(async (req: Request, res: Response, ne
 
 // Add
 export const addPolicy = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { name } = req.body
+    const { product } = req.body
 
     let document = ""
     if (req.file) {
@@ -85,6 +87,12 @@ export const addPolicy = asyncHandler(async (req: Request, res: Response, next: 
     }
 
     const result = await Policy.create(data)
+
+    await Product.findByIdAndUpdate(
+        product._id,
+        { $push: { policies: result._id } },
+        { new: true }
+    )
 
     res.status(200).json({ message: "Policy Add Successfully", result })
 })

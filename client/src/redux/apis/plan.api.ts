@@ -1,18 +1,18 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { createCustomBaseQuery } from "./customBaseQuery.api"
 import { IPagination } from "../../models/pagination.interface"
-import { IPolicyType } from "../../models/policyType.interface"
+import { IPlan } from "../../models/plan.interface"
 
-const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/policy-type`
+const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/plan`
 const customBaseQuery = createCustomBaseQuery(baseUrl)
 
-export const policyTypeApi = createApi({
-    reducerPath: "policyTypeApi",
+export const planApi = createApi({
+    reducerPath: "planApi",
     baseQuery: customBaseQuery,
-    tagTypes: ["policyType"],
+    tagTypes: ["plan"],
     endpoints: (builder) => {
         return {
-            getPolicyTypes: builder.query<{ result: IPolicyType[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getPlans: builder.query<{ result: IPlan[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",
@@ -20,54 +20,54 @@ export const policyTypeApi = createApi({
                         params: queryParams
                     }
                 },
-                transformResponse: (data: { result: IPolicyType[], pagination: IPagination }) => {
+                transformResponse: (data: { result: IPlan[], pagination: IPagination }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["policyType"]
+                providesTags: ["plan"]
             }),
 
-            getPolicyTypeById: builder.query<IPolicyType, string>({
+            getPlanById: builder.query<IPlan, string>({
                 query: (id) => {
                     return {
                         url: `/${id}`,
                         method: "GET"
                     }
                 },
-                transformResponse: (data: { result: IPolicyType }) => {
+                transformResponse: (data: { result: IPlan }) => {
                     return data.result
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["policyType"]
+                providesTags: ["plan"]
             }),
 
-            addPolicyType: builder.mutation<{ message: string, result: IPolicyType }, { name: string, description?: string }>({
-                query: policyTypeData => {
+            addPlan: builder.mutation<{ message: string, result: IPlan }, { name: string, billingCycle: string, price: string }>({
+                query: planData => {
                     return {
                         url: "/add",
                         method: "POST",
-                        body: policyTypeData
+                        body: planData
                     }
                 },
-                transformResponse: (data: { message: string, result: IPolicyType }) => {
+                transformResponse: (data: { message: string, result: IPlan }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["plan"]
             }),
 
-            updatePolicyType: builder.mutation<string, { id: string, policyTypeData: { name: string, description?: string } }>({
-                query: ({ id, policyTypeData }) => {
+            updatePlan: builder.mutation<string, { id: string, planData: { name: string, billingCycle: string, price: string } }>({
+                query: ({ id, planData }) => {
                     return {
                         url: `/update/${id}`,
                         method: "PUT",
-                        body: policyTypeData
+                        body: planData
                     }
                 },
                 transformResponse: (data: { message: string }) => {
@@ -76,10 +76,10 @@ export const policyTypeApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["plan"]
             }),
 
-            updatePolicyTypeStatus: builder.mutation<string, { id: string, status: string }>({
+            updatePlanStatus: builder.mutation<string, { id: string, status: string }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,
@@ -93,10 +93,10 @@ export const policyTypeApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["plan"]
             }),
 
-            deletePolicyType: builder.mutation<string, string>({
+            deletePlan: builder.mutation<string, string>({
                 query: (id) => {
                     return {
                         url: `/delete/${id}`,
@@ -109,7 +109,7 @@ export const policyTypeApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["plan"]
             }),
 
         }
@@ -117,10 +117,10 @@ export const policyTypeApi = createApi({
 })
 
 export const {
-    useGetPolicyTypesQuery,
-    useGetPolicyTypeByIdQuery,
-    useAddPolicyTypeMutation,
-    useUpdatePolicyTypeMutation,
-    useUpdatePolicyTypeStatusMutation,
-    useDeletePolicyTypeMutation
-} = policyTypeApi
+    useGetPlansQuery,
+    useGetPlanByIdQuery,
+    useAddPlanMutation,
+    useUpdatePlanMutation,
+    useUpdatePlanStatusMutation,
+    useDeletePlanMutation
+} = planApi

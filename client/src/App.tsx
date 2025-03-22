@@ -14,6 +14,10 @@ import AddBrand from "./pages/brand/AddBrand";
 import { ImageContextProvider } from "./context/ImageContext";
 import Policies from "./pages/policy/Policies";
 import AddPolicy from "./pages/policy/AddPolicy";
+import PolicyTypes from "./pages/policy-types/PolicyTypes";
+import AddPolicyType from "./pages/policy-types/AddPolicyType";
+import Plans from "./pages/plan/Plans";
+import AddPlan from "./pages/plan/AddPlan";
 
 const theme = createTheme({
   palette: {
@@ -67,6 +71,18 @@ const App = () => {
                 <Route index element={<Policies />} />
                 <Route path="add" element={<AddPolicy />} />
                 <Route path="update/:id" element={<AddPolicy />} />
+              </Route>
+
+              <Route path="policy-types">
+                <Route index element={<PolicyTypes />} />
+                <Route path="add" element={<AddPolicyType />} />
+                <Route path="update/:id" element={<AddPolicyType />} />
+              </Route>
+
+              <Route path="plans">
+                <Route index element={<Plans />} />
+                <Route path="add" element={<AddPlan />} />
+                <Route path="update/:id" element={<AddPlan />} />
               </Route>
 
             </Route>

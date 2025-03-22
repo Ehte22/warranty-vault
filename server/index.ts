@@ -13,7 +13,8 @@ import brandRouter from "./routes/brand.routes";
 import { protectedRoute } from "./utils/protected";
 import productRouter from "./routes/product.routes";
 import policyRouter from "./routes/policy.routes";
-import policyTypeRouter from "./routes/policType.routes";
+import policyTypeRouter from "./routes/policyType.routes";
+import planRouter from "./routes/plan.routes";
 
 dotenv.config()
 app.use(express.json())
@@ -43,6 +44,7 @@ app.use("/api/v1/brand", protectedRoute, brandRouter)
 app.use("/api/v1/product", protectedRoute, productRouter)
 app.use("/api/v1/policy", protectedRoute, policyRouter)
 app.use("/api/v1/policy-type", protectedRoute, policyTypeRouter)
+app.use("/api/v1/plan", protectedRoute, planRouter)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({ message: "Resource not found", });

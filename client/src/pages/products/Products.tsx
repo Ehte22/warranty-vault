@@ -31,13 +31,20 @@ const Products = () => {
     const [deleteProduct, { data: message, isSuccess }] = useDeleteProductMutation()
 
     const columns: GridColDef[] = [
-        { field: 'serialNo', headerName: 'Sr. No.', minWidth: 80, flex: 0.5, },
+        { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4 },
         { field: 'name', headerName: 'Name', minWidth: 200, flex: 1 },
         {
             field: 'brand', headerName: 'Brand', minWidth: 200, flex: 1,
             valueGetter: (_, row) => row.brand.name || ""
         },
         { field: 'model', headerName: 'Model', minWidth: 200, flex: 1 },
+        {
+            field: 'purchaseDate', headerName: 'Purchase Date', minWidth: 150, flex: 0.7,
+            valueGetter: (_, row) => {
+                const date = new Date(row.purchaseDate);
+                return date.toISOString().split("T")[0];
+            }
+        },
         {
             field: 'image',
             headerName: 'Image',

@@ -14,21 +14,21 @@ export interface IProduct {
 
 const productSchema = new Schema<IProduct>({
     user: {
-        _id: { type: mongoose.Schema.ObjectId, required: true },
+        _id: { type: mongoose.Schema.ObjectId, required: true, ref: "User" },
         name: { type: String, required: true }
     },
     brand: {
-        _id: { type: mongoose.Schema.ObjectId, required: true },
+        _id: { type: mongoose.Schema.ObjectId, required: true, ref: "Brand" },
         name: { type: String, required: true }
     },
-    name: { type: String, required: true },
-    model: { type: String, required: true },
-    purchaseDate: { type: Date, required: true },
-    image: { type: String },
+    name: { type: String, required: true, trim: true },
+    model: { type: String, required: true, trim: true },
+    purchaseDate: { type: Date, required: true, trim: true },
+    image: { type: String, trim: true },
     isActive: { type: Boolean, default: true },
-    policies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Policy" }],
+    policies: [mongoose.Schema.Types.ObjectId],
     deletedAt: { type: Date, default: null },
 }, { timestamps: true })
 
-const Product: Model<IProduct> = mongoose.model<IProduct>("product", productSchema)
+const Product: Model<IProduct> = mongoose.model<IProduct>("Product", productSchema)
 export default Product

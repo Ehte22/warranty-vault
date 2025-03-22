@@ -4,6 +4,8 @@ import authSlice from "./slices/auth.slice"
 import { brandApi } from "./apis/brand.api";
 import { productApi } from "./apis/product.api";
 import { policyApi } from "./apis/policy.api";
+import { policyTypeApi } from "./apis/policyType.api";
+import { planApi } from "./apis/plan.api";
 
 const reduxStore = configureStore({
     reducer: {
@@ -11,6 +13,8 @@ const reduxStore = configureStore({
         [brandApi.reducerPath]: brandApi.reducer,
         [productApi.reducerPath]: productApi.reducer,
         [policyApi.reducerPath]: policyApi.reducer,
+        [policyTypeApi.reducerPath]: policyTypeApi.reducer,
+        [planApi.reducerPath]: planApi.reducer,
         auth: authSlice,
     },
     middleware: (getDefaultMiddleware) =>
@@ -19,6 +23,8 @@ const reduxStore = configureStore({
             brandApi.middleware,
             productApi.middleware,
             policyApi.middleware,
+            policyTypeApi.middleware,
+            planApi.middleware,
         )
 })
 

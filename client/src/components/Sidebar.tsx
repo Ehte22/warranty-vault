@@ -28,6 +28,11 @@ const NAVIGATION = [
         icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
     },
     {
+        segment: 'policy-types',
+        title: 'Policy Types',
+        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+    },
+    {
         segment: 'brands',
         title: 'Brands',
         icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,

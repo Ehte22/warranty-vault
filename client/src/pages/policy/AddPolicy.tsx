@@ -9,6 +9,7 @@ import { useImagePreview } from '../../context/ImageContext'
 import Toast from '../../components/Toast'
 import { useGetProductsQuery } from '../../redux/apis/product.api'
 import { useAddPolicyMutation, useGetPolicyByIdQuery, useUpdatePolicyMutation } from '../../redux/apis/policy.api'
+import { useGetPolicyTypesQuery } from '../../redux/apis/policyType.api'
 
 const defaultValues = {
     product: "",
@@ -20,6 +21,7 @@ const defaultValues = {
 
 const AddPolicy = () => {
     const [productOptions, setProductOptions] = useState<{ label: string, value: string | undefined }[]>([])
+    const [policyTypeOptions, setPolicyTypeOptions] = useState<{ label: string, value: string | undefined }[]>([])
 
     const { id } = useParams()
     const { setPreviewImages } = useImagePreview()
@@ -31,6 +33,7 @@ const AddPolicy = () => {
     }
 
     const { data: products } = useGetProductsQuery({ isFetchAll: true })
+    const { data: policyTypes } = useGetPolicyTypesQuery({ isFetchAll: true })
     const [addPolicy, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPolicyMutation()
     const [updatePolicy, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePolicyMutation()
     const { data } = useGetPolicyByIdQuery(id as string, { skip: !id })
@@ -45,12 +48,9 @@ const AddPolicy = () => {
         },
         {
             name: "type",
-            type: "select",
+            type: "autoComplete",
             placeholder: "Select Type",
-            options: [
-                { label: "Warranty", value: "Warranty" },
-                { label: "Insurance", value: "Insurance" },
-            ],
+            options: policyTypeOptions,
             rules: { required: true }
         },
         {
@@ -69,7 +69,7 @@ const AddPolicy = () => {
             name: "document",
             type: "file",
             label: "Document",
-            rules: { required: false, file: true }
+            rules: { required: true, file: true }
         },
     ]
 
@@ -79,10 +79,21 @@ const AddPolicy = () => {
 
     const onSubmit = (values: FormValues) => {
         const product = products?.result.find(item => item._id === values.product)
+        const type = policyTypes?.result.find(item => item._id === values.type)
 
         let updatedData = values
         if (product) {
-            updatedData = { ...values, product: { _id: product._id, name: product.name } }
+            updatedData = {
+                ...values,
+                product: { _id: product._id, name: product.name },
+            }
+        }
+
+        if (type) {
+            updatedData = {
+                ...values,
+                type: { _id: type._id, name: type.name }
+            }
         }
 
         const formData = new FormData()
@@ -123,7 +134,7 @@ const AddPolicy = () => {
     useEffect(() => {
         if (id && data) {
             setValue("product", data.product?._id || "")
-            setValue("type", data.type)
+            setValue("type", data.type?._id || "")
             setValue("provider", data.provider)
             setValue("expiryDate", data.expiryDate)
 
@@ -142,6 +153,15 @@ const AddPolicy = () => {
             setProductOptions(transformedData)
         }
     }, [products?.result])
+
+    useEffect(() => {
+        if (policyTypes?.result) {
+            const transformedData = policyTypes.result.map((item) => {
+                return { label: item.name, value: item._id }
+            })
+            setPolicyTypeOptions(transformedData)
+        }
+    }, [policyTypes?.result])
 
     useEffect(() => {
         if (isAddSuccess) {

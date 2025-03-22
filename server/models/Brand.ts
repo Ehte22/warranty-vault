@@ -11,15 +11,15 @@ export interface IBrand extends Document {
 
 const brandSchema = new Schema<IBrand>({
     user: {
-        _id: { type: mongoose.Schema.ObjectId, required: true },
+        _id: { type: mongoose.Schema.ObjectId, required: true, ref: "User" },
         name: { type: String, required: true }
     },
-    name: { type: String, required: true, unique: true },
-    description: { type: String },
-    logo: { type: String },
+    name: { type: String, required: true, unique: true, trim: true },
+    description: { type: String, trim: true },
+    logo: { type: String, trim: true },
     isActive: { type: Boolean, default: true },
     deletedAt: { type: Date, default: null },
 }, { timestamps: true })
 
-const Brand: Model<IBrand> = mongoose.model<IBrand>("brand", brandSchema)
+const Brand: Model<IBrand> = mongoose.model<IBrand>("Brand", brandSchema)
 export default Brand

@@ -6,40 +6,56 @@ import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect } from 'react'
 import Toast from '../../components/Toast'
-import { useAddPolicyTypeMutation, useGetPolicyTypeByIdQuery, useUpdatePolicyTypeMutation } from '../../redux/apis/policyType.api'
-
-const fields: FieldConfig[] = [
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "description",
-        type: "textarea",
-        placeholder: "Description",
-        rules: { required: false, min: 2, max: 500 }
-    },
-]
+import { useAddPlanMutation, useGetPlanByIdQuery, useUpdatePlanMutation } from '../../redux/apis/plan.api'
 
 const defaultValues = {
     name: "",
-    description: "",
+    billingCycle: "",
+    price: "",
 }
 
-const AddPolicyType = () => {
+const AddPlan = () => {
     const { id } = useParams()
     const navigate = useNavigate()
 
-    const [addPolicyType, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPolicyTypeMutation()
-    const [updatePolicyType, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePolicyTypeMutation()
-    const { data } = useGetPolicyTypeByIdQuery(id as string, { skip: !id })
+    const [addPlan, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPlanMutation()
+    const [updatePlan, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePlanMutation()
+    const { data } = useGetPlanByIdQuery(id as string, { skip: !id })
 
     const config: DataContainerConfig = {
-        pageTitle: id ? "Edit Policy Type" : "Add Policy Type",
+        pageTitle: id ? "Edit Plan" : "Add Plan",
         backLink: "../",
     }
+
+    const fields: FieldConfig[] = [
+        {
+            name: "name",
+            type: "select",
+            placeholder: "Name",
+            options: [
+                { label: "Free", value: "Free" },
+                { label: "Pro", value: "Pro" },
+                { label: "Family", value: "Family" }
+            ],
+            rules: { required: true }
+        },
+        {
+            name: "billingCycle",
+            type: "select",
+            placeholder: "Select Type",
+            options: [
+                { label: "Monthly", value: "Monthly" },
+                { label: "Yearly", value: "Yearly" },
+            ],
+            rules: { required: true }
+        },
+        {
+            name: "price",
+            type: "text",
+            placeholder: "Price",
+            rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+        }
+    ]
 
     const schema = customValidator(fields)
 
@@ -47,9 +63,9 @@ const AddPolicyType = () => {
 
     const onSubmit = (values: FormValues) => {
         if (id && data) {
-            updatePolicyType({ id, policyTypeData: { name: values.name, description: values.description } })
+            updatePlan({ id, planData: { name: values.name, billingCycle: values.billingCycle, price: values.price } })
         } else {
-            addPolicyType({ name: values.name, description: values.description })
+            addPlan({ name: values.name, billingCycle: values.billingCycle, price: values.price })
         }
     }
 
@@ -58,14 +74,15 @@ const AddPolicyType = () => {
     useEffect(() => {
         if (id && data) {
             setValue("name", data.name)
-            setValue("description", data.description)
+            setValue("billingCycle", data.billingCycle)
+            setValue("price", data.price)
         }
     }, [id, data])
 
     useEffect(() => {
         if (isAddSuccess) {
             setTimeout(() => {
-                navigate("/policy-types")
+                navigate("/plans")
             }, 2000);
         }
     }, [isAddSuccess])
@@ -73,7 +90,7 @@ const AddPolicyType = () => {
     useEffect(() => {
         if (isUpdateSuccess) {
             setTimeout(() => {
-                navigate("/policy-types")
+                navigate("/plans")
             }, 2000);
         }
     }, [isUpdateSuccess])
@@ -99,7 +116,12 @@ const AddPolicyType = () => {
 
                         {/* Description */}
                         <Grid2 size={{ xs: 12, md: 6 }} >
-                            {renderSingleInput("description")}
+                            {renderSingleInput("billingCycle")}
+                        </Grid2>
+
+                        {/* Description */}
+                        <Grid2 size={{ xs: 12, md: 6 }} >
+                            {renderSingleInput("price")}
                         </Grid2>
 
                     </Grid2>
@@ -128,4 +150,4 @@ const AddPolicyType = () => {
     </>
 }
 
-export default AddPolicyType
+export default AddPlan

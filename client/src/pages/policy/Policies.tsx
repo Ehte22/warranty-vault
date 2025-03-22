@@ -31,13 +31,23 @@ const Products = () => {
     const [deletePolicy, { data: message, isSuccess }] = useDeletePolicyMutation()
 
     const columns: GridColDef[] = [
-        { field: 'serialNo', headerName: 'Sr. No.', minWidth: 80, flex: 0.5, },
+        { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
         {
             field: 'product', headerName: 'Product', minWidth: 200, flex: 1,
             valueGetter: (_, row) => row.product.name || ""
         },
-        { field: 'type', headerName: 'Type', minWidth: 200, flex: 1 },
+        {
+            field: 'type', headerName: 'Type', minWidth: 200, flex: 1,
+            valueGetter: (_, row) => row.type.name || ""
+        },
         { field: 'provider', headerName: 'Provider', minWidth: 200, flex: 1 },
+        {
+            field: 'expiryDate', headerName: 'Expiry Date', minWidth: 150, flex: 0.7,
+            valueGetter: (_, row) => {
+                const date = new Date(row.expiryDate);
+                return date.toISOString().split("T")[0];
+            }
+        },
         {
             field: 'document',
             headerName: 'document',
