@@ -15,6 +15,7 @@ import productRouter from "./routes/product.routes";
 import policyRouter from "./routes/policy.routes";
 import policyTypeRouter from "./routes/policyType.routes";
 import planRouter from "./routes/plan.routes";
+import notificationRouter from "./routes/notification.routes";
 
 dotenv.config()
 app.use(express.json())
@@ -45,6 +46,7 @@ app.use("/api/v1/product", protectedRoute, productRouter)
 app.use("/api/v1/policy", protectedRoute, policyRouter)
 app.use("/api/v1/policy-type", protectedRoute, policyTypeRouter)
 app.use("/api/v1/plan", protectedRoute, planRouter)
+app.use("/api/v1/notification", protectedRoute, notificationRouter)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({ message: "Resource not found", });

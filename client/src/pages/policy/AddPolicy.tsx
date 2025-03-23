@@ -82,16 +82,10 @@ const AddPolicy = () => {
         const type = policyTypes?.result.find(item => item._id === values.type)
 
         let updatedData = values
-        if (product) {
+        if (product && type) {
             updatedData = {
                 ...values,
                 product: { _id: product._id, name: product.name },
-            }
-        }
-
-        if (type) {
-            updatedData = {
-                ...values,
                 type: { _id: type._id, name: type.name }
             }
         }

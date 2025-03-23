@@ -90,7 +90,7 @@ export const addPolicy = asyncHandler(async (req: Request, res: Response, next: 
 
     await Product.findByIdAndUpdate(
         product._id,
-        { $push: { policies: result._id } },
+        { $push: { policies: { _id: result._id, name: result.type.name } } },
         { new: true }
     )
 

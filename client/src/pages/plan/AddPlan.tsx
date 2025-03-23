@@ -4,30 +4,26 @@ import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Toast from '../../components/Toast'
 import { useAddPlanMutation, useGetPlanByIdQuery, useUpdatePlanMutation } from '../../redux/apis/plan.api'
+import { IPlan } from '../../models/plan.interface'
 
 const defaultValues = {
     name: "",
     billingCycle: "",
     price: "",
+    maxBrands: "",
+    maxProducts: "",
+    maxPolicies: "",
+    maxPolicyTypes: "",
 }
 
 const AddPlan = () => {
     const { id } = useParams()
     const navigate = useNavigate()
-
-    const [addPlan, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPlanMutation()
-    const [updatePlan, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePlanMutation()
-    const { data } = useGetPlanByIdQuery(id as string, { skip: !id })
-
-    const config: DataContainerConfig = {
-        pageTitle: id ? "Edit Plan" : "Add Plan",
-        backLink: "../",
-    }
-
-    const fields: FieldConfig[] = [
+    const [selectedPlan, setSelectedPlan] = useState("")
+    const [fields, setFields] = useState<FieldConfig[]>([
         {
             name: "name",
             type: "select",
@@ -39,23 +35,16 @@ const AddPlan = () => {
             ],
             rules: { required: true }
         },
-        {
-            name: "billingCycle",
-            type: "select",
-            placeholder: "Select Type",
-            options: [
-                { label: "Monthly", value: "Monthly" },
-                { label: "Yearly", value: "Yearly" },
-            ],
-            rules: { required: true }
-        },
-        {
-            name: "price",
-            type: "text",
-            placeholder: "Price",
-            rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
-        }
-    ]
+    ])
+
+    const [addPlan, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPlanMutation()
+    const [updatePlan, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePlanMutation()
+    const { data } = useGetPlanByIdQuery(id as string, { skip: !id })
+
+    const config: DataContainerConfig = {
+        pageTitle: id ? "Edit Plan" : "Add Plan",
+        backLink: "../",
+    }
 
     const schema = customValidator(fields)
 
@@ -63,19 +52,85 @@ const AddPlan = () => {
 
     const onSubmit = (values: FormValues) => {
         if (id && data) {
-            updatePlan({ id, planData: { name: values.name, billingCycle: values.billingCycle, price: values.price } })
+            updatePlan({ id, planData: values as IPlan })
         } else {
-            addPlan({ name: values.name, billingCycle: values.billingCycle, price: values.price })
+            addPlan(values as IPlan)
         }
     }
 
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+
+    useEffect(() => {
+        const subscription = watch((values) => {
+            setSelectedPlan(values.name)
+            if (values.name === "Pro" || values.name === "Family") {
+                setFields([
+                    ...fields,
+                    {
+                        name: "billingCycle",
+                        type: "select",
+                        placeholder: "Select Type",
+                        options: [
+                            { label: "Monthly", value: "Monthly" },
+                            { label: "Yearly", value: "Yearly" },
+                        ],
+                        rules: { required: true }
+                    },
+                    {
+                        name: "price",
+                        type: "text",
+                        placeholder: "Price",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                    },
+                ])
+            } else if (values.name === "Free") {
+                setFields([
+                    ...fields,
+                    {
+                        name: "maxProducts",
+                        type: "text",
+                        placeholder: "Max Products",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                    },
+                    {
+                        name: "maxPolicies",
+                        type: "text",
+                        placeholder: "Max Policies",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                    },
+                    {
+                        name: "maxPolicyTypes",
+                        type: "text",
+                        placeholder: "Max Policy Types",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                    },
+                    {
+                        name: "maxBrands",
+                        type: "text",
+                        placeholder: "Max Brands",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                    },
+                ])
+            } else {
+                setFields([...fields])
+            }
+        })
+
+        return () => subscription.unsubscribe()
+    }, [watch])
+
 
     useEffect(() => {
         if (id && data) {
             setValue("name", data.name)
             setValue("billingCycle", data.billingCycle)
             setValue("price", data.price)
+
+            if (data.maxBrands) setValue("maxBrands", data.maxBrands)
+            if (data.maxProducts) setValue("maxProducts", data.maxProducts)
+            if (data.maxPolicies) setValue("maxPolicies", data.maxProducts)
+            if (data.maxPolicyTypes) setValue("maxPolicyTypes", data.maxProducts)
+
         }
     }, [id, data])
 
@@ -110,19 +165,49 @@ const AddPlan = () => {
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Name */}
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
                             {renderSingleInput("name")}
                         </Grid2>
 
-                        {/* Description */}
-                        <Grid2 size={{ xs: 12, md: 6 }} >
-                            {renderSingleInput("billingCycle")}
+                        {/* Billing Cycle */}
+                        {(selectedPlan === "Pro" || selectedPlan === "Family") &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("billingCycle")}
+                            </Grid2>
+                        }
+
+                        {/* Price */}
+                        {(selectedPlan === "Pro" || selectedPlan === "Family") &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("price")}
+                            </Grid2>
+                        }
+
+                        {/* Max Brands */}
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                            {renderSingleInput("maxBrands")}
                         </Grid2>
 
-                        {/* Description */}
-                        <Grid2 size={{ xs: 12, md: 6 }} >
-                            {renderSingleInput("price")}
-                        </Grid2>
+                        {/* Max Products */}
+                        {(selectedPlan === "Free") &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("maxProducts")}
+                            </Grid2>
+                        }
+
+                        {/* Max Policies */}
+                        {(selectedPlan === "Free") &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("maxPolicies")}
+                            </Grid2>
+                        }
+
+                        {/* Max Policy Types */}
+                        {(selectedPlan === "Free") &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("maxPolicyTypes")}
+                            </Grid2>
+                        }
 
                     </Grid2>
 
@@ -145,8 +230,8 @@ const AddPlan = () => {
                         </Button>
                     </Box>
                 </Box>
-            </Paper>
-        </Box>
+            </Paper >
+        </Box >
     </>
 }
 

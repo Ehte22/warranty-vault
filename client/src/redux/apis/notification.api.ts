@@ -1,18 +1,18 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { createCustomBaseQuery } from "./customBaseQuery.api"
 import { IPagination } from "../../models/pagination.interface"
-import { IPlan } from "../../models/plan.interface"
+import { INotification } from "../../models/notification.interface"
 
-const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/plan`
+const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/notification`
 const customBaseQuery = createCustomBaseQuery(baseUrl)
 
-export const planApi = createApi({
-    reducerPath: "planApi",
+export const notificationApi = createApi({
+    reducerPath: "notificationApi",
     baseQuery: customBaseQuery,
-    tagTypes: ["plan"],
+    tagTypes: ["notification"],
     endpoints: (builder) => {
         return {
-            getPlans: builder.query<{ result: IPlan[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getNotification: builder.query<{ result: INotification[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",
@@ -20,54 +20,54 @@ export const planApi = createApi({
                         params: queryParams
                     }
                 },
-                transformResponse: (data: { result: IPlan[], pagination: IPagination }) => {
+                transformResponse: (data: { result: INotification[], pagination: IPagination }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["plan"]
+                providesTags: ["notification"]
             }),
 
-            getPlanById: builder.query<IPlan, string>({
+            getNotificationById: builder.query<INotification, string>({
                 query: (id) => {
                     return {
                         url: `/${id}`,
                         method: "GET"
                     }
                 },
-                transformResponse: (data: { result: IPlan }) => {
+                transformResponse: (data: { result: INotification }) => {
                     return data.result
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["plan"]
+                providesTags: ["notification"]
             }),
 
-            addPlan: builder.mutation<{ message: string, result: IPlan }, IPlan>({
-                query: planData => {
+            addNotification: builder.mutation<{ message: string, result: INotification }, INotification>({
+                query: notificationData => {
                     return {
                         url: "/add",
                         method: "POST",
-                        body: planData
+                        body: notificationData
                     }
                 },
-                transformResponse: (data: { message: string, result: IPlan }) => {
+                transformResponse: (data: { message: string, result: INotification }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["plan"]
+                invalidatesTags: ["notification"]
             }),
 
-            updatePlan: builder.mutation<string, { id: string, planData: IPlan }>({
-                query: ({ id, planData }) => {
+            updateNotification: builder.mutation<string, { id: string, notificationData: INotification }>({
+                query: ({ id, notificationData }) => {
                     return {
                         url: `/update/${id}`,
                         method: "PUT",
-                        body: planData
+                        body: notificationData
                     }
                 },
                 transformResponse: (data: { message: string }) => {
@@ -76,10 +76,10 @@ export const planApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["plan"]
+                invalidatesTags: ["notification"]
             }),
 
-            updatePlanStatus: builder.mutation<string, { id: string, status: string }>({
+            updateNotificationStatus: builder.mutation<string, { id: string, status: string }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,
@@ -93,10 +93,10 @@ export const planApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["plan"]
+                invalidatesTags: ["notification"]
             }),
 
-            deletePlan: builder.mutation<string, string>({
+            deleteNotification: builder.mutation<string, string>({
                 query: (id) => {
                     return {
                         url: `/delete/${id}`,
@@ -109,7 +109,7 @@ export const planApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["plan"]
+                invalidatesTags: ["notification"]
             }),
 
         }
@@ -117,10 +117,10 @@ export const planApi = createApi({
 })
 
 export const {
-    useGetPlansQuery,
-    useGetPlanByIdQuery,
-    useAddPlanMutation,
-    useUpdatePlanMutation,
-    useUpdatePlanStatusMutation,
-    useDeletePlanMutation
-} = planApi
+    useGetNotificationQuery,
+    useGetNotificationByIdQuery,
+    useAddNotificationMutation,
+    useUpdateNotificationMutation,
+    useUpdateNotificationStatusMutation,
+    useDeleteNotificationMutation
+} = notificationApi

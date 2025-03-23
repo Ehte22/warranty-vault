@@ -1,45 +1,61 @@
-import { Paper } from '@mui/material';
+import { useEffect, useState } from 'react';
 import DataContainer, { DataContainerConfig } from '../../components/DataContainer'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
 import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
+import { Chip, Paper, Stack } from '@mui/material';
 import Toast from '../../components/Toast';
-import { IPlan } from '../../models/plan.interface';
-import { useDeletePlanMutation, useGetPlansQuery } from '../../redux/apis/plan.api';
+import { INotification } from '../../models/notification.interface';
+import { useDeleteNotificationMutation, useGetNotificationQuery } from '../../redux/apis/notification.api';
 
-const Plans = () => {
+const Notifications = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
 
     const config: DataContainerConfig = {
-        pageTitle: "Plans",
+        pageTitle: "Notifications",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
         onSearch: setSearchQuery
     }
 
-    const [plans, setPlans] = useState<IPlan[]>([])
+    const [notifications, setNotifications] = useState<INotification[]>([])
     const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
-    const { data, isLoading } = useGetPlansQuery({
+    const { data, isLoading } = useGetNotificationQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
         searchQuery: debounceSearchQuery.toLowerCase()
     })
-    const [deletePolicyTypes, { data: message, isSuccess }] = useDeletePlanMutation()
+    const [deletePolicy, { data: message, isSuccess }] = useDeleteNotificationMutation()
 
     const columns: GridColDef[] = [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
-        { field: 'name', headerName: 'Name', minWidth: 150, flex: 1 },
         {
-            field: 'billingCycle', headerName: 'Plan Type', minWidth: 150, flex: 1,
-            valueGetter: (_, row) => row.billingCycle || "N/A"
+            field: 'product', headerName: 'Product', minWidth: 150, flex: 1,
+            valueGetter: (_, row) => row.product.name || ""
         },
         {
-            field: 'price', headerName: 'Price', minWidth: 150, flex: 1,
-            valueGetter: (_, row) => row.price || "N/A"
+            field: 'message', headerName: 'Message', minWidth: 300, flex: 2, sortable: false
+        },
+        {
+            field: 'scheduleDate', headerName: 'Schedule Date', minWidth: 150, flex: 0.8,
+            valueGetter: (_, row) => {
+                const date = new Date(row.scheduleDate);
+                return date.toISOString().split("T")[0];
+            }
+        },
+        {
+            field: 'status', headerName: 'status', minWidth: 150, flex: 0.8,
+            renderCell: (params) => {
+                const handleClick = () => {
+                    console.info('You clicked the Chip.');
+                };
+                return <Stack direction="row" sx={{ height: "100%", display: "flex", alignItems: "center" }} >
+                    <Chip label={params.value} variant="outlined" onClick={handleClick} sx={{ borderRadius: 1 }} />
+                </Stack>
+            }
         },
         {
             field: 'actions',
@@ -50,7 +66,7 @@ const Plans = () => {
             filterable: false,
             renderCell: (params) => {
                 return <>
-                    <ActionsMenu id={params.row._id} deleteAction={deletePolicyTypes} />
+                    <ActionsMenu id={params.row._id} deleteAction={deletePolicy} />
                 </>
             }
         }
@@ -61,7 +77,7 @@ const Plans = () => {
             const x = data.result.map((item, index) => {
                 return { ...item, serialNo: index + 1 }
             })
-            setPlans(x)
+            setNotifications(x)
         }
     }, [data?.result])
 
@@ -70,7 +86,7 @@ const Plans = () => {
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid
-                rows={plans}
+                rows={notifications}
                 columns={columns}
                 loading={isLoading}
                 rowCount={data?.pagination.totalEntries || 0}
@@ -87,4 +103,4 @@ const Plans = () => {
     </>
 }
 
-export default Plans
+export default Notifications

@@ -9,7 +9,7 @@ export interface IProduct {
     image?: string
     isActive?: boolean
     deletedAt?: Date | null
-    policies: [mongoose.Schema.Types.ObjectId]
+    policies: { _id: mongoose.Schema.Types.ObjectId, name: string }[]
 }
 
 const productSchema = new Schema<IProduct>({
@@ -26,7 +26,12 @@ const productSchema = new Schema<IProduct>({
     purchaseDate: { type: Date, required: true, trim: true },
     image: { type: String, trim: true },
     isActive: { type: Boolean, default: true },
-    policies: [mongoose.Schema.Types.ObjectId],
+    policies: [
+        {
+            _id: { type: mongoose.Schema.Types.ObjectId, ref: "Policy" },
+            name: { type: String, required: true }
+        }
+    ],
     deletedAt: { type: Date, default: null },
 }, { timestamps: true })
 

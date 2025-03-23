@@ -6,6 +6,7 @@ import { productApi } from "./apis/product.api";
 import { policyApi } from "./apis/policy.api";
 import { policyTypeApi } from "./apis/policyType.api";
 import { planApi } from "./apis/plan.api";
+import { notificationApi } from "./apis/notification.api";
 
 const reduxStore = configureStore({
     reducer: {
@@ -15,6 +16,7 @@ const reduxStore = configureStore({
         [policyApi.reducerPath]: policyApi.reducer,
         [policyTypeApi.reducerPath]: policyTypeApi.reducer,
         [planApi.reducerPath]: planApi.reducer,
+        [notificationApi.reducerPath]: notificationApi.reducer,
         auth: authSlice,
     },
     middleware: (getDefaultMiddleware) =>
@@ -25,6 +27,7 @@ const reduxStore = configureStore({
             policyApi.middleware,
             policyTypeApi.middleware,
             planApi.middleware,
+            notificationApi.middleware,
         )
 })
 

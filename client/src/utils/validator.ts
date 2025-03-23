@@ -188,7 +188,7 @@ export const customValidator = (fields: FieldConfig[]) => {
             if (!item.formArray && !item.formGroup) {
                 return {
                     name: item.name,
-                    label: item.label?.toLowerCase(),
+                    label: item.placeholder?.toLowerCase(),
                     rules: item.rules,
                 };
             }
@@ -198,13 +198,13 @@ export const customValidator = (fields: FieldConfig[]) => {
                 Object.values(item.formGroup).forEach((nestedField) => {
                     nestedRules[nestedField.name] = {
                         ...nestedField.rules,
-                        label: nestedField.label?.toLowerCase()
+                        label: nestedField.placeholder?.toLowerCase()
                     }
                 });
 
                 return {
                     name: item.name,
-                    label: item.label?.toLowerCase(),
+                    label: item.placeholder?.toLowerCase(),
                     rules: { object: true, ...nestedRules },
                 };
             }
@@ -213,7 +213,7 @@ export const customValidator = (fields: FieldConfig[]) => {
                 const nestedRules = extractRules(item.formArray);
                 return {
                     name: item.name,
-                    label: item.label,
+                    label: item.placeholder?.toLowerCase(),
                     rules: nestedRules,
                 };
             }

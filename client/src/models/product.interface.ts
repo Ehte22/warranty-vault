@@ -5,6 +5,7 @@ export interface IProduct {
     image: string
     model: string;
     purchaseDate: Date
+    policies?: { _id: string, name: string }
     isActive?: boolean
     createdAt?: Date
     updatedAt?: Date

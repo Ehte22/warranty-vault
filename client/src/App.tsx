@@ -18,6 +18,8 @@ import PolicyTypes from "./pages/policy-types/PolicyTypes";
 import AddPolicyType from "./pages/policy-types/AddPolicyType";
 import Plans from "./pages/plan/Plans";
 import AddPlan from "./pages/plan/AddPlan";
+import Notifications from "./pages/notifcations/Notifications";
+import AddNotification from "./pages/notifcations/AddNotification";
 
 const theme = createTheme({
   palette: {
@@ -83,6 +85,12 @@ const App = () => {
                 <Route index element={<Plans />} />
                 <Route path="add" element={<AddPlan />} />
                 <Route path="update/:id" element={<AddPlan />} />
+              </Route>
+
+              <Route path="notifications">
+                <Route index element={<Notifications />} />
+                <Route path="add" element={<AddNotification />} />
+                <Route path="update/:id" element={<AddNotification />} />
               </Route>
 
             </Route>

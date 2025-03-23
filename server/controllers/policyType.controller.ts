@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express"
 import asyncHandler from "express-async-handler"
 import { IUserProtected } from "../utils/protected"
 import { customValidator } from "../utils/validator"
-import cloudinary from "../utils/uploadConfig"
 import PolicyType from "../models/PolicyType"
 
 // Get All

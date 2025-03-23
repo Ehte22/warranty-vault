@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response } from "express"
 import asyncHandler from "express-async-handler"
 import { IUserProtected } from "../utils/protected"
-import { customValidator } from "../utils/validator"
-import cloudinary from "../utils/uploadConfig"
+import { customValidator, validationRulesSchema } from "../utils/validator"
 import Plan from "../models/Plan"
-import { planRules } from "../rules/plan.rules"
 
 // Get All
 export const getAllPlans = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -64,20 +62,32 @@ export const getPlanById = asyncHandler(async (req: Request, res: Response, next
 
 // Add
 export const addPlan = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { name } = req.body
+    const { name, billingCycle } = req.body
 
-    const plan = await Plan.findOne({ name }).lean()
+    let plan
+    if (name === "Free") {
+        plan = await Plan.findOne({ name }).lean()
+    } else {
+        plan = await Plan.findOne({ name, billingCycle }).lean()
+    }
+
     if (plan) {
         return res.status(400).json({ message: "Plan Already Exist" })
     }
 
+    const planRules: validationRulesSchema = {
+        name: { required: true },
+        maxProducts: { required: name !== "Free" ? false : true },
+        maxPolicies: { required: name !== "Free" ? false : true },
+        maxPolicyTypes: { required: name !== "Free" ? false : true },
+        maxBrands: { required: name !== "Free" ? false : true },
+        billingCycle: { required: name === "Free" ? false : true },
+        price: { required: name === "Free" ? false : true },
+    }
+
     let data = req.body
-    if (name === "Free") {
-        data = { ...req.body, maxProducts: "2", maxPolicies: "2", maxPolicyTypes: "2", maxBrands: "2" }
-    } else if (name === "Pro") {
-        data = { ...req.body, maxProducts: null, maxPolicies: null, maxPolicyTypes: null, maxBrands: null }
-    } else if (name === "Family") {
-        data = { ...req.body, maxProducts: null, maxPolicies: null, maxPolicyTypes: null, maxBrands: null, allowedFamilyMembers: true }
+    if (name === "Family") {
+        data = { ...req.body, allowedFamilyMembers: true }
     }
 
     const { isError, error } = customValidator(data, planRules)
