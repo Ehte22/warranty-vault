@@ -79,7 +79,7 @@ export const policyApi = createApi({
                 invalidatesTags: ["policy"]
             }),
 
-            updatePolicyStatus: builder.mutation<string, { id: string, status: string }>({
+            updatePolicyStatus: builder.mutation<string, { id: string, status: boolean }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,

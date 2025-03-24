@@ -4,12 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { ValidationRules } from "../utils/validator";
 import Inputs from "../components/Inputs";
-import { InputLabel, Typography } from "@mui/material";
+import { Box, Grid2, IconButton, InputLabel, Typography } from "@mui/material";
 import Selects from "../components/Selects";
 import Textarea from "../components/Textarea";
 import InputFile from "../components/InputFile";
 import AutoComplete from "../components/AutoComplete";
 import DateField from "../components/DateField";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export interface FieldConfig {
     name: string;
@@ -18,6 +20,7 @@ export interface FieldConfig {
     placeholder?: string;
     options?: { name?: string | number, label?: string; value?: string | number, description?: string | number, disabled?: boolean, className?: string }[];
     className?: string
+    size?: { xs?: number; sm?: number; md?: number; lg?: number; xl?: number }
     accept?: string
     multiple?: boolean
     displayName?: string
@@ -185,228 +188,305 @@ const useDynamicForm = <T extends FieldValues>({
                                     />
                                 </>
 
-                            // case "formGroup":
-                            //     return <>
-                            //         <div key={field.name}>
-                            //             <h4 className="mb-2 font-semibold">{field.displayName}</h4>
-                            //             <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-6">
-                            //                 {field.formGroup &&
-                            //                     Object.entries(field.formGroup).map(([_, subField]) => {
-                            //                         const fieldName = `${field.name}.${subField.name}`;
+                            case "formGroup":
+                                return <>
+                                    <div key={field.name}>
+                                        <Typography variant="h4" >
+                                            {field.displayName}
+                                        </Typography>
+                                        <Grid2 container columnSpacing={2}>
+                                            {field.formGroup &&
+                                                Object.entries(field.formGroup).map(([_, subField]) => {
+                                                    const fieldName = `${field.name}.${subField.name}`;
+                                                    console.log(subField.size);
 
-                            //                         return (
-                            //                             <div key={fieldName} className={`${subField.className}`}>
-                            //                                 <label htmlFor={subField.name} className="block text-sm/6 font-medium text-gray-900">
-                            //                                     {subField.label}
-                            //                                 </label>
-                            //                                 <Controller
-                            //                                     key={fieldName}
-                            //                                     name={fieldName as Path<T>}
-                            //                                     control={control}
-                            //                                     rules={subField.rules}
-                            //                                     render={({ field: controllerField }) => {
-                            //                                         switch (subField.type) {
-                            //                                             case "text":
-                            //                                             case "password":
-                            //                                             case "email":
-                            //                                             case "number":
-                            //                                             case "color":
-                            //                                             case "range":
-                            //                                             case "date":
-                            //                                             case "time":
-                            //                                                 return <>
-                            //                                                     <Inputs
-                            //                                                         controllerField={controllerField}
-                            //                                                         field={subField}
-                            //                                                         errors={
-                            //                                                             errors[field.name] &&
-                            //                                                             (errors[field.name] as Record<string, any>)[subField.name]?.message && (
-                            //                                                                 <span className="my-2 text-sm text-red-600">
-                            //                                                                     {(errors[field.name] as Record<string, any>)[subField.name]?.message}
-                            //                                                                 </span>
-                            //                                                             )
-                            //                                                         } />
-                            //                                                 </>
+                                                    return (
+                                                        <Grid2 key={fieldName} size={subField.size}>
+                                                            <InputLabel htmlFor={subField.name} sx={{ fontWeight: 500, color: "black" }}>
+                                                                {subField.label}
+                                                            </InputLabel>
+                                                            <Controller
+                                                                key={fieldName}
+                                                                name={fieldName as Path<T>}
+                                                                control={control}
+                                                                rules={subField.rules}
+                                                                render={({ field: controllerField }) => {
+                                                                    switch (subField.type) {
+                                                                        case "text":
+                                                                        case "password":
+                                                                        case "email":
+                                                                        case "number":
+                                                                        case "color":
+                                                                        case "range":
+                                                                        case "date":
+                                                                        case "time":
+                                                                            return <>
+                                                                                <Inputs
+                                                                                    controllerField={controllerField}
+                                                                                    field={subField}
+                                                                                    errors={
+                                                                                        errors[field.name] &&
+                                                                                        (errors[field.name] as Record<string, any>)[subField.name]?.message && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {(errors[field.name] as Record<string, any>)[subField.name]?.message}
+                                                                                            </Typography>
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            </>
 
-                            //                                             case "select":
-                            //                                                 return <>
-                            //                                                     <Selects controllerField={controllerField} field={subField} />
-                            //                                                 </>
+                                                                        case "select":
+                                                                            return <>
+                                                                                <Selects controllerField={controllerField} field={subField}
+                                                                                    errors={
+                                                                                        errors[field.name] &&
+                                                                                        (errors[field.name] as Record<string, any>)[subField.name]?.message && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {(errors[field.name] as Record<string, any>)[subField.name]?.message}
+                                                                                            </Typography>
+                                                                                        )
+                                                                                    } />
+                                                                            </>
 
-                            //                                             case "searchSelect":
-                            //                                                 return <>
-                            //                                                     <SearchSelect controllerField={controllerField} field={subField} />
-                            //                                                 </>
+                                                                        case "autoComplete":
+                                                                            return <>
+                                                                                <AutoComplete controllerField={controllerField} field={subField} errors={
+                                                                                    errors[field.name] &&
+                                                                                    (errors[field.name] as Record<string, any>)[subField.name]?.message && (
+                                                                                        <Typography variant="caption" color="error">
+                                                                                            {(errors[field.name] as Record<string, any>)[subField.name]?.message}
+                                                                                        </Typography>
+                                                                                    )
+                                                                                } />
+                                                                            </>
 
-                            //                                             case "radio":
-                            //                                                 return <>
-                            //                                                     <Radios controllerField={controllerField} field={subField} />
-                            //                                                 </>
+                                                                        // case "radio":
+                                                                        //     return <>
+                                                                        //         <Radios controllerField={controllerField} field={subField} />
+                                                                        //     </>
 
-                            //                                             case "checkbox":
-                            //                                                 return <>
-                            //                                                     <Checkboxes controllerField={controllerField} field={subField} />
-                            //                                                 </>
+                                                                        // case "checkbox":
+                                                                        //     return <>
+                                                                        //         <Checkboxes controllerField={controllerField} field={subField} />
+                                                                        //     </>
 
-                            //                                             case "file":
-                            //                                                 return <>
-                            //                                                     <InputFile
-                            //                                                         controllerField={controllerField}
-                            //                                                         field={subField}
-                            //                                                         setValue={setValue}
-                            //                                                     />
-                            //                                                 </>
+                                                                        case "file":
+                                                                            return <>
+                                                                                <InputFile
+                                                                                    controllerField={controllerField}
+                                                                                    field={subField}
+                                                                                    setValue={setValue}
+                                                                                    errors={
+                                                                                        errors[field.name] &&
+                                                                                        (errors[field.name] as Record<string, any>)[subField.name]?.message && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {(errors[field.name] as Record<string, any>)[subField.name]?.message}
+                                                                                            </Typography>
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            </>
 
-                            //                                             case "textarea":
-                            //                                                 return <>
-                            //                                                     <Textarea controllerField={controllerField} field={subField} />
-                            //                                                 </>
-                            //                                             default:
-                            //                                                 return <></>;
-                            //                                         }
-                            //                                     }}
-                            //                                 />
-                            //                                 {errors[field.name] &&
-                            //                                     (errors[field.name] as Record<string, any>)[subField.name]?.message && (
-                            //                                         <span className="my-2 text-sm text-red-600">
-                            //                                             {(errors[field.name] as Record<string, any>)[subField.name]?.message}
-                            //                                         </span>
-                            //                                     )}
+                                                                        case "textarea":
+                                                                            return <>
+                                                                                <Textarea controllerField={controllerField} field={subField} errors={
+                                                                                    errors[field.name] &&
+                                                                                    (errors[field.name] as Record<string, any>)[subField.name]?.message && (
+                                                                                        <Typography variant="caption" color="error">
+                                                                                            {(errors[field.name] as Record<string, any>)[subField.name]?.message}
+                                                                                        </Typography>
+                                                                                    )
+                                                                                } />
+                                                                            </>
+                                                                        default:
+                                                                            return <></>;
+                                                                    }
+                                                                }}
+                                                            />
+                                                            {errors[field.name] &&
+                                                                (errors[field.name] as Record<string, any>)[subField.name]?.message && (
+                                                                    <Typography variant="caption" color="error">
+                                                                        {(errors[field.name] as Record<string, any>)[subField.name]?.message}
+                                                                    </Typography>
+                                                                )}
 
-                            //                             </div>
-                            //                         );
-                            //                     })}
-                            //             </div>
-                            //         </div>
-                            //     </>
+                                                        </Grid2>
+                                                    );
+                                                })}
+                                        </Grid2>
+                                    </div>
+                                </>
 
-                            // case "formArray":
-                            //     return <>
-                            //         <div key={field.name}>
-                            //             {arrayFields.map((item, index) => (
-                            //                 <div key={item.id} className={`${field.className}`}>
-                            //                     <div className={`grid grid-cols-1 gap-x-6 sm:grid-cols-12`}>
-                            //                         {field.formArray?.map((subField) => {
+                            case "formArray":
+                                return <>
+                                    <div key={field.name}>
+                                        {arrayFields.map((item, index) => (
+                                            <div key={item.id}>
+                                                <Grid2 >
+                                                    {field.formArray?.map((subField) => {
+                                                        const fieldName = `${field.name}[${index}].${subField.name}`;
 
-                            //                             const fieldName = `${field.name}[${index}].${subField.name}`;
+                                                        return (
+                                                            <Grid2
+                                                                key={`${fieldName}-${subField.name}`}
+                                                                size={subField.size}
+                                                            >
+                                                                <InputLabel htmlFor={subField.name} sx={{ fontWeight: 500, color: "black" }}>
+                                                                    {subField.label}
+                                                                </InputLabel>
+                                                                <Controller
+                                                                    key={fieldName}
+                                                                    name={fieldName as Path<T>}
+                                                                    control={control}
+                                                                    rules={subField.rules}
+                                                                    render={({ field: controllerField }) => {
+                                                                        switch (subField.type) {
+                                                                            case "text":
+                                                                            case "password":
+                                                                            case "email":
+                                                                            case "number":
+                                                                            case "color":
+                                                                            case "range":
+                                                                            case "time":
+                                                                                return <>
+                                                                                    <Inputs
+                                                                                        controllerField={controllerField}
+                                                                                        field={subField}
+                                                                                        errors={(getErrorMessage(field.name, index, subField.name, errors)) && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {getErrorMessage(field.name, index, subField.name, errors)}
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                    />
+                                                                                </>
 
-                            //                             return (
-                            //                                 <div
-                            //                                     key={`${fieldName}-${subField.name}`}
-                            //                                     className={`my-2 ${subField.className}`}
+                                                                            case "date":
+                                                                                return <>
+                                                                                    <DateField
+                                                                                        controllerField={controllerField}
+                                                                                        field={field}
+                                                                                        errors={(getErrorMessage(field.name, index, subField.name, errors)) && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {getErrorMessage(field.name, index, subField.name, errors)}
+                                                                                            </Typography>
+                                                                                        )} />
+                                                                                </>
 
-                            //                                 >
-                            //                                     <label htmlFor={subField.name} className="block text-sm/6 font-medium text-gray-900">
-                            //                                         {subField.label}
-                            //                                     </label>
-                            //                                     <Controller
-                            //                                         key={fieldName}
-                            //                                         name={fieldName as Path<T>}
-                            //                                         control={control}
-                            //                                         rules={subField.rules}
-                            //                                         render={({ field: controllerField }) => {
-                            //                                             switch (subField.type) {
-                            //                                                 case "text":
-                            //                                                 case "password":
-                            //                                                 case "email":
-                            //                                                 case "number":
-                            //                                                 case "color":
-                            //                                                 case "range":
-                            //                                                 case "date":
-                            //                                                 case "time":
-                            //                                                     return <>
-                            //                                                         <Inputs
-                            //                                                             controllerField={controllerField}
-                            //                                                             field={subField}
-                            //                                                             errors={(getErrorMessage(field.name, index, subField.name, errors)) && (
-                            //                                                                 <span className="my-2 text-sm text-red-600">
-                            //                                                                     {getErrorMessage(field.name, index, subField.name, errors)}
-                            //                                                                 </span>
-                            //                                                             )}
-                            //                                                         />
-                            //                                                     </>
+                                                                            case "select":
+                                                                                return <>
+                                                                                    <Selects
+                                                                                        controllerField={controllerField} field={subField}
+                                                                                        errors={(getErrorMessage(field.name, index, subField.name, errors)) && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {getErrorMessage(field.name, index, subField.name, errors)}
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                    />
+                                                                                </>
 
-                            //                                                 case "select":
-                            //                                                     return <>
-                            //                                                         <Selects controllerField={controllerField} field={subField} />
-                            //                                                     </>
+                                                                            case "autoComplete":
+                                                                                return <>
+                                                                                    <AutoComplete
+                                                                                        controllerField={controllerField}
+                                                                                        field={subField}
+                                                                                        errors={(getErrorMessage(field.name, index, subField.name, errors)) && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {getErrorMessage(field.name, index, subField.name, errors)}
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                    />
+                                                                                </>
 
-                            //                                                 case "searchSelect":
-                            //                                                     return <>
-                            //                                                         <SearchSelect controllerField={controllerField} field={subField} />
-                            //                                                     </>
+                                                                            // case "radio":
+                                                                            //     return <>
+                                                                            //         <Radios controllerField={controllerField} field={subField} />
+                                                                            //     </>
 
-                            //                                                 case "radio":
-                            //                                                     return <>
-                            //                                                         <Radios controllerField={controllerField} field={subField} />
-                            //                                                     </>
+                                                                            // case "checkbox":
+                                                                            //     return <>
+                                                                            //         <Checkboxes controllerField={controllerField} field={subField} />
+                                                                            //     </>
 
-                            //                                                 case "checkbox":
-                            //                                                     return <>
-                            //                                                         <Checkboxes controllerField={controllerField} field={subField} />
-                            //                                                     </>
+                                                                            case "file":
+                                                                                return <>
+                                                                                    <InputFile
+                                                                                        controllerField={controllerField}
+                                                                                        field={subField}
+                                                                                        setValue={setValue}
+                                                                                        errors={(getErrorMessage(field.name, index, subField.name, errors)) && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {getErrorMessage(field.name, index, subField.name, errors)}
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                    />
+                                                                                </>
 
-                            //                                                 case "file":
-                            //                                                     return <>
-                            //                                                         <InputFile
-                            //                                                             controllerField={controllerField}
-                            //                                                             field={subField}
-                            //                                                             setValue={setValue}
-                            //                                                         />
-                            //                                                     </>
+                                                                            case "textarea":
+                                                                                return <>
+                                                                                    <Textarea
+                                                                                        controllerField={controllerField}
+                                                                                        field={subField}
+                                                                                        errors={(getErrorMessage(field.name, index, subField.name, errors)) && (
+                                                                                            <Typography variant="caption" color="error">
+                                                                                                {getErrorMessage(field.name, index, subField.name, errors)}
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                    />
+                                                                                </>
 
-                            //                                                 case "textarea":
-                            //                                                     return <>
-                            //                                                         <Textarea controllerField={controllerField} field={subField} />
-                            //                                                     </>
+                                                                            default:
+                                                                                return <></>
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                {(getErrorMessage(field.name, index, subField.name, errors)) && (
+                                                                    <Typography variant="caption" color="error">
+                                                                        {getErrorMessage(field.name, index, subField.name, errors)}
+                                                                    </Typography>
+                                                                )}
+                                                            </Grid2>
+                                                        );
+                                                    })}
+                                                </ Grid2>
 
-                            //                                                 default:
-                            //                                                     return <></>
-                            //                                             }
-                            //                                         }}
-                            //                                     />
-                            //                                     {(getErrorMessage(field.name, index, subField.name, errors)) && (
-                            //                                         <span className="mt-y text-sm text-red-600">
-                            //                                             {getErrorMessage(field.name, index, subField.name, errors)}
-                            //                                         </span>
-                            //                                     )}
-                            //                                 </div>
-                            //                             );
-                            //                         })}
-                            //                     </div>
+                                                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, my: 2 }}>
+                                                    {arrayFields.length > 1 &&
+                                                        <IconButton
+                                                            type='button'
+                                                            onClick={() => remove(index)}
+                                                            sx={{
+                                                                backgroundColor: '#f3f3f3',
+                                                                borderRadius: "4px",
+                                                                px: "12px",
+                                                                boxShadow: "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
+                                                            }}
+                                                        >
+                                                            <FontAwesomeIcon icon={faMinus} fontSize="16px" />
+                                                        </IconButton>
+                                                    }
+                                                    {(arrayFields.length - 1) === index &&
+                                                        <IconButton
+                                                            type='button'
+                                                            sx={{
+                                                                backgroundColor: '#f3f3f3',
+                                                                borderRadius: "4px",
+                                                                px: "12px",
+                                                                boxShadow: "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
+                                                            }}
+                                                            onClick={() => {
+                                                                const form = arrayFields.map((item) => item);
+                                                                append(form[0])
+                                                            }}>
+                                                            <FontAwesomeIcon icon={faPlus} fontSize="16px" />
+                                                        </IconButton>
+                                                    }
 
-                            //                     <div className="flex justify-end gap-2">
-                            //                         {arrayFields.length > 1 &&
-                            //                             <button
-                            //                                 onClick={() => remove(index)}
-                            //                                 type='button' className='bg-red-500 rounded-sm w-8 h-8 mt-3 flex items-center justify-center font-bold'>
-                            //                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5 fill-white">
-                            //                                     <path fillRule="evenodd" d="M4.25 12a.75.75 0 0 1 .75-.75h14a.75.75 0 0 1 0 1.5H5a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
-                            //                                 </svg>
+                                                </Box>
+                                            </div>
+                                        ))}
 
-                            //                             </button>
-                            //                         }
-                            //                         {(arrayFields.length - 1) === index &&
-                            //                             <button
-                            //                                 onClick={() => {
-                            //                                     const form = arrayFields.map((item) => item);
-                            //                                     append(form[0])
-
-                            //                                 }}
-                            //                                 type='button' className='bg-teal-600 rounded-sm w-8 h-8 mt-3 flex items-center justify-center font-bold'>
-                            //                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5 fill-white">
-                            //                                     <path fillRule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
-                            //                                 </svg>
-
-                            //                             </button>
-                            //                         }
-
-                            //                     </div>
-                            //                 </div>
-                            //             ))}
-
-                            //         </div>
-                            //     </>
+                                    </div >
+                                </>
 
                             case "submit":
                                 return (
@@ -451,6 +531,26 @@ const useDynamicForm = <T extends FieldValues>({
         if (!field) return null;
         return renderInput(field);
     };
+    // const renderSingleInput = (fieldName: string) => {
+    //     const findField = (name: string, fieldList: FieldConfig[]): FieldConfig | null => {
+    //         for (const field of fieldList) {
+    //             if (field.name === name) {
+    //                 return field;
+    //             }
+    //             if (field.formGroup) {
+    //                 const nestedField = findField(name.split('.').slice(1).join('.'), Object.values(field.formGroup));
+    //                 if (nestedField) {
+    //                     return nestedField;
+    //                 }
+    //             }
+    //         }
+    //         return null;
+    //     };
+
+    //     const field = findField(fieldName, fields);
+    //     if (!field) return null;
+    //     return renderInput(field);
+    // };
 
 
     return {

@@ -10,5 +10,6 @@ planRouter
     .put("/update/:id", planController.updatePlan)
     .put("/status/:id", planController.updatePlanStatus)
     .put("/delete/:id", planController.deletePlan)
+    .put("/select-plan", planController.selectPlan)
 
 export default planRouter

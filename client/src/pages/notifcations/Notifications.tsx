@@ -37,6 +37,10 @@ const Notifications = () => {
             valueGetter: (_, row) => row.product.name || ""
         },
         {
+            field: 'policy', headerName: 'Policy', minWidth: 150, flex: 1,
+            valueGetter: (_, row) => row.policy.name || ""
+        },
+        {
             field: 'message', headerName: 'Message', minWidth: 300, flex: 2, sortable: false
         },
         {

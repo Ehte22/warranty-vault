@@ -50,7 +50,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
 
     const hashPassword = await bcryptjs.hash(password, 10)
 
-    await User.create({
+    const newUser = await User.create({
         name,
         email,
         phone,
@@ -58,7 +58,20 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         profile
     })
 
-    return res.status(200).json({ message: "Sign up successfully" })
+    const token = generateToken({ userId: newUser._id, name: newUser.name, role: newUser.role })
+
+    const result = {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        profile: newUser.profile,
+        role: newUser.role,
+        plan: newUser.plan,
+        token
+    }
+
+    return res.status(200).json({ message: "Sign up successfully", result })
 })
 
 // Sign In
@@ -98,6 +111,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         phone: user.phone,
         profile: user.profile,
         role: user.role,
+        plan: user.plan,
         token
     }
     res.status(200).json({ message: "Sign in successfully", result })

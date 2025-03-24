@@ -11,12 +11,17 @@ import { IPlan } from '../../models/plan.interface'
 
 const defaultValues = {
     name: "",
-    billingCycle: "",
-    price: "",
+    title: "",
+    priority: "",
+    monthlyPrice: "",
+    yearlyPrice: "",
     maxBrands: "",
     maxProducts: "",
     maxPolicies: "",
     maxPolicyTypes: "",
+    includes: [
+        { item: "" }
+    ]
 }
 
 const AddPlan = () => {
@@ -32,6 +37,31 @@ const AddPlan = () => {
                 { label: "Free", value: "Free" },
                 { label: "Pro", value: "Pro" },
                 { label: "Family", value: "Family" }
+            ],
+            rules: { required: true }
+        },
+        {
+            name: "title",
+            type: "text",
+            placeholder: "Title",
+            rules: { required: true }
+        },
+        {
+            name: "priority",
+            type: "text",
+            placeholder: "Priority",
+            rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" },
+        },
+        {
+            name: "includes",
+            type: "formArray",
+            formArray: [
+                {
+                    name: "item",
+                    type: "text",
+                    placeholder: "Plan Includes",
+                    rules: { required: true }
+                }
             ],
             rules: { required: true }
         },
@@ -51,10 +81,20 @@ const AddPlan = () => {
     type FormValues = z.infer<typeof schema>
 
     const onSubmit = (values: FormValues) => {
-        if (id && data) {
-            updatePlan({ id, planData: values as IPlan })
+        let updatedData = values
+
+        const includes = values.includes.map(({ item }: any) => item)
+        const price = { monthly: values.monthlyPrice, yearly: values.yearlyPrice }
+        if (values.name === "Free") {
+            updatedData = { ...values, includes }
         } else {
-            addPlan(values as IPlan)
+            updatedData = { ...values, includes, price }
+        }
+
+        if (id && data) {
+            updatePlan({ id, planData: updatedData as IPlan })
+        } else {
+            addPlan(updatedData as IPlan)
         }
     }
 
@@ -67,20 +107,16 @@ const AddPlan = () => {
                 setFields([
                     ...fields,
                     {
-                        name: "billingCycle",
-                        type: "select",
-                        placeholder: "Select Type",
-                        options: [
-                            { label: "Monthly", value: "Monthly" },
-                            { label: "Yearly", value: "Yearly" },
-                        ],
-                        rules: { required: true }
+                        name: "monthlyPrice",
+                        type: "text",
+                        placeholder: "Monthly Price",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" },
                     },
                     {
-                        name: "price",
+                        name: "yearlyPrice",
                         type: "text",
-                        placeholder: "Price",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                        placeholder: "Yearly Price",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" },
                     },
                 ])
             } else if (values.name === "Free") {
@@ -123,8 +159,15 @@ const AddPlan = () => {
     useEffect(() => {
         if (id && data) {
             setValue("name", data.name)
-            setValue("billingCycle", data.billingCycle)
-            setValue("price", data.price)
+            setValue("title", data.title)
+            setValue("priority", data.priority)
+            setValue("monthlyPrice", data.price.monthly || "")
+            setValue("yearlyPrice", data.price.yearly || "")
+
+            if (data.includes) {
+                const x = data.includes.map((item) => ({ item }))
+                setValue("includes", x)
+            }
 
             if (data.maxBrands) setValue("maxBrands", data.maxBrands)
             if (data.maxProducts) setValue("maxProducts", data.maxProducts)
@@ -169,24 +212,36 @@ const AddPlan = () => {
                             {renderSingleInput("name")}
                         </Grid2>
 
-                        {/* Billing Cycle */}
+                        {/* Title */}
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
+                            {renderSingleInput("title")}
+                        </Grid2>
+
+                        {/* Priority */}
+                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
+                            {renderSingleInput("priority")}
+                        </Grid2>
+
+                        {/* Monthly Price */}
                         {(selectedPlan === "Pro" || selectedPlan === "Family") &&
                             <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                                {renderSingleInput("billingCycle")}
+                                {renderSingleInput("monthlyPrice")}
                             </Grid2>
                         }
 
-                        {/* Price */}
+                        {/* Yearly Price */}
                         {(selectedPlan === "Pro" || selectedPlan === "Family") &&
                             <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                                {renderSingleInput("price")}
+                                {renderSingleInput("yearlyPrice")}
                             </Grid2>
                         }
 
                         {/* Max Brands */}
-                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                            {renderSingleInput("maxBrands")}
-                        </Grid2>
+                        {(selectedPlan === "Free") &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("maxBrands")}
+                            </Grid2>
+                        }
 
                         {/* Max Products */}
                         {(selectedPlan === "Free") &&
@@ -206,6 +261,13 @@ const AddPlan = () => {
                         {(selectedPlan === "Free") &&
                             <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
                                 {renderSingleInput("maxPolicyTypes")}
+                            </Grid2>
+                        }
+
+                        {/* plan Includes */}
+                        {selectedPlan &&
+                            <Grid2 size={{ xs: 12, md: 6, xl: 4 }} >
+                                {renderSingleInput("includes")}
                             </Grid2>
                         }
 

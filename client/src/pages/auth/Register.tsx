@@ -133,7 +133,7 @@ const Register = () => {
     useEffect(() => {
         if (isSuccess) {
             setTimeout(() => {
-                navigate("/sign-in")
+                navigate("/select-plan")
             }, 2000);
         }
     }, [isSuccess, navigate])

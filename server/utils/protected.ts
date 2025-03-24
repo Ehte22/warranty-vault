@@ -12,7 +12,7 @@ export interface IUserProtected {
 }
 
 export const protectedRoute = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate(['jwt', 'google'], { session: false }, async (err: Error, user: any, info: any) => {
+    passport.authenticate('jwt', { session: false }, async (err: Error, user: any, info: any) => {
         if (err) {
             return res.status(500).json({ message: "Internal Server Error", error: err.message });
         }
@@ -41,3 +41,36 @@ export const restrict = (role: string[]) => {
         next()
     }
 }
+
+
+// export const protectedRoute = (req: Request, res: Response, next: NextFunction) => {
+//     const authHeader = req.headers.authorization;
+
+//     // Check if it's a JWT token request
+//     if (authHeader && authHeader.startsWith("Bearer ")) {
+//         return passport.authenticate("jwt", { session: false }, async (err: Error, user: any, info: any) => {
+//             if (err) {
+//                 return res.status(500).json({ message: "Internal Server Error", error: err.message });
+//             }
+//             if (!user) {
+//                 return res.status(401).json({ message: "Unauthorized: Invalid or missing token", info });
+//             }
+
+//             req.user = user;
+//             return next();
+//         })(req, res, next);
+//     }
+
+//     // If no JWT token is provided, assume it's Google OAuth authentication
+//     return passport.authenticate("google", { session: false }, async (err: Error, user: any, info: any) => {
+//         if (err) {
+//             return res.status(500).json({ message: "Internal Server Error", error: err.message });
+//         }
+//         if (!user) {
+//             return res.status(401).json({ message: "Unauthorized: Invalid or missing token", info });
+//         }
+
+//         req.user = user;
+//         return next();
+//     })(req, res, next);
+// };

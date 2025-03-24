@@ -152,5 +152,5 @@ export const deleteBrand = asyncHandler(async (req: Request, res: Response, next
 
     await Brand.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "User delete successfully" })
+    res.status(200).json({ message: "Brand delete successfully" })
 })

@@ -20,6 +20,7 @@ import Plans from "./pages/plan/Plans";
 import AddPlan from "./pages/plan/AddPlan";
 import Notifications from "./pages/notifcations/Notifications";
 import AddNotification from "./pages/notifcations/AddNotification";
+import SelectPlan from "./pages/plan/SelectPlan";
 
 const theme = createTheme({
   palette: {
@@ -99,6 +100,7 @@ const App = () => {
             <Route path="sign-up" element={<Register />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="select-plan" element={<SelectPlan />} />
             <Route path="*" element={<PageNotFound />} />
 
           </Routes>

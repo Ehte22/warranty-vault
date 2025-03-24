@@ -99,11 +99,9 @@ const AddPolicyType = () => {
     }, [products?.result])
 
     useEffect(() => {
-        if (!products?.result) return;
-
         const subscription = watch(({ product }) => {
             if (product) {
-                const selectedProduct = products.result.find(item => item._id === product);
+                const selectedProduct = products?.result.find(item => item._id === product);
 
                 if (Array.isArray(selectedProduct?.policies)) {
                     const transformedPolicies = selectedProduct.policies.map(policy => ({
@@ -125,8 +123,20 @@ const AddPolicyType = () => {
             setValue("policy", data.policy?._id)
             setValue("scheduleDate", data.scheduleDate)
             setValue("message", data.message)
+
+
+            const selectedProduct = products?.result.find(item => item._id === data.product?._id);
+
+            if (Array.isArray(selectedProduct?.policies)) {
+                const transformedPolicies = selectedProduct.policies.map(policy => ({
+                    label: policy.name,
+                    value: policy._id,
+                }));
+
+                setPolicyOptions(transformedPolicies)
+            }
         }
-    }, [id, data])
+    }, [id, data, products])
 
     useEffect(() => {
         if (isAddSuccess) {

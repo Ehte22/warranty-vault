@@ -1,4 +1,4 @@
-import { Paper } from '@mui/material';
+import { Chip, Paper, Stack } from '@mui/material';
 import DataContainer, { DataContainerConfig } from '../../components/DataContainer'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
@@ -6,7 +6,7 @@ import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
 import Toast from '../../components/Toast';
 import { IPlan } from '../../models/plan.interface';
-import { useDeletePlanMutation, useGetPlansQuery } from '../../redux/apis/plan.api';
+import { useDeletePlanMutation, useGetPlansQuery, useUpdatePlanStatusMutation } from '../../redux/apis/plan.api';
 
 const Plans = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
@@ -29,17 +29,36 @@ const Plans = () => {
         searchQuery: debounceSearchQuery.toLowerCase()
     })
     const [deletePolicyTypes, { data: message, isSuccess }] = useDeletePlanMutation()
+    const [updateStatus, { data: statusMessage, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdatePlanStatusMutation()
 
     const columns: GridColDef[] = [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
         { field: 'name', headerName: 'Name', minWidth: 150, flex: 1 },
         {
-            field: 'billingCycle', headerName: 'Plan Type', minWidth: 150, flex: 1,
-            valueGetter: (_, row) => row.billingCycle || "N/A"
+            field: 'price.monthly', headerName: 'Monthly Price', minWidth: 150, flex: 1,
+            valueGetter: (_, row) => row.price.monthly || "N/A"
         },
         {
-            field: 'price', headerName: 'Price', minWidth: 150, flex: 1,
-            valueGetter: (_, row) => row.price || "N/A"
+            field: 'price.yearly', headerName: 'Yearly Price', minWidth: 150, flex: 1,
+            valueGetter: (_, row) => row.price.yearly || "N/A"
+        },
+        {
+            field: 'isActive', headerName: 'Status', minWidth: 150, flex: 0.8,
+            renderCell: (params) => {
+                const handleStatusChange = () => {
+                    updateStatus({ id: params.row._id, status: !params.value })
+                };
+                return <>
+                    <Stack direction="row" sx={{ height: "100%", display: "flex", alignItems: "center" }} >
+                        <Chip
+                            label={params.value ? "Active" : "Inactive"}
+                            color={params.value ? "success" : "error"}
+                            variant="outlined"
+                            onClick={handleStatusChange}
+                            sx={{ borderRadius: 1 }} />
+                    </Stack>
+                </>
+            }
         },
         {
             field: 'actions',
@@ -67,6 +86,8 @@ const Plans = () => {
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}
+        {statusUpdateSuccess && <Toast type="success" message={statusMessage} />}
+        {statusUpdateError && <Toast type="error" message={statusError as string} />}
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid

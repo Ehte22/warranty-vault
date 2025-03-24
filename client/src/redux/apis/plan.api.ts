@@ -79,7 +79,7 @@ export const planApi = createApi({
                 invalidatesTags: ["plan"]
             }),
 
-            updatePlanStatus: builder.mutation<string, { id: string, status: string }>({
+            updatePlanStatus: builder.mutation<string, { id: string, status: boolean }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,
@@ -112,6 +112,23 @@ export const planApi = createApi({
                 invalidatesTags: ["plan"]
             }),
 
+            selectPlan: builder.mutation<string, { selectedPlan: string, billingCycle?: string }>({
+                query: (planData) => {
+                    return {
+                        url: `/select-plan`,
+                        method: "PUT",
+                        body: planData
+                    }
+                },
+                transformResponse: (data: { message: string }) => {
+                    return data.message
+                },
+                transformErrorResponse: (error: { status: number, data: { message: string } }) => {
+                    return error.data?.message
+                },
+                invalidatesTags: ["plan"]
+            }),
+
         }
     }
 })
@@ -122,5 +139,6 @@ export const {
     useAddPlanMutation,
     useUpdatePlanMutation,
     useUpdatePlanStatusMutation,
-    useDeletePlanMutation
+    useDeletePlanMutation,
+    useSelectPlanMutation
 } = planApi

@@ -22,7 +22,7 @@ export const getAllNotifications = asyncHandler(async (req: Request, res: Respon
             searchQuery
                 ? {
                     $or: [
-                        { "user.name": { $regex: searchQuery, $options: "i" } },
+                        { "product.name": { $regex: searchQuery, $options: "i" } },
                         { "policy.name": { $regex: searchQuery, $options: "i" } },
                     ]
                 }
@@ -135,5 +135,5 @@ export const deleteNotification = asyncHandler(async (req: Request, res: Respons
 
     await Notification.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "User delete successfully" })
+    res.status(200).json({ message: "Notification delete successfully" })
 })

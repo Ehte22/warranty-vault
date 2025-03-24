@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from "express"
 import asyncHandler from "express-async-handler"
-import { IUserProtected } from "../utils/protected"
 import { customValidator, validationRulesSchema } from "../utils/validator"
 import Plan from "../models/Plan"
+import { User } from "../models/User"
+import { IUserProtected } from "../utils/protected"
 
 // Get All
 export const getAllPlans = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
-
-    const { userId } = req.user as IUserProtected
 
     const currentPage: number = parseInt(page as string)
     const pageLimit: number = parseInt(limit as string)
@@ -32,7 +31,7 @@ export const getAllPlans = asyncHandler(async (req: Request, res: Response, next
 
     let result = []
     if (isFetchAll) {
-        result = await Plan.find().sort({ createdAt: -1 }).lean()
+        result = await Plan.find().sort({ priority: 1 }).lean()
     } else {
         result = await Plan.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -77,16 +76,26 @@ export const addPlan = asyncHandler(async (req: Request, res: Response, next: Ne
 
     const planRules: validationRulesSchema = {
         name: { required: true },
+        title: { required: true },
+        priority: { required: true },
         maxProducts: { required: name !== "Free" ? false : true },
         maxPolicies: { required: name !== "Free" ? false : true },
         maxPolicyTypes: { required: name !== "Free" ? false : true },
         maxBrands: { required: name !== "Free" ? false : true },
-        billingCycle: { required: name === "Free" ? false : true },
-        price: { required: name === "Free" ? false : true },
+        price: {
+            object: true,
+            monthly: { required: name === "Free" ? false : true },
+            yearly: { required: name === "Free" ? false : true },
+            required: name === "Free" ? false : true
+        },
+        includes: { required: true, checkbox: true }
     }
 
     let data = req.body
-    if (name === "Family") {
+
+    if (name === "Free") {
+        data = { ...req.body, price: {} }
+    } else if (name === "Family") {
         data = { ...req.body, allowedFamilyMembers: true }
     }
 
@@ -141,5 +150,32 @@ export const deletePlan = asyncHandler(async (req: Request, res: Response, next:
 
     await Plan.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "User delete successfully" })
+    res.status(200).json({ message: "Plan delete successfully" })
 })
+
+export const selectPlan = asyncHandler(async (req, res) => {
+    const { selectedPlan = "Free", billingCycle } = req.body;
+
+    console.log(req.body);
+
+
+    const { userId } = req.user as IUserProtected
+
+    const today = new Date()
+    const startDate = today
+    let expiryDate = new Date(today)
+    if (selectedPlan !== "Free") {
+        if (billingCycle === "monthly") {
+            expiryDate.setDate(expiryDate.getDate() + 30)
+        } else if (billingCycle === "yearly") {
+            expiryDate.setDate(expiryDate.getDate() + 365)
+        }
+    }
+
+    await User.findByIdAndUpdate(userId, {
+        plan: selectedPlan,
+        subscription: { startDate, expiryDate, paymentStatus: "Active" }
+    }, { new: true });
+
+    res.json({ message: "Plan Update Successfully" });
+});

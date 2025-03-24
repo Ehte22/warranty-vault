@@ -79,7 +79,7 @@ export const productApi = createApi({
                 invalidatesTags: ["product"]
             }),
 
-            updateProductStatus: builder.mutation<string, { id: string, status: string }>({
+            updateProductStatus: builder.mutation<string, { id: string, status: boolean }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,

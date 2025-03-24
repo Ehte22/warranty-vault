@@ -79,7 +79,7 @@ export const brandApi = createApi({
                 invalidatesTags: ["brand"]
             }),
 
-            updateStatus: builder.mutation<string, { id: string, status: string }>({
+            updateBrandStatus: builder.mutation<string, { id: string, status: boolean }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,
@@ -121,6 +121,6 @@ export const {
     useGetBrandByIdQuery,
     useAddBrandMutation,
     useUpdateBrandMutation,
-    useUpdateStatusMutation,
+    useUpdateBrandStatusMutation,
     useDeleteBrandMutation
 } = brandApi
