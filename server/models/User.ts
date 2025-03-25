@@ -12,12 +12,13 @@ export interface IUser extends Document {
     status: 'active' | 'inactive';
     sessionToken: string | null
     plan?: string
-    familyMembers?: mongoose.Schema.Types.ObjectId,
+    familyMembers: mongoose.Schema.Types.ObjectId[],
     subscription?: {
         startDate: string
         expiryDate: string
         paymentStatus: string
     }
+    new?: boolean
 }
 
 export interface IOTP extends Document {

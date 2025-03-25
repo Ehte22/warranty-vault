@@ -1,4 +1,4 @@
-import { useForm, Controller, FieldValues, DefaultValues, Path, UseFormSetValue, useFieldArray, ArrayPath, FieldErrors, ControllerRenderProps } from "react-hook-form";
+import { useForm, Controller, FieldValues, DefaultValues, Path, UseFormSetValue, useFieldArray, ArrayPath, FieldErrors, ControllerRenderProps, FieldArray } from "react-hook-form";
 import { ZodSchema } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
@@ -474,8 +474,14 @@ const useDynamicForm = <T extends FieldValues>({
                                                                 boxShadow: "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
                                                             }}
                                                             onClick={() => {
-                                                                const form = arrayFields.map((item) => item);
-                                                                append(form[0])
+                                                                if (arrayFields.length > 0) {
+                                                                    const defaultField = arrayFields.reduce((acc: any, field) => {
+                                                                        Object.keys(field).forEach((key) => { acc[key] = "" });
+                                                                        return acc;
+                                                                    }, {} as FieldArray<T, ArrayPath<T>>);
+
+                                                                    append(defaultField as FieldArray<T, ArrayPath<T>>);
+                                                                }
                                                             }}>
                                                             <FontAwesomeIcon icon={faPlus} fontSize="16px" />
                                                         </IconButton>

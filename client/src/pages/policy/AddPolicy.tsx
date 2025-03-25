@@ -13,7 +13,7 @@ import { useGetPolicyTypesQuery } from '../../redux/apis/policyType.api'
 
 const defaultValues = {
     product: "",
-    type: "",
+    name: "",
     provider: "",
     expiryDate: "",
     document: ""
@@ -47,7 +47,7 @@ const AddPolicy = () => {
             rules: { required: true }
         },
         {
-            name: "type",
+            name: "name",
             type: "autoComplete",
             placeholder: "Select Type",
             options: policyTypeOptions,
@@ -79,14 +79,15 @@ const AddPolicy = () => {
 
     const onSubmit = (values: FormValues) => {
         const product = products?.result.find(item => item._id === values.product)
-        const type = policyTypes?.result.find(item => item._id === values.type)
+        const name = policyTypes?.result.find(item => item._id === values.name)
 
         let updatedData = values
-        if (product && type) {
+        if (product && name) {
             updatedData = {
                 ...values,
                 product: { _id: product._id, name: product.name },
-                type: { _id: type._id, name: type.name }
+                name: { _id: name._id, name: name.name },
+                type: "policy"
             }
         }
 
@@ -128,7 +129,7 @@ const AddPolicy = () => {
     useEffect(() => {
         if (id && data) {
             setValue("product", data.product?._id || "")
-            setValue("type", data.type?._id || "")
+            setValue("name", data.name?._id || "")
             setValue("provider", data.provider)
             setValue("expiryDate", data.expiryDate)
 
@@ -194,7 +195,7 @@ const AddPolicy = () => {
 
                         {/* Brand */}
                         <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                            {renderSingleInput("type")}
+                            {renderSingleInput("name")}
                         </Grid2>
 
                         {/* Model */}

@@ -1,18 +1,18 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { createCustomBaseQuery } from "./customBaseQuery.api"
 import { IPagination } from "../../models/pagination.interface"
-import { IPolicyType } from "../../models/policyType.interface"
+import { IUser } from "../../models/user.interface"
 
-const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/policy-type`
+const baseUrl = `${import.meta.env.VITE_BACKEND_URL}/api/v1/user`
 const customBaseQuery = createCustomBaseQuery(baseUrl)
 
-export const policyTypeApi = createApi({
-    reducerPath: "policyTypeApi",
+export const userApi = createApi({
+    reducerPath: "userApi",
     baseQuery: customBaseQuery,
-    tagTypes: ["policyType"],
+    tagTypes: ["user"],
     endpoints: (builder) => {
         return {
-            getPolicyTypes: builder.query<{ result: IPolicyType[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getUsers: builder.query<{ result: IUser[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",
@@ -20,54 +20,54 @@ export const policyTypeApi = createApi({
                         params: queryParams
                     }
                 },
-                transformResponse: (data: { result: IPolicyType[], pagination: IPagination }) => {
+                transformResponse: (data: { result: IUser[], pagination: IPagination }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["policyType"]
+                providesTags: ["user"]
             }),
 
-            getPolicyTypeById: builder.query<IPolicyType, string>({
+            getUserById: builder.query<IUser, string>({
                 query: (id) => {
                     return {
                         url: `/${id}`,
                         method: "GET"
                     }
                 },
-                transformResponse: (data: { result: IPolicyType }) => {
+                transformResponse: (data: { result: IUser }) => {
                     return data.result
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["policyType"]
+                providesTags: ["user"]
             }),
 
-            addPolicyType: builder.mutation<{ message: string, result: IPolicyType }, { name: string, description?: string }>({
-                query: policyTypeData => {
+            addUser: builder.mutation<{ message: string, result: IUser }, FormData>({
+                query: userData => {
                     return {
                         url: "/add",
                         method: "POST",
-                        body: policyTypeData
+                        body: userData
                     }
                 },
-                transformResponse: (data: { message: string, result: IPolicyType }) => {
+                transformResponse: (data: { message: string, result: IUser }) => {
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["user"]
             }),
 
-            updatePolicyType: builder.mutation<string, { id: string, policyTypeData: IPolicyType }>({
-                query: ({ id, policyTypeData }) => {
+            updateUser: builder.mutation<string, { id: string, userData: FormData }>({
+                query: ({ id, userData }) => {
                     return {
                         url: `/update/${id}`,
                         method: "PUT",
-                        body: policyTypeData
+                        body: userData
                     }
                 },
                 transformResponse: (data: { message: string }) => {
@@ -76,10 +76,10 @@ export const policyTypeApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["user"]
             }),
 
-            updatePolicyTypeStatus: builder.mutation<string, { id: string, status: boolean }>({
+            updateUserStatus: builder.mutation<string, { id: string, status: string }>({
                 query: ({ id, status }) => {
                     return {
                         url: `/status/${id}`,
@@ -93,10 +93,10 @@ export const policyTypeApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["user"]
             }),
 
-            deletePolicyType: builder.mutation<string, string>({
+            deleteUser: builder.mutation<string, string>({
                 query: (id) => {
                     return {
                         url: `/delete/${id}`,
@@ -109,7 +109,7 @@ export const policyTypeApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["policyType"]
+                invalidatesTags: ["user"]
             }),
 
         }
@@ -117,10 +117,10 @@ export const policyTypeApi = createApi({
 })
 
 export const {
-    useGetPolicyTypesQuery,
-    useGetPolicyTypeByIdQuery,
-    useAddPolicyTypeMutation,
-    useUpdatePolicyTypeMutation,
-    useUpdatePolicyTypeStatusMutation,
-    useDeletePolicyTypeMutation
-} = policyTypeApi
+    useGetUsersQuery,
+    useGetUserByIdQuery,
+    useAddUserMutation,
+    useUpdateUserMutation,
+    useUpdateUserStatusMutation,
+    useDeleteUserMutation
+} = userApi

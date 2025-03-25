@@ -8,7 +8,7 @@ import Toast from '../../components/Toast';
 import { IPolicyType } from '../../models/policyType.interface';
 import { useDeletePolicyTypeMutation, useGetPolicyTypesQuery } from '../../redux/apis/policyType.api';
 
-const Brands = () => {
+const policyTypes = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
 
     const config: DataContainerConfig = {
@@ -33,7 +33,10 @@ const Brands = () => {
     const columns: GridColDef[] = [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
         { field: 'name', headerName: 'Name', minWidth: 200, flex: 1 },
-        { field: 'description', headerName: 'Description', minWidth: 300, flex: 2 },
+        {
+            field: 'description', headerName: 'Description', minWidth: 300, flex: 2,
+            valueGetter: (_, row) => row.description || "N/A", sortable: false
+        },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -80,4 +83,4 @@ const Brands = () => {
     </>
 }
 
-export default Brands
+export default policyTypes

@@ -33,12 +33,12 @@ export const getAllPolicies = asyncHandler(async (req: Request, res: Response, n
         ]
     }
 
-    const totalBrands = await Policy.countDocuments(query)
-    const totalPages = Math.ceil(totalBrands / pageLimit)
+    const totalEntries = await Policy.countDocuments(query)
+    const totalPages = Math.ceil(totalEntries / pageLimit)
 
     let result = []
     if (isFetchAll) {
-        result = await Policy.find({ "user._id": userId }).sort({ createdAt: -1 }).lean()
+        result = await Policy.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
     } else {
         result = await Policy.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -46,7 +46,7 @@ export const getAllPolicies = asyncHandler(async (req: Request, res: Response, n
     const pagination = {
         page: currentPage,
         limit: pageLimit,
-        totalEntries: totalBrands,
+        totalEntries,
         totalPages: totalPages
     }
 
@@ -68,7 +68,15 @@ export const getPolicyById = asyncHandler(async (req: Request, res: Response, ne
 
 // Add
 export const addPolicy = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { product } = req.body
+    const { product, name, expiryDate } = req.body
+
+    const policy = await Policy.findOne({
+        "product._id": product._id, "name._id": name._id, expiryDate, deletedAt: null
+    })
+
+    if (policy) {
+        return res.status(400).json({ message: "Policy Already Exist" })
+    }
 
     let document = ""
     if (req.file) {
@@ -90,7 +98,7 @@ export const addPolicy = asyncHandler(async (req: Request, res: Response, next: 
 
     await Product.findByIdAndUpdate(
         product._id,
-        { $push: { policies: { _id: result._id, name: result.type.name } } },
+        { $push: { policies: { _id: result._id, name: result.name.name } } },
         { new: true }
     )
 

@@ -3,54 +3,42 @@ import DataContainer, { DataContainerConfig } from '../../components/DataContain
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
-import { Paper } from '@mui/material';
+import { Chip, Paper, Stack } from '@mui/material';
 import Toast from '../../components/Toast';
-import { IPolicy } from '../../models/policy.interface';
-import { useDeletePolicyMutation, useGetPoliciesQuery } from '../../redux/apis/policy.api';
+import { IUser } from '../../models/user.interface';
+import { useDeleteUserMutation, useGetUsersQuery, useUpdateUserStatusMutation } from '../../redux/apis/user.api';
 
-const Products = () => {
+const Users = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
 
     const config: DataContainerConfig = {
-        pageTitle: "Policies",
+        pageTitle: "Users",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
         onSearch: setSearchQuery
     }
 
-    const [policies, setPolicies] = useState<IPolicy[]>([])
+    const [users, setUsers] = useState<IUser[]>([])
     const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
-    const { data, isLoading } = useGetPoliciesQuery({
+    const { data, isLoading } = useGetUsersQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
         searchQuery: debounceSearchQuery.toLowerCase()
     })
-    const [deletePolicy, { data: message, isSuccess }] = useDeletePolicyMutation()
+    const [deleteUser, { data: message, isSuccess }] = useDeleteUserMutation()
+    const [updateStatus, { data: statusMessage, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdateUserStatusMutation()
 
     const columns: GridColDef[] = [
-        { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
+        { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4 },
+        { field: 'name', headerName: 'Name', minWidth: 200, flex: 1 },
+        { field: 'email', headerName: 'Email Address', minWidth: 280, flex: 1.5 },
+        { field: 'phone', headerName: 'Phone Number', minWidth: 220, flex: 1.2 },
         {
-            field: 'name', headerName: 'Name', minWidth: 200, flex: 1,
-            valueGetter: (_, row) => row.name.name || ""
-        },
-        {
-            field: 'product', headerName: 'Product', minWidth: 200, flex: 1,
-            valueGetter: (_, row) => row.product.name || ""
-        },
-        { field: 'provider', headerName: 'Provider', minWidth: 200, flex: 1 },
-        {
-            field: 'expiryDate', headerName: 'Expiry Date', minWidth: 150, flex: 0.7,
-            valueGetter: (_, row) => {
-                const date = new Date(row.expiryDate);
-                return date.toISOString().split("T")[0];
-            }
-        },
-        {
-            field: 'document',
-            headerName: 'document',
+            field: 'profile',
+            headerName: 'Profile',
             minWidth: 100,
             flex: 0.7,
             sortable: false,
@@ -70,6 +58,24 @@ const Products = () => {
             ),
         },
         {
+            field: 'status', headerName: 'Status', minWidth: 150, flex: 0.8,
+            renderCell: (params) => {
+                const handleStatusChange = () => {
+                    updateStatus({ id: params.row._id, status: params.value === "active" ? "inactive" : "active" })
+                };
+                return <>
+                    <Stack direction="row" sx={{ height: "100%", display: "flex", alignItems: "center" }} >
+                        <Chip
+                            label={params.value === "active" ? "Active" : "Inactive"}
+                            color={params.value === "active" ? "success" : "error"}
+                            variant="outlined"
+                            onClick={handleStatusChange}
+                            sx={{ borderRadius: 1 }} />
+                    </Stack>
+                </>
+            }
+        },
+        {
             field: 'actions',
             headerName: 'Actions',
             minWidth: 100,
@@ -78,7 +84,7 @@ const Products = () => {
             filterable: false,
             renderCell: (params) => {
                 return <>
-                    <ActionsMenu id={params.row._id} deleteAction={deletePolicy} />
+                    <ActionsMenu id={params.row._id} deleteAction={deleteUser} showDelete={false} />
                 </>
             }
         }
@@ -89,16 +95,18 @@ const Products = () => {
             const x = data.result.map((item, index) => {
                 return { ...item, serialNo: index + 1 }
             })
-            setPolicies(x)
+            setUsers(x)
         }
     }, [data?.result])
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}
+        {statusUpdateSuccess && <Toast type="success" message={statusMessage} />}
+        {statusUpdateError && <Toast type="error" message={statusError as string} />}
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid
-                rows={policies}
+                rows={users}
                 columns={columns}
                 loading={isLoading}
                 rowCount={data?.pagination.totalEntries || 0}
@@ -115,4 +123,4 @@ const Products = () => {
     </>
 }
 
-export default Products
+export default Users

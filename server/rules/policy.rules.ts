@@ -11,7 +11,7 @@ export const policyRules: validationRulesSchema = {
         _id: { required: true },
         name: { required: true }
     },
-    type: {
+    name: {
         object: true,
         _id: { required: true },
         name: { required: true }

@@ -33,7 +33,10 @@ const Brands = () => {
     const columns: GridColDef[] = [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4 },
         { field: 'name', headerName: 'Brand Name', minWidth: 200, flex: 1 },
-        { field: 'description', headerName: 'Description', minWidth: 300, flex: 2 },
+        {
+            field: 'description', headerName: 'Description', minWidth: 300, flex: 2,
+            valueGetter: (_, row) => row.description || "N/A", sortable: false
+        },
         {
             field: 'logo',
             headerName: 'Logo',

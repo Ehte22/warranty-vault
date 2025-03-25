@@ -4,11 +4,13 @@ export interface IPlan {
     name: string
     title: string
     priority: string
-    maxProducts?: string | null
-    maxPolicies?: string | null
-    maxPolicyTypes?: string | null
-    maxBrands?: string | null
+    maxProducts: string
+    maxPolicies: string
+    maxPolicyTypes: string
+    maxBrands: string | null
+    maxNotifications: string
     allowedFamilyMembers?: boolean
+    maxFamilyMembers?: string
     billingCycle: string,
     price: { monthly: string, yearly: string }
     includes: string[]
@@ -24,7 +26,9 @@ const planSchema = new Schema<IPlan>({
     maxPolicies: { type: String, trim: true },
     maxPolicyTypes: { type: String, trim: true },
     maxBrands: { type: String, trim: true },
+    maxNotifications: { type: String, trim: true },
     allowedFamilyMembers: { type: Boolean, default: false },
+    maxFamilyMembers: { type: String },
     price: {
         monthly: { type: String, default: "0" },
         yearly: { type: String, default: "0" },

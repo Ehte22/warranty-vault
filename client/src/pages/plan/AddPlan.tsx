@@ -19,6 +19,8 @@ const defaultValues = {
     maxProducts: "",
     maxPolicies: "",
     maxPolicyTypes: "",
+    maxNotifications: "",
+    maxFamilyMembers: "",
     includes: [
         { item: "" }
     ]
@@ -104,8 +106,7 @@ const AddPlan = () => {
         const subscription = watch((values) => {
             setSelectedPlan(values.name)
             if (values.name === "Pro" || values.name === "Family") {
-                setFields([
-                    ...fields,
+                const newFields: FieldConfig[] = [
                     {
                         name: "monthlyPrice",
                         type: "text",
@@ -118,7 +119,18 @@ const AddPlan = () => {
                         placeholder: "Yearly Price",
                         rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" },
                     },
-                ])
+                ];
+
+                if (values.name === "Family") {
+                    newFields.push({
+                        name: "maxFamilyMembers",
+                        type: "text",
+                        placeholder: "Max Family Members",
+                        rules: { required: true, pattern: /^(Unlimited|\d+)$/, patternMessage: "Only numbers or the word 'Unlimited' are allowed" },
+                    });
+                }
+
+                setFields([...fields, ...newFields]);
             } else if (values.name === "Free") {
                 setFields([
                     ...fields,
@@ -146,6 +158,12 @@ const AddPlan = () => {
                         placeholder: "Max Brands",
                         rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
                     },
+                    {
+                        name: "maxNotifications",
+                        type: "text",
+                        placeholder: "Max Notifications",
+                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                    },
                 ])
             } else {
                 setFields([...fields])
@@ -171,8 +189,10 @@ const AddPlan = () => {
 
             if (data.maxBrands) setValue("maxBrands", data.maxBrands)
             if (data.maxProducts) setValue("maxProducts", data.maxProducts)
-            if (data.maxPolicies) setValue("maxPolicies", data.maxProducts)
-            if (data.maxPolicyTypes) setValue("maxPolicyTypes", data.maxProducts)
+            if (data.maxPolicies) setValue("maxPolicies", data.maxPolicies)
+            if (data.maxPolicyTypes) setValue("maxPolicyTypes", data.maxPolicyTypes)
+            if (data.maxNotifications) setValue("maxNotifications", data.maxNotifications)
+            if (data.maxFamilyMembers) setValue("maxFamilyMembers", data.maxFamilyMembers)
 
         }
     }, [id, data])
@@ -222,6 +242,13 @@ const AddPlan = () => {
                             {renderSingleInput("priority")}
                         </Grid2>
 
+                        {/* Max Family Members */}
+                        {selectedPlan === "Family" &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }}>
+                                {renderSingleInput("maxFamilyMembers")}
+                            </Grid2>
+                        }
+
                         {/* Monthly Price */}
                         {(selectedPlan === "Pro" || selectedPlan === "Family") &&
                             <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
@@ -261,6 +288,13 @@ const AddPlan = () => {
                         {(selectedPlan === "Free") &&
                             <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
                                 {renderSingleInput("maxPolicyTypes")}
+                            </Grid2>
+                        }
+
+                        {/* Max Notifications */}
+                        {(selectedPlan === "Free") &&
+                            <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("maxNotifications")}
                             </Grid2>
                         }
 

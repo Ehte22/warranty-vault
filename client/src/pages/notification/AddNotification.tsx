@@ -9,6 +9,7 @@ import Toast from '../../components/Toast'
 import { useAddNotificationMutation, useGetNotificationByIdQuery, useUpdateNotificationMutation } from '../../redux/apis/notification.api'
 import { INotification } from '../../models/notification.interface'
 import { useGetProductsQuery } from '../../redux/apis/product.api'
+import { useGetPoliciesQuery } from '../../redux/apis/policy.api'
 
 const defaultValues = {
     product: "",
@@ -28,6 +29,7 @@ const AddPolicyType = () => {
     const [updateNotification, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateNotificationMutation()
     const { data } = useGetNotificationByIdQuery(id as string, { skip: !id })
     const { data: products } = useGetProductsQuery({ isFetchAll: true })
+    const { data: policies } = useGetPoliciesQuery({ isFetchAll: true })
 
     const config: DataContainerConfig = {
         pageTitle: id ? "Edit Notification" : "Add Notification",
@@ -76,7 +78,8 @@ const AddPolicyType = () => {
             updatedData = {
                 ...values,
                 product: { _id: product._id, name: product.name },
-                policy: { _id: policy.value, name: policy.label }
+                policy: { _id: policy.value, name: policy.label },
+                type: "notification"
             }
         }
 
@@ -99,23 +102,20 @@ const AddPolicyType = () => {
     }, [products?.result])
 
     useEffect(() => {
-        const subscription = watch(({ product }) => {
-            if (product) {
-                const selectedProduct = products?.result.find(item => item._id === product);
+        if (policies?.result) {
+            const subscription = watch(({ product }) => {
+                if (product) {
+                    const transformedData = policies.result
+                        .filter((item) => item.product?._id === product)
+                        .map((policy) => ({ label: policy.name.name, value: policy._id }))
 
-                if (Array.isArray(selectedProduct?.policies)) {
-                    const transformedPolicies = selectedProduct.policies.map(policy => ({
-                        label: policy.name,
-                        value: policy._id,
-                    }));
-
-                    setPolicyOptions(transformedPolicies)
+                    setPolicyOptions(transformedData)
                 }
-            }
-        });
+            });
 
-        return () => subscription.unsubscribe();
-    }, [products?.result, watch]);
+            return () => subscription.unsubscribe();
+        }
+    }, [policies?.result, watch]);
 
     useEffect(() => {
         if (id && data) {

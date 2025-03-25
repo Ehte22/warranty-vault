@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 
 const Dashboard = () => {
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const result = params.get('result');

@@ -18,6 +18,11 @@ const NAVIGATION = [
         icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
     },
     {
+        segment: 'users',
+        title: 'Users',
+        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+    },
+    {
         segment: 'products',
         title: 'Products',
         icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,

@@ -4,30 +4,9 @@ import CheckIcon from "@mui/icons-material/Check";
 import { useGetPlansQuery, useSelectPlanMutation } from "../../redux/apis/plan.api";
 import { useNavigate } from "react-router-dom";
 import Toast from "../../components/Toast";
-
-// const plans = [
-//     {
-//         name: "free",
-//         title: "Free Plan",
-//         price: { monthly: "₹0 / month", yearly: "₹0 / year" },
-//         includes: ["2 Policies", "5 Products", "2 Brands", "No Team Members"],
-//         save: "Save ₹0"
-//     },
-//     {
-//         name: "pro",
-//         title: "Pro Plan",
-//         price: { monthly: "₹499 / month", yearly: "₹4,999 / year" },
-//         includes: ["Unlimited Policies", "Unlimited Products", "Unlimited Brands", "No Team Members"],
-//         save: "Save ₹989"
-//     },
-//     {
-//         name: "family",
-//         title: "Family Plan",
-//         price: { monthly: "₹999 / month", yearly: "₹9,999 / year" },
-//         includes: ["Unlimited Policies", "Unlimited Products", "Unlimited Brands", "Can Add Members"],
-//         save: "Save ₹1989"
-//     },
-// ];
+import { useInitiatePaymentMutation, useVerifyPaymentMutation } from "../../redux/apis/payment.api";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 
 const SelectPlan = () => {
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -38,18 +17,50 @@ const SelectPlan = () => {
     });
 
     const navigate = useNavigate()
+    const { user } = useSelector((state: RootState) => state.auth)
 
     const { data } = useGetPlansQuery({ isFetchAll: true })
-    const [selectPlan, { data: message, isSuccess }] = useSelectPlanMutation()
+    const [selectPlan, { isSuccess }] = useSelectPlanMutation()
+    const [initiatePayment] = useInitiatePaymentMutation()
+    const [verifyPayment, { data: paymentData, isSuccess: paymentSuccess, error: paymentErrorData, isError: paymentError }] = useVerifyPaymentMutation()
 
-    const handleSelect = (plan: string, billingCycle: string) => {
+    const handleSelect = async (plan: string, billingCycle: string) => {
         setSelectedPlan(plan);
-        const selectedPlan = `${plan} ${billingCycle.charAt(0).toUpperCase()}${billingCycle.slice(1)}`
+        // const selectedPlan = `${plan} ${billingCycle.charAt(0).toUpperCase()}${billingCycle.slice(1)}`
 
         if (plan === "Free") {
             selectPlan({ selectedPlan: plan })
         } else {
-            selectPlan({ selectedPlan, billingCycle })
+
+            const response = await initiatePayment({ selectedPlan: plan, billingCycle }).unwrap()
+
+            const options: any = {
+                key: `${import.meta.env.VITE_RAZORPAY_API_KEY}`,
+                amount: response.amount,
+                currency: "INR",
+                name: "Subscription",
+                description: "Payment for plan subscription",
+                order_id: response.orderId,
+                handler: async function (paymentResponse: any) {
+                    const verifyRes = await verifyPayment(paymentResponse).unwrap();
+
+                    if (verifyRes.success) {
+                        await selectPlan({ selectedPlan: plan, billingCycle })
+                    }
+                },
+                prefill: {
+                    name: user?.name,
+                    email: user?.email,
+                    contact: user?.phone
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+
+            const razor = new (window as any).Razorpay(options);
+            razor.open();
+
         }
     };
 
@@ -60,6 +71,27 @@ const SelectPlan = () => {
     };
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const result = params.get('result');
+
+        if (result) {
+            try {
+                const parsedResult = JSON.parse(decodeURIComponent(result));
+                // Store the user info in localStorage
+                localStorage.setItem("user", JSON.stringify(parsedResult));
+
+                // Remove the result query param from the URL to prevent infinite reload
+                window.history.replaceState(null, "", window.location.pathname);
+
+                // Reload the page to apply changes
+                window.location.reload();
+            } catch (error) {
+                console.error("Error parsing result:", error);
+            }
+        }
+    }, []); // This will run only once when the component mounts
+
+    useEffect(() => {
         if (isSuccess) {
             setTimeout(() => {
                 navigate("/")
@@ -67,12 +99,12 @@ const SelectPlan = () => {
         }
     }, [isSuccess, navigate])
 
-
     return <>
-        {isSuccess && <Toast type="success" message={message} />}
+        {paymentSuccess && <Toast type="success" message={paymentData.message} />}
+        {paymentError && <Toast type="error" message={paymentErrorData as string} />}
         <Box sx={{ height: "100vh", px: { xs: 3, md: 4, lg: 12, xl: 28, } }} >
             <Grid2 container spacing={3} sx={{ minHeight: "100%", alignItems: "center", py: 8 }}>
-                {data?.result?.map((plan) => {
+                {data?.result.map((plan) => {
                     const discount = (+plan.price.monthly * 12) - +plan.price.yearly
                     return <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={plan._id} >
                         <Paper>

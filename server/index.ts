@@ -16,6 +16,8 @@ import policyRouter from "./routes/policy.routes";
 import policyTypeRouter from "./routes/policyType.routes";
 import planRouter from "./routes/plan.routes";
 import notificationRouter from "./routes/notification.routes";
+import paymentRouter from "./routes/payment.routes";
+import userRouter from "./routes/user.routes";
 
 dotenv.config()
 app.use(express.json())
@@ -41,12 +43,14 @@ redisClient.on("connect", () => {
 })
 
 app.use("/api/v1/auth", authRouter)
+app.use("/api/v1/user", protectedRoute, userRouter)
 app.use("/api/v1/brand", protectedRoute, brandRouter)
 app.use("/api/v1/product", protectedRoute, productRouter)
 app.use("/api/v1/policy", protectedRoute, policyRouter)
 app.use("/api/v1/policy-type", protectedRoute, policyTypeRouter)
 app.use("/api/v1/plan", protectedRoute, planRouter)
 app.use("/api/v1/notification", protectedRoute, notificationRouter)
+app.use("/api/v1/payment", paymentRouter)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({ message: "Resource not found", });

@@ -30,12 +30,12 @@ export const getAllBrands = asyncHandler(async (req: Request, res: Response, nex
         ]
     }
 
-    const totalBrands = await Brand.countDocuments(query)
-    const totalPages = Math.ceil(totalBrands / pageLimit)
+    const totalEntries = await Brand.countDocuments(query)
+    const totalPages = Math.ceil(totalEntries / pageLimit)
 
     let result = []
     if (isFetchAll) {
-        result = await Brand.find({ "user._id": userId }).sort({ createdAt: -1 }).lean()
+        result = await Brand.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
     } else {
         result = await Brand.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -43,7 +43,7 @@ export const getAllBrands = asyncHandler(async (req: Request, res: Response, nex
     const pagination = {
         page: currentPage,
         limit: pageLimit,
-        totalEntries: totalBrands,
+        totalEntries,
         totalPages: totalPages
     }
 

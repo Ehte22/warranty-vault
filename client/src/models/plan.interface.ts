@@ -8,7 +8,10 @@ export interface IPlan {
     maxPolicyTypes?: string | null
     maxBrands?: string | null
     allowedFamilyMembers?: boolean
-    billingCycle: string,
+    maxFamilyMembers?: string
+    maxNotifications?: string
+    billingCycle: string
+    type: string
     price: { monthly: string, yearly: string }
     includes?: string[]
     isActive?: boolean

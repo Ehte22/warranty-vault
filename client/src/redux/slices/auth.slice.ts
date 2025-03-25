@@ -31,6 +31,9 @@ const authSlice = createSlice({
     },
     extraReducers: builder => builder
 
+        .addMatcher(authApi.endpoints.signUp.matchFulfilled, (state, { payload }) => {
+            state.user = payload.result
+        })
         .addMatcher(authApi.endpoints.signIn.matchFulfilled, (state, { payload }) => {
             state.user = payload.result
         })

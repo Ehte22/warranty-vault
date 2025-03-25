@@ -30,12 +30,12 @@ export const getAllNotifications = asyncHandler(async (req: Request, res: Respon
         ]
     }
 
-    const totalBrands = await Notification.countDocuments(query)
-    const totalPages = Math.ceil(totalBrands / pageLimit)
+    const totalEntries = await Notification.countDocuments(query)
+    const totalPages = Math.ceil(totalEntries / pageLimit)
 
     let result = []
     if (isFetchAll) {
-        result = await Notification.find({ "user._id": userId }).sort({ createdAt: -1 }).lean()
+        result = await Notification.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
     } else {
         result = await Notification.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -43,7 +43,7 @@ export const getAllNotifications = asyncHandler(async (req: Request, res: Respon
     const pagination = {
         page: currentPage,
         limit: pageLimit,
-        totalEntries: totalBrands,
+        totalEntries,
         totalPages: totalPages
     }
 

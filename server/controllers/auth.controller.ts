@@ -90,7 +90,6 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         return res.status(401).json({ message: "Invalid Credential - Email not found" })
     }
 
-
     const verifyPassword = await bcryptjs.compare(password, user.password)
     if (!verifyPassword) {
         return res.status(401).json({ message: "Invalid Credential - Password do not match" })
@@ -165,7 +164,14 @@ export const googleLoginResponse = asyncHandler(async (req: Request, res: Respon
             token
         }
 
-        const redirectUrl = `${process.env.FRONTEND_URL}?result=${encodeURIComponent(JSON.stringify(result))}`
+        let route = ""
+        if (user.new) {
+            route = "/select-plan"
+        } else {
+            route = "/"
+        }
+
+        const redirectUrl = `${process.env.FRONTEND_URL}${route}?result=${encodeURIComponent(JSON.stringify(result))}`
         res.redirect(redirectUrl)
 
     })(req, res, next)

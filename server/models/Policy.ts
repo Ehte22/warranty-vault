@@ -3,7 +3,7 @@ import mongoose, { Model, Schema } from "mongoose"
 export interface IPolicy {
     user: { _id: mongoose.Schema.Types.ObjectId, name: string }
     product: { _id: mongoose.Schema.Types.ObjectId, name: string }
-    type: { _id: mongoose.Schema.Types.ObjectId, name: string }
+    name: { _id: mongoose.Schema.Types.ObjectId, name: string }
     provider: string
     expiryDate: Date
     document: string
@@ -20,7 +20,7 @@ const policySchema = new Schema<IPolicy>({
         _id: { type: mongoose.Schema.ObjectId, required: true, ref: "Product" },
         name: { type: String, required: true }
     },
-    type: {
+    name: {
         _id: { type: mongoose.Schema.ObjectId, required: true, ref: "PolicyType" },
         name: { type: String, required: true }
     },

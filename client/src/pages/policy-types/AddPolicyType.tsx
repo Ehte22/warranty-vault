@@ -46,10 +46,11 @@ const AddPolicyType = () => {
     type FormValues = z.infer<typeof schema>
 
     const onSubmit = (values: FormValues) => {
+        const policyTypeData = { name: values.name, description: values.description, type: "policyType" }
         if (id && data) {
-            updatePolicyType({ id, policyTypeData: { name: values.name, description: values.description } })
+            updatePolicyType({ id, policyTypeData })
         } else {
-            addPolicyType({ name: values.name, description: values.description })
+            addPolicyType(policyTypeData)
         }
     }
 

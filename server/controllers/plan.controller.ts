@@ -26,12 +26,12 @@ export const getAllPlans = asyncHandler(async (req: Request, res: Response, next
         ]
     }
 
-    const totalBrands = await Plan.countDocuments(query)
-    const totalPages = Math.ceil(totalBrands / pageLimit)
+    const totalEntries = await Plan.countDocuments(query)
+    const totalPages = Math.ceil(totalEntries / pageLimit)
 
     let result = []
     if (isFetchAll) {
-        result = await Plan.find().sort({ priority: 1 }).lean()
+        result = await Plan.find({ deletedAt: null }).sort({ priority: 1 }).lean()
     } else {
         result = await Plan.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -39,7 +39,7 @@ export const getAllPlans = asyncHandler(async (req: Request, res: Response, next
     const pagination = {
         page: currentPage,
         limit: pageLimit,
-        totalEntries: totalBrands,
+        totalEntries,
         totalPages: totalPages
     }
 
@@ -65,9 +65,9 @@ export const addPlan = asyncHandler(async (req: Request, res: Response, next: Ne
 
     let plan
     if (name === "Free") {
-        plan = await Plan.findOne({ name }).lean()
+        plan = await Plan.findOne({ name, deletedAt: null }).lean()
     } else {
-        plan = await Plan.findOne({ name, billingCycle }).lean()
+        plan = await Plan.findOne({ name, billingCycle, deletedAt: null }).lean()
     }
 
     if (plan) {
@@ -82,13 +82,15 @@ export const addPlan = asyncHandler(async (req: Request, res: Response, next: Ne
         maxPolicies: { required: name !== "Free" ? false : true },
         maxPolicyTypes: { required: name !== "Free" ? false : true },
         maxBrands: { required: name !== "Free" ? false : true },
+        maxNotifications: { required: name !== "Free" ? false : true },
+        maxFamilyMembers: { required: name === "Family" ? true : false },
         price: {
             object: true,
             monthly: { required: name === "Free" ? false : true },
             yearly: { required: name === "Free" ? false : true },
             required: name === "Free" ? false : true
         },
-        includes: { required: true, checkbox: true }
+        includes: { required: true, checkbox: true },
     }
 
     let data = req.body
@@ -155,9 +157,6 @@ export const deletePlan = asyncHandler(async (req: Request, res: Response, next:
 
 export const selectPlan = asyncHandler(async (req, res) => {
     const { selectedPlan = "Free", billingCycle } = req.body;
-
-    console.log(req.body);
-
 
     const { userId } = req.user as IUserProtected
 

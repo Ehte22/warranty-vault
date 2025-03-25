@@ -3,36 +3,35 @@ import DataContainer, { DataContainerConfig } from '../../components/DataContain
 import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
-import { useGetBrandsQuery } from '../../redux/apis/brand.api'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useImagePreview } from '../../context/ImageContext'
-import { useAddProductMutation, useGetProductByIdQuery, useUpdateProductMutation } from '../../redux/apis/product.api'
 import Toast from '../../components/Toast'
+import { useAddUserMutation, useGetUserByIdQuery, useUpdateUserMutation } from '../../redux/apis/user.api'
 
 const defaultValues = {
     name: "",
-    brand: "",
-    model: "",
-    purchaseDate: "",
-    image: ""
+    email: "",
+    phone: "",
+    profile: "",
+    password: "",
 }
 
-const AddProduct = () => {
+const AddUser = () => {
     const { id } = useParams()
-    const { setPreviewImages } = useImagePreview()
+
     const navigate = useNavigate()
 
-    const { data: brands } = useGetBrandsQuery({ isFetchAll: true })
-    const [addProduct, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddProductMutation()
-    const [updateProduct, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateProductMutation()
-    const { data } = useGetProductByIdQuery(id as string, { skip: !id })
+    const { setPreviewImages } = useImagePreview()
+
+    const [addUser, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddUserMutation()
+    const [updateUser, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateUserMutation()
+    const { data } = useGetUserByIdQuery(id as string, { skip: !id })
 
     const config: DataContainerConfig = {
-        pageTitle: id ? "Edit Product" : "Add Product",
+        pageTitle: id ? "Edit User" : "Add User",
         backLink: "../",
     }
-    const [brandOptions, setBrandOptions] = useState<{ label: string, value: string | undefined }[]>([])
 
     const fields: FieldConfig[] = [
         {
@@ -42,28 +41,27 @@ const AddProduct = () => {
             rules: { required: true, min: 2, max: 100 }
         },
         {
-            name: "brand",
-            type: "autoComplete",
-            placeholder: "Select Brand",
-            options: brandOptions,
-            rules: { required: true }
-        },
-        {
-            name: "model",
+            name: "email",
             type: "text",
-            placeholder: "Model",
-            rules: { required: true, min: 2, max: 100 }
+            placeholder: "Email Address",
+            rules: { required: true, email: true }
         },
         {
-            name: "purchaseDate",
-            type: "date",
-            placeholder: "Purchase Date",
-            rules: { required: true }
+            name: "phone",
+            placeholder: "Phone Number",
+            type: "text",
+            rules: { required: true, pattern: /^[6-9]\d{9}$/, patternMessage: "Please enter a valid phone number" }
         },
         {
-            name: "image",
+            name: "password",
+            placeholder: "Password",
+            type: "text",
+            rules: { required: id ? false : true, min: 8, max: 16 }
+        },
+        {
+            name: "profile",
+            label: "Profile",
             type: "file",
-            label: "Image",
             rules: { required: false, file: true }
         },
     ]
@@ -73,14 +71,9 @@ const AddProduct = () => {
     type FormValues = z.infer<typeof schema>
 
     const onSubmit = (values: FormValues) => {
-        const brand = brands?.result.find(item => item._id === values.brand)
-
-        let updatedData = values
-        if (brand) {
-            updatedData = { ...values, brand: { _id: brand._id, name: brand.name }, type: "product" }
-        }
-
         const formData = new FormData()
+
+        const updatedData: Record<string, any> = { ...values, type: "user" }
 
         Object.keys(updatedData).forEach((key) => {
             const value = updatedData[key];
@@ -106,9 +99,9 @@ const AddProduct = () => {
 
 
         if (id && data) {
-            updateProduct({ id, productData: formData })
+            updateUser({ id, userData: formData })
         } else {
-            addProduct(formData)
+            addUser(formData)
         }
 
     }
@@ -118,30 +111,20 @@ const AddProduct = () => {
     useEffect(() => {
         if (id && data) {
             setValue("name", data.name)
-            setValue("brand", data.brand?._id || '')
-            setValue("model", data.model)
-            setValue("purchaseDate", data.purchaseDate)
+            setValue("email", data.email)
+            setValue("phone", data.phone)
 
-            if (data.image) {
-                setValue("image", data.image)
-                setPreviewImages([data.image])
+            if (data.profile) {
+                setValue("profile", data.profile)
+                setPreviewImages([data.profile])
             }
         }
     }, [id, data])
 
     useEffect(() => {
-        if (brands?.result) {
-            const transformedData = brands.result.map((item) => {
-                return { label: item.name, value: item._id }
-            })
-            setBrandOptions(transformedData)
-        }
-    }, [brands?.result])
-
-    useEffect(() => {
         if (isAddSuccess) {
             setTimeout(() => {
-                navigate("/products")
+                navigate("/users")
             }, 2000);
         }
     }, [isAddSuccess])
@@ -149,7 +132,7 @@ const AddProduct = () => {
     useEffect(() => {
         if (isUpdateSuccess) {
             setTimeout(() => {
-                navigate("/products")
+                navigate("/users")
             }, 2000);
         }
     }, [isUpdateSuccess])
@@ -173,24 +156,26 @@ const AddProduct = () => {
                             {renderSingleInput("name")}
                         </Grid2>
 
-                        {/* Brand */}
+                        {/* Email Address */}
                         <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                            {renderSingleInput("brand")}
+                            {renderSingleInput("email")}
                         </Grid2>
 
-                        {/* Model */}
+                        {/* Phone Number */}
                         <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                            {renderSingleInput("model")}
+                            {renderSingleInput("phone")}
                         </Grid2>
 
-                        {/* Purchase Date */}
-                        <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
-                            {renderSingleInput("purchaseDate")}
-                        </Grid2>
+                        {/* Password */}
+                        {
+                            !id && <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} >
+                                {renderSingleInput("password")}
+                            </Grid2>
+                        }
 
-                        {/* Image */}
+                        {/* Profile */}
                         <Grid2 size={{ xs: 12 }} >
-                            {renderSingleInput("image")}
+                            {renderSingleInput("profile")}
                         </Grid2>
 
                     </Grid2>
@@ -219,4 +204,4 @@ const AddProduct = () => {
     </>
 }
 
-export default AddProduct
+export default AddUser

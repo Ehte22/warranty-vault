@@ -7,27 +7,33 @@ import { policyApi } from "./apis/policy.api";
 import { policyTypeApi } from "./apis/policyType.api";
 import { planApi } from "./apis/plan.api";
 import { notificationApi } from "./apis/notification.api";
+import { paymentApi } from "./apis/payment.api";
+import { userApi } from "./apis/user.api";
 
 const reduxStore = configureStore({
     reducer: {
         [authApi.reducerPath]: authApi.reducer,
+        [userApi.reducerPath]: userApi.reducer,
         [brandApi.reducerPath]: brandApi.reducer,
         [productApi.reducerPath]: productApi.reducer,
         [policyApi.reducerPath]: policyApi.reducer,
         [policyTypeApi.reducerPath]: policyTypeApi.reducer,
         [planApi.reducerPath]: planApi.reducer,
         [notificationApi.reducerPath]: notificationApi.reducer,
+        [paymentApi.reducerPath]: paymentApi.reducer,
         auth: authSlice,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
             authApi.middleware,
+            userApi.middleware,
             brandApi.middleware,
             productApi.middleware,
             policyApi.middleware,
             policyTypeApi.middleware,
             planApi.middleware,
             notificationApi.middleware,
+            paymentApi.middleware,
         )
 })
 

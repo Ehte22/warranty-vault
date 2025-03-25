@@ -32,12 +32,12 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response, n
         ]
     }
 
-    const totalBrands = await Product.countDocuments(query)
-    const totalPages = Math.ceil(totalBrands / pageLimit)
+    const totalEntries = await Product.countDocuments(query)
+    const totalPages = Math.ceil(totalEntries / pageLimit)
 
     let result = []
     if (isFetchAll) {
-        result = await Product.find({ "user._id": userId }).sort({ createdAt: -1 }).lean()
+        result = await Product.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
     } else {
         result = await Product.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -45,7 +45,7 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response, n
     const pagination = {
         page: currentPage,
         limit: pageLimit,
-        totalEntries: totalBrands,
+        totalEntries,
         totalPages: totalPages
     }
 

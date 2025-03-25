@@ -11,6 +11,8 @@ import { customValidator } from '../../utils/validator';
 import { useSignUpMutation } from '../../redux/apis/auth.api';
 import { IUser } from '../../models/user.interface';
 import Toast from '../../components/Toast';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
 const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -91,6 +93,8 @@ const Register = () => {
 
     const navigate = useNavigate()
 
+    const { user } = useSelector((state: RootState) => state.auth)
+
     const handleClickShowPassword = (field: string) => {
         setShowPassword((prevState) => ({
             ...prevState,
@@ -131,12 +135,12 @@ const Register = () => {
     }, [watch]);
 
     useEffect(() => {
-        if (isSuccess) {
+        if (isSuccess && user?.token) {
             setTimeout(() => {
                 navigate("/select-plan")
             }, 2000);
         }
-    }, [isSuccess, navigate])
+    }, [isSuccess, user?.token, navigate])
 
     return <>
         {isSuccess && <Toast type='success' message={data.message} />}

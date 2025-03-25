@@ -28,12 +28,12 @@ export const getAllPolicyTypes = asyncHandler(async (req: Request, res: Response
         ]
     }
 
-    const totalBrands = await PolicyType.countDocuments(query)
-    const totalPages = Math.ceil(totalBrands / pageLimit)
+    const totalEntries = await PolicyType.countDocuments(query)
+    const totalPages = Math.ceil(totalEntries / pageLimit)
 
     let result = []
     if (isFetchAll) {
-        result = await PolicyType.find({ "user._id": userId }).sort({ createdAt: -1 }).lean()
+        result = await PolicyType.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
     } else {
         result = await PolicyType.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -41,7 +41,7 @@ export const getAllPolicyTypes = asyncHandler(async (req: Request, res: Response
     const pagination = {
         page: currentPage,
         limit: pageLimit,
-        totalEntries: totalBrands,
+        totalEntries,
         totalPages: totalPages
     }
 
@@ -65,7 +65,7 @@ export const getPolicyTypeById = asyncHandler(async (req: Request, res: Response
 export const addPolicyType = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { name } = req.body
 
-    const policyType = await PolicyType.findOne({ name }).lean()
+    const policyType = await PolicyType.findOne({ name, deletedAt: null }).lean()
     if (policyType) {
         return res.status(400).json({ message: "Policy type Already Exist" })
     }

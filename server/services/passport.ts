@@ -33,10 +33,10 @@ passport.use(new GoogleStrategy(
             let user = await User.findOne({ email: profile._json.email }).lean()
             if (!user) {
                 const newUser = await User.create({ name: profile._json.name, email: profile._json.email, profile: profile._json.picture })
-                return cb(null, newUser, { message: "Logged in successfully" })
+                return cb(null, { ...newUser, new: true }, { message: "Logged in successfully" })
             }
 
-            cb(null, user, { message: "Logged in successfully" })
+            cb(null, { ...user, new: false }, { message: "Logged in successfully" })
         } catch (error) {
             cb(error, false)
         }

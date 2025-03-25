@@ -9,4 +9,5 @@ export interface IUser {
     role: 'Admin' | 'User'
     status?: 'active' | 'inactive';
     token?: string
+    type?: string
 }

@@ -59,13 +59,15 @@ const AddBrand = () => {
     const onSubmit = (values: FormValues) => {
         const formData = new FormData()
 
-        Object.keys(values).forEach((key) => {
-            if (typeof values[key] === "object") {
-                Object.keys(values[key]).forEach((item) => {
-                    formData.append(key, values[key][item])
+        const updatedData: Record<string, any> = { ...values, type: "brand" }
+
+        Object.keys(updatedData).forEach((key) => {
+            if (typeof updatedData[key] === "object") {
+                Object.keys(updatedData[key]).forEach((item) => {
+                    formData.append(key, updatedData[key][item])
                 })
             } else {
-                formData.append(key, values[key])
+                formData.append(key, updatedData[key])
             }
         })
 

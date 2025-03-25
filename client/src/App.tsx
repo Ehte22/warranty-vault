@@ -18,9 +18,11 @@ import PolicyTypes from "./pages/policy-types/PolicyTypes";
 import AddPolicyType from "./pages/policy-types/AddPolicyType";
 import Plans from "./pages/plan/Plans";
 import AddPlan from "./pages/plan/AddPlan";
-import Notifications from "./pages/notifcations/Notifications";
-import AddNotification from "./pages/notifcations/AddNotification";
+import Notifications from "./pages/notification/Notifications";
+import AddNotification from "./pages/notification/AddNotification";
 import SelectPlan from "./pages/plan/SelectPlan";
+import Users from "./pages/users/Users";
+import AddUser from "./pages/users/AddUsers";
 
 const theme = createTheme({
   palette: {
@@ -92,6 +94,12 @@ const App = () => {
                 <Route index element={<Notifications />} />
                 <Route path="add" element={<AddNotification />} />
                 <Route path="update/:id" element={<AddNotification />} />
+              </Route>
+
+              <Route path="users">
+                <Route index element={<Users />} />
+                <Route path="add" element={<AddUser />} />
+                <Route path="update/:id" element={<AddUser />} />
               </Route>
 
             </Route>

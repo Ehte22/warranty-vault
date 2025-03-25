@@ -2,7 +2,7 @@ export interface IPolicy {
     _id?: string;
     user?: { _id: string, name: string }
     product?: { _id: string, name: string }
-    type: { _id: string, name: string }
+    name: { _id: string, name: string }
     provider: string
     expiryDate: Date
     document: string

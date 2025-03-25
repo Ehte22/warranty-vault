@@ -16,9 +16,11 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 interface IActionsProps {
     id: string
     deleteAction: (id: string) => any
+    showDelete?: boolean
+    showEdit?: boolean
 }
 
-const ActionsMenu: React.FC<IActionsProps> = ({ id, deleteAction }) => {
+const ActionsMenu: React.FC<IActionsProps> = ({ id, deleteAction, showEdit = true, showDelete = true }) => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [openDialog, setOpenDialog] = useState(false)
@@ -96,18 +98,23 @@ const ActionsMenu: React.FC<IActionsProps> = ({ id, deleteAction }) => {
         >
 
 
-            <Box sx={{ px: 3 }}>
-                <Button fullWidth color='inherit' sx={{ color: "#424242", textTransform: "none" }}
-                    onClick={() => handleEdit(id)} >
-                    Edit
-                </Button>
-            </Box>
-            <Box sx={{ px: 3 }}>
-                <Button fullWidth color='inherit' sx={{ color: "#424242", textTransform: "none" }}
-                    onClick={() => setOpenDialog(true)}>
-                    Delete
-                </Button>
-            </Box>
+            {showEdit &&
+                <Box sx={{ px: 3 }}>
+                    <Button fullWidth color='inherit' sx={{ color: "#424242", textTransform: "none" }}
+                        onClick={() => handleEdit(id)} >
+                        Edit
+                    </Button>
+                </Box>
+            }
+            {
+                showDelete &&
+                <Box sx={{ px: 3 }}>
+                    <Button fullWidth color='inherit' sx={{ color: "#424242", textTransform: "none" }}
+                        onClick={() => setOpenDialog(true)}>
+                        Delete
+                    </Button>
+                </Box>
+            }
         </Menu >
 
         {/* Delete Modal */}
@@ -117,7 +124,7 @@ const ActionsMenu: React.FC<IActionsProps> = ({ id, deleteAction }) => {
             open={openDialog}
         >
             <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-                Modal title
+                Delete Item
             </DialogTitle>
             <IconButton
                 aria-label="close"
