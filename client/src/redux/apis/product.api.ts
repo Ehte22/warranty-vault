@@ -12,7 +12,7 @@ export const productApi = createApi({
     tagTypes: ["product"],
     endpoints: (builder) => {
         return {
-            getProducts: builder.query<{ result: IProduct[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getProducts: builder.query<{ result: IProduct[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean, selectedUser: string }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",

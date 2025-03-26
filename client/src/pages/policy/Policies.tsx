@@ -7,16 +7,20 @@ import { Paper } from '@mui/material';
 import Toast from '../../components/Toast';
 import { IPolicy } from '../../models/policy.interface';
 import { useDeletePolicyMutation, useGetPoliciesQuery } from '../../redux/apis/policy.api';
+import Loader from '../../components/Loader';
 
-const Products = () => {
+const Policies = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const [selectedUser, setSelectedUser] = useState<string>("")
 
     const config: DataContainerConfig = {
         pageTitle: "Policies",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        onSearch: setSearchQuery
+        showSelector: false,
+        onSearch: setSearchQuery,
+        onSelect: setSelectedUser
     }
 
     const [policies, setPolicies] = useState<IPolicy[]>([])
@@ -26,7 +30,8 @@ const Products = () => {
     const { data, isLoading } = useGetPoliciesQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
-        searchQuery: debounceSearchQuery.toLowerCase()
+        searchQuery: debounceSearchQuery.toLowerCase(),
+        selectedUser
     })
     const [deletePolicy, { data: message, isSuccess }] = useDeletePolicyMutation()
 
@@ -93,6 +98,10 @@ const Products = () => {
         }
     }, [data?.result])
 
+    if (isLoading) {
+        return <Loader />
+    }
+
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}
         <DataContainer config={config} />
@@ -115,4 +124,4 @@ const Products = () => {
     </>
 }
 
-export default Products
+export default Policies

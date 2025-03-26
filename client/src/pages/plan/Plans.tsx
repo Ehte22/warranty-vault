@@ -7,16 +7,19 @@ import { useDebounce } from '../../utils/useDebounce';
 import Toast from '../../components/Toast';
 import { IPlan } from '../../models/plan.interface';
 import { useDeletePlanMutation, useGetPlansQuery, useUpdatePlanStatusMutation } from '../../redux/apis/plan.api';
+import Loader from '../../components/Loader';
 
 const Plans = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const [selectedUser, setSelectedUser] = useState<string>("")
 
     const config: DataContainerConfig = {
         pageTitle: "Plans",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        onSearch: setSearchQuery
+        onSearch: setSearchQuery,
+        onSelect: setSelectedUser
     }
 
     const [plans, setPlans] = useState<IPlan[]>([])
@@ -26,7 +29,8 @@ const Plans = () => {
     const { data, isLoading } = useGetPlansQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
-        searchQuery: debounceSearchQuery.toLowerCase()
+        searchQuery: debounceSearchQuery.toLowerCase(),
+        selectedUser
     })
     const [deletePolicyTypes, { data: message, isSuccess }] = useDeletePlanMutation()
     const [updateStatus, { data: statusMessage, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdatePlanStatusMutation()
@@ -83,6 +87,10 @@ const Plans = () => {
             setPlans(x)
         }
     }, [data?.result])
+
+    if (isLoading) {
+        return <Loader />
+    }
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}

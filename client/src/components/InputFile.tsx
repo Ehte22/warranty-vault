@@ -88,7 +88,7 @@ const InputFile: React.FC<IFieldProps> = ({ field, setValue }) => {
                             type="file"
                             id={field.name}
                             onChange={(e) => setValue && handleChange(e, field.name, field.multiple!, setValue)}
-                            className="sr-only"
+                            style={{ display: "none" }}
                             accept={field.accept || "*"}
                             multiple={field.multiple || false}
                         />

@@ -7,16 +7,20 @@ import { Chip, Paper, Stack } from '@mui/material';
 import Toast from '../../components/Toast';
 import { IUser } from '../../models/user.interface';
 import { useDeleteUserMutation, useGetUsersQuery, useUpdateUserStatusMutation } from '../../redux/apis/user.api';
+import Loader from '../../components/Loader';
 
 const Users = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const [selectedUser, setSelectedUser] = useState<string>("")
 
     const config: DataContainerConfig = {
         pageTitle: "Users",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        onSearch: setSearchQuery
+        showSelector: true,
+        onSearch: setSearchQuery,
+        onSelect: setSelectedUser
     }
 
     const [users, setUsers] = useState<IUser[]>([])
@@ -26,8 +30,10 @@ const Users = () => {
     const { data, isLoading } = useGetUsersQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
-        searchQuery: debounceSearchQuery.toLowerCase()
+        searchQuery: debounceSearchQuery.toLowerCase(),
+        selectedUser
     })
+
     const [deleteUser, { data: message, isSuccess }] = useDeleteUserMutation()
     const [updateStatus, { data: statusMessage, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdateUserStatusMutation()
 
@@ -98,6 +104,10 @@ const Users = () => {
             setUsers(x)
         }
     }, [data?.result])
+
+    if (isLoading) {
+        return <Loader />
+    }
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}

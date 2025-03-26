@@ -8,9 +8,9 @@ import cloudinary from "../utils/uploadConfig"
 
 // Get All
 export const getAllBrands = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
+    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false, selectedUser = "" } = req.query
 
-    const { userId } = req.user as IUserProtected
+    const { userId, role } = req.user as IUserProtected
 
     const currentPage: number = parseInt(page as string)
     const pageLimit: number = parseInt(limit as string)
@@ -18,7 +18,7 @@ export const getAllBrands = asyncHandler(async (req: Request, res: Response, nex
 
     const query: any = {
         $and: [
-            { "user._id": userId },
+            role !== "Admin" ? { "user._id": userId } : selectedUser ? { "user._id": selectedUser } : {},
             { deletedAt: null },
             searchQuery
                 ? {
@@ -83,7 +83,7 @@ export const addBrand = asyncHandler(async (req: Request, res: Response, next: N
         return res.status(422).json({ message: "Validation Error", error })
     }
 
-    const brand = await Brand.findOne({ name }).lean()
+    const brand = await Brand.findOne({ "user._id": userId, name, deletedAt: null }).lean()
     if (brand) {
         return res.status(400).json({ message: "Brand Already Exist" })
     }

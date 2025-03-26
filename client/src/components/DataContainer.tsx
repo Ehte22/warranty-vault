@@ -1,9 +1,12 @@
-import React, { useState } from 'react'
-import { Box, Button, Grid2, IconButton, Paper, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
+import React from 'react'
+import { Autocomplete, Box, Button, Grid2, IconButton, Paper, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faRotate } from '@fortawesome/free-solid-svg-icons';
 import SearchIcon from '@mui/icons-material/Search';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useGetUsersQuery } from '../redux/apis/user.api';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 export interface DataContainerConfig {
     pageTitle?: string;
@@ -12,12 +15,14 @@ export interface DataContainerConfig {
     showSearchBar?: boolean;
     showPagination?: boolean;
     showRefreshButton?: boolean;
+    showSelector?: boolean;
     table?: boolean;
     tableData?: any
     tableColumns?: any
     totalRecords?: any
     totalPages?: any
     onSearch?: (query: string) => void;
+    onSelect?: (query: string) => void;
     onPageChange?: any
     pageIndex?: number
     pageSize?: number
@@ -28,13 +33,15 @@ export interface DataContainerProps {
 }
 
 const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
-    const [searchQuery, setSearchQuery] = useState<string>("")
-
     const theme = useTheme()
     const location = useLocation()
     const navigate = useNavigate()
 
     const isXsScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
+    const { data: users } = useGetUsersQuery({ isFetchAll: true })
+
+    const { user } = useSelector((state: RootState) => state.auth)
 
     const handleAdd = () => {
         navigate(`${location.pathname.replace(/\/$/, '')}/add`)
@@ -49,11 +56,16 @@ const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
     }
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(event.target.value);
         if (config.onSearch) {
             config.onSearch(event.target.value);
         }
     };
+
+    const handleSelect = (id: string) => {
+        if (config.onSelect) {
+            config.onSelect(id)
+        }
+    }
 
     return <>
         <Paper sx={{ p: 2 }}>
@@ -109,12 +121,105 @@ const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
                                         Back
                                     </Button>
                                 }
+
                             </Box>
                         }
                     </Grid2>
 
+                    {
+                        config.showSelector && user?.role === "Admin" && isXsScreen && <Grid2 size={{ xs: 12 }}>
+                            <Autocomplete
+                                options={users?.result || []}
+                                getOptionLabel={(option) => option.name}
+                                isOptionEqualToValue={(option, value) => option._id === value._id}
+                                onChange={(_, user) => handleSelect(user?._id as string)}
+                                size="small"
+                                sx={{
+                                    width: { xs: "100%", sm: "280px" },
+                                    mr: { sm: 1 },
+                                }}
+                                renderOption={(props, option) => (
+                                    <li {...props} key={option._id}>
+                                        {option.name}
+                                    </li>
+                                )}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select User"
+                                        variant="outlined"
+                                        sx={{
+                                            "& .MuiOutlinedInput-root": {
+                                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                                    border: "1px solid black",
+                                                },
+                                                "& .MuiSvgIcon-root": {
+                                                    color: "gray",
+                                                },
+                                                "& .MuiInputBase-root": {
+                                                    color: "black",
+                                                },
+                                            },
+                                            "& .MuiInputLabel-root": {
+                                                color: "gray",
+                                            },
+                                            "& .MuiInputLabel-root.Mui-focused": {
+                                                color: "black",
+                                            },
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Grid2>
+                    }
+
                     <Grid2 size={{ xs: 12, sm: 9 }} >
                         <Box sx={{ display: "flex", gap: 1.5, alignItems: 'center', justifyContent: "flex-end" }}>
+
+                            {
+                                config.showSelector && !isXsScreen && user?.role === "Admin" && <Autocomplete
+                                    options={users?.result || []}
+                                    getOptionLabel={(option) => option.name}
+                                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                                    onChange={(_, user) => handleSelect(user?._id as string)}
+                                    size="small"
+                                    sx={{
+                                        width: { xs: "100%", sm: "280px" },
+                                        mr: { sm: 1 },
+                                    }}
+                                    renderOption={(props, option) => (
+                                        <li {...props} key={option._id}>
+                                            {option.name}
+                                        </li>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select User"
+                                            variant="outlined"
+                                            sx={{
+                                                "& .MuiOutlinedInput-root": {
+                                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                                        border: "1px solid black",
+                                                    },
+                                                    "& .MuiSvgIcon-root": {
+                                                        color: "gray",
+                                                    },
+                                                    "& .MuiInputBase-root": {
+                                                        color: "black",
+                                                    },
+                                                },
+                                                "& .MuiInputLabel-root": {
+                                                    color: "gray",
+                                                },
+                                                "& .MuiInputLabel-root.Mui-focused": {
+                                                    color: "black",
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                />
+                            }
 
                             {
                                 config.showSearchBar && <TextField
@@ -212,7 +317,7 @@ const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
 
                 </Grid2>
             </Stack>
-        </Paper>
+        </Paper >
     </>
 }
 

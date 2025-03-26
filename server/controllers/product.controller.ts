@@ -8,9 +8,9 @@ import Product from "../models/Product"
 
 // Get All
 export const getAllProducts = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
+    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false, selectedUser = "" } = req.query
 
-    const { userId } = req.user as IUserProtected
+    const { userId, role } = req.user as IUserProtected
 
     const currentPage: number = parseInt(page as string)
     const pageLimit: number = parseInt(limit as string)
@@ -18,7 +18,7 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response, n
 
     const query: any = {
         $and: [
-            { "user._id": userId },
+            role !== "Admin" ? { "user._id": userId } : selectedUser ? { "user._id": selectedUser } : {},
             { deletedAt: null },
             searchQuery
                 ? {
@@ -77,17 +77,17 @@ export const addProduct = asyncHandler(async (req: Request, res: Response, next:
 
     const { userId, name: userName } = req.user as IUserProtected
 
+    const product = await Product.findOne({ "user._id": userId, name }).lean()
+    if (product) {
+        return res.status(400).json({ message: "Product Already Exist" })
+    }
+
     const data = { ...req.body, image, user: { _id: userId, name: userName } }
 
     const { isError, error } = customValidator(data, productRules)
 
     if (isError) {
         return res.status(422).json({ message: "Validation Error", error })
-    }
-
-    const product = await Product.findOne({ name }).lean()
-    if (product) {
-        return res.status(400).json({ message: "Product Already Exist" })
     }
 
     const result = await Product.create(data)
@@ -146,5 +146,5 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response, ne
 
     await Product.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "User delete successfully" })
+    res.status(200).json({ message: "Product Delete Successfully" })
 })

@@ -12,7 +12,7 @@ export const policyApi = createApi({
     tagTypes: ["policy"],
     endpoints: (builder) => {
         return {
-            getPolicies: builder.query<{ result: IPolicy[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getPolicies: builder.query<{ result: IPolicy[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean, selectedUser: string }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",

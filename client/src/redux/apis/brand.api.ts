@@ -12,7 +12,7 @@ export const brandApi = createApi({
     tagTypes: ["brand"],
     endpoints: (builder) => {
         return {
-            getBrands: builder.query<{ result: IBrand[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getBrands: builder.query<{ result: IBrand[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean, selectedUser: string }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",

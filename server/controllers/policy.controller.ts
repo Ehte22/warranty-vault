@@ -9,9 +9,9 @@ import Product from "../models/Product"
 
 // Get All
 export const getAllPolicies = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
+    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false, selectedUser = "" } = req.query
 
-    const { userId } = req.user as IUserProtected
+    const { userId, role } = req.user as IUserProtected
 
     const currentPage: number = parseInt(page as string)
     const pageLimit: number = parseInt(limit as string)
@@ -19,7 +19,7 @@ export const getAllPolicies = asyncHandler(async (req: Request, res: Response, n
 
     const query: any = {
         $and: [
-            { "user._id": userId },
+            role !== "Admin" ? { "user._id": userId } : selectedUser ? { "user._id": selectedUser } : {},
             { deletedAt: null },
             searchQuery
                 ? {
@@ -70,8 +70,10 @@ export const getPolicyById = asyncHandler(async (req: Request, res: Response, ne
 export const addPolicy = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { product, name, expiryDate } = req.body
 
+    const { userId, name: userName } = req.user as IUserProtected
+
     const policy = await Policy.findOne({
-        "product._id": product._id, "name._id": name._id, expiryDate, deletedAt: null
+        "user._id": userId, "product._id": product._id, "name._id": name._id, expiryDate, deletedAt: null
     })
 
     if (policy) {
@@ -83,8 +85,6 @@ export const addPolicy = asyncHandler(async (req: Request, res: Response, next: 
         const { secure_url } = await cloudinary.uploader.upload(req.file.path)
         document = secure_url
     }
-
-    const { userId, name: userName } = req.user as IUserProtected
 
     const data = { ...req.body, document, user: { _id: userId, name: userName } }
 
@@ -156,5 +156,5 @@ export const deletePolicy = asyncHandler(async (req: Request, res: Response, nex
 
     await Policy.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "User delete successfully" })
+    res.status(200).json({ message: "Policy Delete Successfully" })
 })

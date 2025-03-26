@@ -6,10 +6,13 @@ import cloudinary from "../utils/uploadConfig"
 import { IUser, User } from "../models/User"
 import { registerRules } from "../rules/user.rules"
 import bcryptjs from "bcryptjs"
+import mongoose from "mongoose"
 
 // Get All
 export const getAllUsers = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
+    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false, selectedUser = "" } = req.query
+    console.log(selectedUser);
+
 
     const { userId, role } = req.user as IUserProtected
 
@@ -19,7 +22,9 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response, next
 
     const query: any = {
         $and: [
+            role !== "Admin" ? { "owner._id": userId } : selectedUser ? { "owner._id": selectedUser } : {},
             { deletedAt: null },
+            { role: { $ne: "Admin" } },
             searchQuery
                 ? {
                     $or: [
@@ -35,21 +40,11 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response, next
     const totalEntries = await User.countDocuments(query)
     const totalPages = Math.ceil(totalEntries / pageLimit)
 
-    const owner = await User.findById(userId).lean()
-
     let result: any[] = []
     if (isFetchAll) {
-        if (owner && owner.plan === "Family") {
-            result = await User.find({ _id: { $in: owner.familyMembers } }).sort({ createdAt: -1 }).lean()
-        } else if (role === "Admin") {
-            result = await User.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
-        }
+        result = await User.find({ role: { $ne: "Admin" } }).sort({ createdAt: -1 }).lean()
     } else {
-        if (owner && owner.plan === "Family") {
-            result = await User.find({ _id: { $in: owner.familyMembers } }).sort({ createdAt: -1 }).lean()
-        } else if (role === "Admin") {
-            result = await User.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
-        }
+        result = await User.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
 
     const pagination = {
@@ -81,7 +76,7 @@ export const addUser = asyncHandler(async (req: Request, res: Response, next: Ne
 
     const user = await User.findOne({ $or: [{ email }, { phone }] }).lean()
 
-    const { userId } = req.user as IUserProtected
+    const { userId, role } = req.user as IUserProtected
 
     const owner = await User.findById(userId).lean()
 
@@ -100,12 +95,23 @@ export const addUser = asyncHandler(async (req: Request, res: Response, next: Ne
         profile = secure_url
     }
 
-    const data = {
-        ...req.body, profile,
+    let data = {
+        ...req.body,
+        profile,
         role: "User",
-        subscription: owner?.subscription,
-        plan: owner?.plan === "Family Yearly" ? "Pro Yearly" : "Pro Monthly"
     }
+
+    if (role !== "Admin") {
+        data = {
+            ...data,
+            owner: { _id: owner?._id, name: owner?.name },
+            subscription: owner?.subscription,
+            plan: owner?.plan
+        }
+    }
+
+    console.log(data);
+
     const { isError, error } = customValidator(data, registerRules)
 
     if (isError) {
@@ -182,5 +188,5 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response, next:
 
     await User.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "User delete successfully" })
+    res.status(200).json({ message: "User Delete Successfully" })
 })

@@ -7,16 +7,20 @@ import { IProduct } from '../../models/product.interface';
 import { useDebounce } from '../../utils/useDebounce';
 import { Paper } from '@mui/material';
 import Toast from '../../components/Toast';
+import Loader from '../../components/Loader';
 
 const Products = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const [selectedUser, setSelectedUser] = useState<string>("")
 
     const config: DataContainerConfig = {
         pageTitle: "Products",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        onSearch: setSearchQuery
+        showSelector: false,
+        onSearch: setSearchQuery,
+        onSelect: setSelectedUser
     }
 
     const [products, setProducts] = useState<IProduct[]>([])
@@ -26,7 +30,8 @@ const Products = () => {
     const { data, isLoading } = useGetProductsQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
-        searchQuery: debounceSearchQuery.toLowerCase()
+        searchQuery: debounceSearchQuery.toLowerCase(),
+        selectedUser
     })
     const [deleteProduct, { data: message, isSuccess }] = useDeleteProductMutation()
 
@@ -89,6 +94,10 @@ const Products = () => {
             setProducts(x)
         }
     }, [data?.result])
+
+    if (isLoading) {
+        return <Loader />
+    }
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}

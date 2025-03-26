@@ -7,9 +7,9 @@ import { notificationRules } from "../rules/notification.rules"
 
 // Get All
 export const getAllNotifications = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
+    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false, selectedUser = "" } = req.query
 
-    const { userId } = req.user as IUserProtected
+    const { userId, role } = req.user as IUserProtected
 
     const currentPage: number = parseInt(page as string)
     const pageLimit: number = parseInt(limit as string)
@@ -17,7 +17,7 @@ export const getAllNotifications = asyncHandler(async (req: Request, res: Respon
 
     const query: any = {
         $and: [
-            { "user._id": userId },
+            role !== "Admin" ? { "user._id": userId } : selectedUser ? { "user._id": selectedUser } : {},
             { deletedAt: null },
             searchQuery
                 ? {

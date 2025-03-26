@@ -12,12 +12,12 @@ export interface IUser extends Document {
     status: 'active' | 'inactive';
     sessionToken: string | null
     plan?: string
-    familyMembers: mongoose.Schema.Types.ObjectId[],
     subscription?: {
         startDate: string
         expiryDate: string
         paymentStatus: string
     }
+    owner: { _id: mongoose.Schema.Types.ObjectId, name: string }
     new?: boolean
 }
 
@@ -28,6 +28,10 @@ export interface IOTP extends Document {
 }
 
 const userSchema = new Schema<IUser>({
+    owner: {
+        _id: { type: mongoose.Types.ObjectId },
+        name: { type: String }
+    },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true },
     phone: { type: String, default: "", trim: true },
@@ -41,8 +45,7 @@ const userSchema = new Schema<IUser>({
     },
     status: { type: String, default: "active", enum: ['active', 'inactive'] },
     sessionToken: { type: String, default: null },
-    plan: { type: String, enum: ["Free", "Pro Monthly", "Pro Yearly", "Family Monthly", "Family Yearly"], default: "Free" },
-    familyMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    plan: { type: String, enum: ["Free", "Pro", "Family"], default: "Free" },
     subscription: {
         startDate: { type: Date },
         expiryDate: { type: Date },

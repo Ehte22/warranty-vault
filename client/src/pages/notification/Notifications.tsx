@@ -7,16 +7,20 @@ import { Chip, Paper, Stack } from '@mui/material';
 import Toast from '../../components/Toast';
 import { INotification } from '../../models/notification.interface';
 import { useDeleteNotificationMutation, useGetNotificationQuery } from '../../redux/apis/notification.api';
+import Loader from '../../components/Loader';
 
 const Notifications = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const [selectedUser, setSelectedUser] = useState<string>("")
 
     const config: DataContainerConfig = {
         pageTitle: "Notifications",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        onSearch: setSearchQuery
+        showSelector: true,
+        onSearch: setSearchQuery,
+        onSelect: setSelectedUser
     }
 
     const [notifications, setNotifications] = useState<INotification[]>([])
@@ -26,7 +30,8 @@ const Notifications = () => {
     const { data, isLoading } = useGetNotificationQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
-        searchQuery: debounceSearchQuery.toLowerCase()
+        searchQuery: debounceSearchQuery.toLowerCase(),
+        selectedUser
     })
     const [deletePolicy, { data: message, isSuccess }] = useDeleteNotificationMutation()
 
@@ -84,6 +89,10 @@ const Notifications = () => {
             setNotifications(x)
         }
     }, [data?.result])
+
+    if (isLoading) {
+        return <Loader />
+    }
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}

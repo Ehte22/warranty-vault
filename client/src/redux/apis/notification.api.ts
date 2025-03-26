@@ -12,7 +12,7 @@ export const notificationApi = createApi({
     tagTypes: ["notification"],
     endpoints: (builder) => {
         return {
-            getNotification: builder.query<{ result: INotification[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean }>>({
+            getNotification: builder.query<{ result: INotification[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean, selectedUser: string }>>({
                 query: (queryParams = {}) => {
                     return {
                         url: "/",

@@ -7,16 +7,20 @@ import { useDebounce } from '../../utils/useDebounce';
 import Toast from '../../components/Toast';
 import { IPolicyType } from '../../models/policyType.interface';
 import { useDeletePolicyTypeMutation, useGetPolicyTypesQuery } from '../../redux/apis/policyType.api';
+import Loader from '../../components/Loader';
 
 const policyTypes = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const [selectedUser, setSelectedUser] = useState<string>("")
 
     const config: DataContainerConfig = {
         pageTitle: "Policy types",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        onSearch: setSearchQuery
+        showSelector: false,
+        onSearch: setSearchQuery,
+        onSelect: setSelectedUser
     }
 
     const [policyTypes, setPolicyTypes] = useState<IPolicyType[]>([])
@@ -26,7 +30,8 @@ const policyTypes = () => {
     const { data, isLoading } = useGetPolicyTypesQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
-        searchQuery: debounceSearchQuery.toLowerCase()
+        searchQuery: debounceSearchQuery.toLowerCase(),
+        selectedUser
     })
     const [deletePolicyTypes, { data: message, isSuccess }] = useDeletePolicyTypeMutation()
 
@@ -60,6 +65,10 @@ const policyTypes = () => {
             setPolicyTypes(x)
         }
     }, [data?.result])
+
+    if (isLoading) {
+        return <Loader />
+    }
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}

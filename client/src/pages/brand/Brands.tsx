@@ -7,16 +7,20 @@ import { IBrand } from '../../models/brand.interface';
 import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
 import Toast from '../../components/Toast';
+import Loader from '../../components/Loader';
 
 const Brands = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
+    const [selectedUser, setSelectedUser] = useState<string>("")
 
     const config: DataContainerConfig = {
         pageTitle: "Brands",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        onSearch: setSearchQuery
+        showSelector: false,
+        onSearch: setSearchQuery,
+        onSelect: setSelectedUser
     }
 
     const [brands, setBrands] = useState<IBrand[]>([])
@@ -26,7 +30,8 @@ const Brands = () => {
     const { data, isLoading } = useGetBrandsQuery({
         page: pagination.page + 1,
         limit: pagination.pageSize,
-        searchQuery: debounceSearchQuery.toLowerCase()
+        searchQuery: debounceSearchQuery.toLowerCase(),
+        selectedUser
     })
     const [deleteBrand, { data: message, isSuccess }] = useDeleteBrandMutation()
 
@@ -81,6 +86,10 @@ const Brands = () => {
             setBrands(x)
         }
     }, [data?.result])
+
+    if (isLoading) {
+        return <Loader />
+    }
 
     return <>
         {isSuccess && <Toast type='success' message={message as string} />}

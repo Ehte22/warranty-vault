@@ -6,9 +6,9 @@ import PolicyType from "../models/PolicyType"
 
 // Get All
 export const getAllPolicyTypes = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false } = req.query
+    const { page = 1, limit = 10, searchQuery = "", isFetchAll = false, selectedUser = "" } = req.query
 
-    const { userId } = req.user as IUserProtected
+    const { userId, role } = req.user as IUserProtected
 
     const currentPage: number = parseInt(page as string)
     const pageLimit: number = parseInt(limit as string)
@@ -16,7 +16,7 @@ export const getAllPolicyTypes = asyncHandler(async (req: Request, res: Response
 
     const query: any = {
         $and: [
-            { "user._id": userId },
+            role !== "Admin" ? { "user._id": userId } : selectedUser ? { "user._id": selectedUser } : {},
             { deletedAt: null },
             searchQuery
                 ? {
@@ -65,12 +65,12 @@ export const getPolicyTypeById = asyncHandler(async (req: Request, res: Response
 export const addPolicyType = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { name } = req.body
 
-    const policyType = await PolicyType.findOne({ name, deletedAt: null }).lean()
+    const { userId, name: userName } = req.user as IUserProtected
+
+    const policyType = await PolicyType.findOne({ "user._id": userId, name, deletedAt: null }).lean()
     if (policyType) {
         return res.status(400).json({ message: "Policy type Already Exist" })
     }
-
-    const { userId, name: userName } = req.user as IUserProtected
 
     const data = { ...req.body, user: { _id: userId, name: userName } }
 
@@ -125,5 +125,5 @@ export const deletePolicy = asyncHandler(async (req: Request, res: Response, nex
 
     await PolicyType.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "User delete successfully" })
+    res.status(200).json({ message: "Policy Type Delete Successfully" })
 })

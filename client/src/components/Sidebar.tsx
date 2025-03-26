@@ -6,51 +6,56 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { CssBaseline, Typography } from "@mui/material";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe } from '@fortawesome/free-solid-svg-icons';
 import { Link, useLocation } from "react-router-dom";
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import GroupIcon from '@mui/icons-material/Group';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import ArticleIcon from '@mui/icons-material/Article';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import GavelIcon from '@mui/icons-material/Gavel';
 
 const NAVIGATION = [
-
     {
         segment: '/',
         title: 'Dashboard',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <DashboardIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
         segment: 'users',
         title: 'Users',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <GroupIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
         segment: 'products',
         title: 'Products',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <Inventory2Icon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
         segment: 'policies',
         title: 'Policies',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <ArticleIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
         segment: 'policy-types',
         title: 'Policy Types',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <GavelIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
         segment: 'brands',
         title: 'Brands',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <LocalOfferIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
         segment: 'plans',
         title: 'Plans',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <AssignmentIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
         segment: 'notifications',
         title: 'Notifications',
-        icon: <FontAwesomeIcon icon={faGlobe} fontSize={'20px'} color='#00c979' />,
+        icon: <NotificationsIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
 ];
 

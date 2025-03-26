@@ -22,7 +22,7 @@ export const checkPlanLimit = async (req: Request, res: Response, next: NextFunc
     const brandCount = await Brand.countDocuments({ "user._id": user._id, deletedAt: null });
     const policyTypeCount = await PolicyType.countDocuments({ "user._id": user._id, deletedAt: null });
     const notificationCount = await Notification.countDocuments({ "user._id": user._id, deletedAt: null });
-    const familyCount = user.familyMembers.length;
+    const familyCount = await User.find({ _id: user._id }).lean()
 
     const userPlan = await Plan.findOne({ name: plan }).lean()
 
@@ -53,7 +53,7 @@ export const checkPlanLimit = async (req: Request, res: Response, next: NextFunc
     }
 
     if (userPlan?.maxFamilyMembers !== "Unlimited") {
-        if (plan === "Family" && type === "user" && familyCount >= Number(userPlan?.maxFamilyMembers)) {
+        if (plan === "Family" && type === "user" && familyCount.length >= Number(userPlan?.maxFamilyMembers)) {
             return res.status(400).json({ message: `Family plan allows a maximum of ${userPlan?.maxFamilyMembers} family members` });
         }
     }

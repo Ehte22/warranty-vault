@@ -61,14 +61,9 @@ export const getPlanById = asyncHandler(async (req: Request, res: Response, next
 
 // Add
 export const addPlan = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { name, billingCycle } = req.body
+    const { name } = req.body
 
-    let plan
-    if (name === "Free") {
-        plan = await Plan.findOne({ name, deletedAt: null }).lean()
-    } else {
-        plan = await Plan.findOne({ name, billingCycle, deletedAt: null }).lean()
-    }
+    let plan = await Plan.findOne({ name, deletedAt: null }).lean()
 
     if (plan) {
         return res.status(400).json({ message: "Plan Already Exist" })
