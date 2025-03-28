@@ -7,12 +7,11 @@ import { IUser, User } from "../models/User"
 import { registerRules } from "../rules/user.rules"
 import bcryptjs from "bcryptjs"
 import mongoose from "mongoose"
+import { generateReferralCode } from "../utils/generateReferralCode"
 
 // Get All
 export const getAllUsers = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { page = 1, limit = 10, searchQuery = "", isFetchAll = false, selectedUser = "" } = req.query
-    console.log(selectedUser);
-
 
     const { userId, role } = req.user as IUserProtected
 
@@ -42,7 +41,7 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response, next
 
     let result: any[] = []
     if (isFetchAll) {
-        result = await User.find({ role: { $ne: "Admin" } }).sort({ createdAt: -1 }).lean()
+        result = await User.find({ role: { $ne: "Admin" } }).populate("referrals").sort({ createdAt: -1 }).lean()
     } else {
         result = await User.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -61,7 +60,7 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response, next
 export const getUserById = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
 
-    const result = await User.findById(id).lean()
+    const result = await User.findById(id).populate("referrals").lean()
 
     if (!result) {
         return res.status(404).json({ message: "User Not Found" })
@@ -95,10 +94,13 @@ export const addUser = asyncHandler(async (req: Request, res: Response, next: Ne
         profile = secure_url
     }
 
+    const referralCode = generateReferralCode()
+
     let data = {
         ...req.body,
         profile,
         role: "User",
+        referralCode
     }
 
     if (role !== "Admin") {
@@ -110,7 +112,6 @@ export const addUser = asyncHandler(async (req: Request, res: Response, next: Ne
         }
     }
 
-    console.log(data);
 
     const { isError, error } = customValidator(data, registerRules)
 
@@ -139,28 +140,44 @@ export const addUser = asyncHandler(async (req: Request, res: Response, next: Ne
 
 // Update
 export const updateUser = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { id } = req.params
+    const { id } = req.params;
+    const { email, phone } = req.body;
 
-    const user = await User.findById(id).lean()
+    const user = await User.findById(id).lean();
     if (!user) {
-        return res.status(404).json({ message: "User Not Found" })
+        return res.status(404).json({ message: "User Not Found" });
     }
 
-    let profile = user.profile
-    if (req.file) {
-        const publicId = user.profile?.split("/").pop()?.split(".")[0]
-        publicId && await cloudinary.uploader.destroy(publicId)
+    if (email && email !== user.email) {
+        const existingUser = await User.findOne({ email }).lean();
+        if (existingUser) {
+            return res.status(409).json({ message: "Email Already Exists" });
+        }
+    }
 
-        const { secure_url } = await cloudinary.uploader.upload(req.file.path)
-        profile = secure_url
+    if (phone && phone !== user.phone) {
+        const existingPhoneUser = await User.findOne({ phone }).lean();
+        if (existingPhoneUser) {
+            return res.status(409).json({ message: "Phone Number Already Exists" });
+        }
+    }
+
+    let profile = user.profile;
+    if (req.file) {
+        const publicId = user.profile?.split("/").pop()?.split(".")[0];
+        publicId && await cloudinary.uploader.destroy(publicId);
+
+        const { secure_url } = await cloudinary.uploader.upload(req.file.path);
+        profile = secure_url;
     }
 
     const updatedData = { ...req.body, profile };
 
     await User.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
 
-    res.status(200).json({ message: "User Update Successfully" })
-})
+    res.status(200).json({ message: "User Updated Successfully" });
+});
+
 
 // Update Status
 export const updateUserStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {

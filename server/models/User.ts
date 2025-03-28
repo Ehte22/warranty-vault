@@ -21,7 +21,7 @@ export interface IUser extends Document {
     new?: boolean
     referralCode?: string
     referredBy?: string
-    referrals?: { _id: mongoose.Types.ObjectId, name: string }[]
+    referrals?: { _id: string, name: string }[]
     points: number
 }
 
@@ -33,11 +33,11 @@ export interface IOTP extends Document {
 
 const userSchema = new Schema<IUser>({
     owner: {
-        _id: { type: mongoose.Types.ObjectId },
+        _id: { type: mongoose.Schema.Types.ObjectId },
         name: { type: String }
     },
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, trim: true },
     phone: { type: String, default: "", trim: true },
     password: { type: String, trim: true },
     profile: { type: String, trim: true },
@@ -57,7 +57,12 @@ const userSchema = new Schema<IUser>({
     },
     referralCode: { type: String, unique: true },
     referredBy: { type: String, default: null },
-    referrals: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    referrals: [
+        {
+            _id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+            name: { type: String }
+        }
+    ],
     points: { type: Number, default: 0 }
 }, { timestamps: true });
 

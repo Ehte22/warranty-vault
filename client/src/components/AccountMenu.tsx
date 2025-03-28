@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
@@ -13,13 +13,16 @@ import { RootState } from '../redux/store';
 import { useSignOutMutation } from '../redux/apis/auth.api';
 import { useNavigate } from 'react-router-dom';
 import Toast from './Toast';
+import { useGetUserByIdQuery } from '../redux/apis/user.api';
 
 const AccountMenu = () => {
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-    const [signOut, { data, error, isLoading, isSuccess, isError }] = useSignOutMutation()
 
     const { user } = useSelector((state: RootState) => state.auth)
+
+    const [signOut, { data, error, isLoading, isSuccess, isError }] = useSignOutMutation()
+    const { data: userData } = useGetUserByIdQuery(user?._id ?? "", { skip: !user?._id })
 
     const navigate = useNavigate()
 
@@ -46,12 +49,11 @@ const AccountMenu = () => {
         }
     }, [isSuccess, navigate])
 
-
     return <>
         {isSuccess && <Toast type="success" message={data} />}
         {isError && <Toast type="error" message={error as string} />}
         <Box >
-            <Tooltip title={user?.name}>
+            <Tooltip title={userData?.name}>
                 <IconButton
                     onClick={handleClick}
                     size="small"
@@ -61,8 +63,8 @@ const AccountMenu = () => {
                     aria-expanded={open ? 'true' : undefined}
                 >
                     <Avatar
-                        src={user?.profile || 'https://avatars.githubusercontent.com/u/19550456'}
-                        alt={user?.name}
+                        src={userData?.profile}
+                        alt={userData?.name}
                         sx={{ width: 32, height: 32 }}
                     ></Avatar>
                 </IconButton>
@@ -107,12 +109,15 @@ const AccountMenu = () => {
         >
             <Box sx={{ display: "flex", px: "16px", py: "8px", gap: 1.5 }}>
                 <Avatar
-                    src={user?.profile || "https://avatars.githubusercontent.com/u/19550456"}
-                    alt={user?.name}
+                    sx={{ cursor: "pointer" }}
+                    src={userData?.profile}
+                    alt={userData?.name}
+                    onClick={() => navigate(`/profile/${userData?._id}`)}
+
                 />
                 <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>{user?.name}</Typography>
-                    <Typography sx={{ fontSize: "12px", mt: "4px" }}>{user?.email}</Typography>
+                    <Typography sx={{ fontWeight: "bold" }}>{userData?.name}</Typography>
+                    <Typography sx={{ fontSize: "12px", mt: "4px" }}>{userData?.email}</Typography>
                 </Box>
             </Box>
 

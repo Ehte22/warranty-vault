@@ -86,7 +86,7 @@ export const addPlan = asyncHandler(async (req: Request, res: Response, next: Ne
             yearly: { required: name === "Free" ? false : true },
             required: name === "Free" ? false : true
         },
-        includes: { required: true, checkbox: true },
+        includes: { required: true, array: true },
     }
 
     let data = req.body
@@ -157,7 +157,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
     const { userId } = req.user as IUserProtected
     const user = await User.findById(userId).lean()
     if (!user) {
-        return res.status(404).json({ message: "User NOt Fund" })
+        return res.status(404).json({ message: "User Not Fund" })
     }
 
     const today = new Date()
@@ -186,6 +186,8 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         profile: user.profile,
         role: user.role,
         plan: selectedPlan,
+        referralCode: user.referralCode,
+        referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
         token
     }
 

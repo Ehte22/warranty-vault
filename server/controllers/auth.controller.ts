@@ -14,12 +14,13 @@ import dotenv from "dotenv";
 import { IUserProtected } from "../utils/protected"
 import cloudinary from "../utils/uploadConfig"
 import passport from "../services/passport"
+import { generateReferralCode } from "../utils/generateReferralCode"
 
 dotenv.config({})
 
 // Sign Up
 export const SignUp = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { name, email, phone, password, confirmPassword }: IUser = req.body
+    const { name, email, phone, password, confirmPassword, referrer }: IUser = req.body
 
     const user = await User.findOne({ $or: [{ email }, { phone }] }).select("-password, -__v, -updatedAt, -createdAt").lean()
 
@@ -42,7 +43,9 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         profile = secure_url
     }
 
-    const { isError, error } = customValidator({ ...req.body, profile, role: "User" }, registerRules)
+    const referralCode = generateReferralCode()
+
+    const { isError, error } = customValidator({ ...req.body, profile, role: "User", referralCode }, registerRules)
 
     if (isError) {
         return res.status(422).json({ message: "Validation errors", error });
@@ -55,8 +58,24 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         email,
         phone,
         password: hashPassword,
-        profile
+        profile,
+        referralCode
     })
+
+    if (referrer) {
+        const referrerUser = await User.findOne({ referralCode: referrer });
+        if (referrerUser) {
+            await User.findByIdAndUpdate(newUser._id, { referredBy: referrer })
+
+            await User.findByIdAndUpdate(
+                referrerUser,
+                { $push: { referrals: { _id: newUser._id, name: newUser.name } }, points: referrerUser.points += 100 }
+            )
+        }
+    }
+
+    console.log("user", user);
+
 
     const token = generateToken({ userId: newUser._id, name: newUser.name, role: newUser.role })
 
@@ -68,6 +87,8 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         profile: newUser.profile,
         role: newUser.role,
         plan: newUser.plan,
+        referralCode: newUser.referralCode,
+        referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${newUser.referralCode}`,
         token
     }
 
@@ -111,6 +132,8 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         profile: user.profile,
         role: user.role,
         plan: user.plan,
+        referralCode: user.referralCode,
+        referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
         token
     }
     res.status(200).json({ message: "Sign in successfully", result })
@@ -162,6 +185,8 @@ export const googleLoginResponse = asyncHandler(async (req: Request, res: Respon
             profile: user.profile,
             role: user.role,
             plan: user.plan,
+            referralCode: user.referralCode,
+            referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
             token
         }
 

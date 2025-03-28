@@ -16,6 +16,8 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import GavelIcon from '@mui/icons-material/Gavel';
 import RedeemIcon from '@mui/icons-material/Redeem';
+import ShareIcon from "@mui/icons-material/Share";
+import UpgradeIcon from '@mui/icons-material/Upgrade';
 
 const NAVIGATION = [
     {
@@ -59,9 +61,19 @@ const NAVIGATION = [
         icon: <NotificationsIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
     {
+        segment: 'upgrade-plan',
+        title: 'Upgrade Plan',
+        icon: <UpgradeIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
+    },
+    {
         segment: 'coupons',
         title: 'Coupons',
         icon: <RedeemIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
+    },
+    {
+        segment: 'referrals',
+        title: 'My Referrals',
+        icon: <ShareIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
 ];
 

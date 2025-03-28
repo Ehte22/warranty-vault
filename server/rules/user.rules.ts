@@ -8,6 +8,7 @@ export const registerRules: validationRulesSchema = {
     },
     password: { required: true, min: 8, max: 16 },
     role: { required: true },
+    referralCode: { required: true },
     profile: { required: false },
 }
 

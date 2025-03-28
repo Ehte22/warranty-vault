@@ -69,7 +69,7 @@ const AddPolicy = () => {
             name: "document",
             type: "file",
             label: "Document",
-            rules: { required: true, file: true }
+            rules: { required: data?.document ? false : true, file: true }
         },
     ]
 
@@ -91,9 +91,14 @@ const AddPolicy = () => {
             }
         }
 
+        console.log(updateData);
+
+
         const formData = new FormData()
 
         Object.keys(updatedData).forEach((key) => {
+            if (!updatedData[key]) return;
+
             const value = updatedData[key];
 
             if (value instanceof FileList) {
@@ -124,7 +129,9 @@ const AddPolicy = () => {
 
     }
 
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    console.log(watch());
+
 
     useEffect(() => {
         if (id && data) {
@@ -132,6 +139,7 @@ const AddPolicy = () => {
             setValue("name", data.name?._id || "")
             setValue("provider", data.provider)
             setValue("expiryDate", data.expiryDate)
+
 
             if (data.document) {
                 setValue("document", data.document)

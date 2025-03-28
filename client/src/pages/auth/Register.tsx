@@ -68,18 +68,17 @@ const fields: FieldConfig[] = [
     {
         name: "confirmPassword",
         label: "Confirm Password",
+        placeholder: "Confirm Password",
         type: "text",
         rules: { required: true }
     },
+    {
+        name: "referrer",
+        placeholder: "Referral Code",
+        type: "text",
+        rules: { required: false }
+    },
 ]
-
-const defaultValues = {
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-}
 
 
 const Register = () => {
@@ -90,6 +89,18 @@ const Register = () => {
         cpassword: false
     });
     const [isPassMatchError, setIsPassMatchError] = useState<boolean>(false)
+
+    const queryParams = new URLSearchParams(location.search);
+    const referrerCode = queryParams.get("ref")
+
+    const defaultValues = {
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        referrer: referrerCode || ""
+    }
 
     const navigate = useNavigate()
 
@@ -260,6 +271,20 @@ const Register = () => {
                             {errors.confirmPassword?.message as string}
                         </Typography>
                     </FormControl>
+
+
+                    {/* Referral code */}
+                    <TextField
+                        {...register("referrer")}
+                        fullWidth
+                        label="Referral Code"
+                        type="text"
+                        variant="outlined"
+                        margin="normal"
+                        sx={textFieldStyles}
+                        error={!!errors.referrer}
+                        helperText={errors.referrer?.message as string}
+                    />
 
                     {/* Submit Button */}
                     <Button

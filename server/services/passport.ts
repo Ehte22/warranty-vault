@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20"
 import dotenv from "dotenv";
 import { JwtPayload } from "jsonwebtoken";
 import { User } from "../models/User";
+import { generateReferralCode } from "../utils/generateReferralCode";
 
 dotenv.config();
 
@@ -31,9 +32,12 @@ passport.use(new GoogleStrategy(
     async (accessToken, refreshToken, profile, cb) => {
         try {
             let user = await User.findOne({ email: profile._json.email }).lean()
+
+            const referralCode = generateReferralCode()
+
             if (!user) {
-                const newUser = await User.create({ name: profile._json.name, email: profile._json.email, profile: profile._json.picture })
-                return cb(null, { ...newUser, new: true }, { message: "Logged in successfully" })
+                const newUser = await User.create({ name: profile._json.name, email: profile._json.email, profile: profile._json.picture, referralCode })
+                return cb(null, { ...newUser.toObject(), new: true }, { message: "Logged in successfully" })
             }
 
             cb(null, { ...user, new: false }, { message: "Logged in successfully" })

@@ -25,6 +25,9 @@ import Users from "./pages/users/Users";
 import AddUser from "./pages/users/AddUsers";
 import Coupons from "./pages/coupon/Coupons";
 import AddCoupon from "./pages/coupon/AddCoupon";
+import ReferralPage from "./pages/ReferralPage";
+import Profile from "./pages/users/Profile";
+import UpgradePlan from "./pages/plan/upgradePlan";
 
 const theme = createTheme({
   palette: {
@@ -110,13 +113,17 @@ const App = () => {
                 <Route path="update/:id" element={<AddCoupon />} />
               </Route>
 
+              <Route path="referrals" element={<ReferralPage />} />
+              <Route path="profile/:id" element={<Profile />} />
+              <Route path="upgrade-plan" element={<UpgradePlan />} />
+
             </Route>
 
             <Route path="sign-in" element={<Login />} />
             <Route path="sign-up" element={<Register />} />
+            <Route path="select-plan" element={<SelectPlan />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="reset-password" element={<ResetPassword />} />
-            <Route path="select-plan" element={<SelectPlan />} />
             <Route path="*" element={<PageNotFound />} />
 
           </Routes>
