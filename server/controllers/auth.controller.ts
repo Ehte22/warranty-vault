@@ -161,6 +161,7 @@ export const googleLoginResponse = asyncHandler(async (req: Request, res: Respon
             phone: user.phone,
             profile: user.profile,
             role: user.role,
+            plan: user.plan,
             token
         }
 

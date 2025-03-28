@@ -19,6 +19,10 @@ export interface IUser extends Document {
     }
     owner: { _id: mongoose.Schema.Types.ObjectId, name: string }
     new?: boolean
+    referralCode?: string
+    referredBy?: string
+    referrals?: { _id: mongoose.Types.ObjectId, name: string }[]
+    points: number
 }
 
 export interface IOTP extends Document {
@@ -50,8 +54,11 @@ const userSchema = new Schema<IUser>({
         startDate: { type: Date },
         expiryDate: { type: Date },
         paymentStatus: { type: String, enum: ["Active", "Expired", "Pending"], default: "Pending" },
-    }
-
+    },
+    referralCode: { type: String, unique: true },
+    referredBy: { type: String, default: null },
+    referrals: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    points: { type: Number, default: 0 }
 }, { timestamps: true });
 
 const OTPSchema = new Schema<IOTP>({

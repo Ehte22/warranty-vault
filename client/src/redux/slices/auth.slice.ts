@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { authApi } from "../apis/auth.api";
 import { IUser } from "../../models/user.interface";
+import { planApi } from "../apis/plan.api";
 
 interface InitialState {
     user: IUser | null
@@ -35,6 +36,9 @@ const authSlice = createSlice({
             state.user = payload.result
         })
         .addMatcher(authApi.endpoints.signIn.matchFulfilled, (state, { payload }) => {
+            state.user = payload.result
+        })
+        .addMatcher(planApi.endpoints.selectPlan.matchFulfilled, (state, { payload }) => {
             state.user = payload.result
         })
         .addMatcher(authApi.endpoints.signOut.matchFulfilled, (state) => {

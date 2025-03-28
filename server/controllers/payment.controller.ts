@@ -5,15 +5,18 @@ import { v4 as uuid } from "uuid"
 import crypto from "crypto"
 import dotenv from "dotenv"
 import Plan from "../models/Plan"
+import Coupon from "../models/Cupon"
 
 dotenv.config()
 
 export const initiatePayment = asyncHandler(async (req: Request, res): Promise<any> => {
-    const { selectedPlan, billingCycle } = req.body
+    const { selectedPlan, billingCycle, code } = req.body
     const instance = new razorpay({
         key_id: process.env.RAZORPAY_API_KEY,
         key_secret: process.env.RAZORPAY_SECRET_KEY
     })
+
+    const coupon = await Coupon.findOne({ code }).lean()
 
     const plan = await Plan.findOne({ name: selectedPlan }).lean()
     if (!plan) {
@@ -34,6 +37,22 @@ export const initiatePayment = asyncHandler(async (req: Request, res): Promise<a
             amount = +plan.price.yearly
         }
     }
+
+    let discount = 0
+    if (coupon && amount) {
+        if (coupon.discountType === "Percentage") {
+            discount = (amount * +coupon.discountValue) / 100
+            if (coupon.maxDiscount) {
+                discount = Math.min(discount, +coupon.maxDiscount)
+            }
+        } else {
+            discount = +coupon.discountValue
+        }
+        amount = amount - discount
+    }
+
+
+    console.log(amount);
 
     if (amount) {
         instance.orders.create({

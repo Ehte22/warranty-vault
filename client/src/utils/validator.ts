@@ -4,7 +4,8 @@ import { FieldConfig } from "../hooks/useDynamicForm";
 export interface ValidationRules {
     required?: boolean;
     file?: boolean;
-    checkbox?: boolean;
+    array?: boolean;
+    object?: boolean
     accept?: string[];
     maxSize?: number;
     email?: boolean;
@@ -12,7 +13,6 @@ export interface ValidationRules {
     patternMessage?: string
     min?: number;
     max?: number;
-    object?: boolean
     number?: boolean
     label?: string
 };
@@ -79,7 +79,7 @@ const generateSchema = (fieldLabel: string, rules: ValidationRules) => {
                 message: `${fieldLabel} must be smaller than ${rules.maxSize}MB`,
             });
         }
-    } else if (rules.checkbox) {
+    } else if (rules.array) {
         schema = z.union([
             z.array(z.string()),
             z.array(z.number()),

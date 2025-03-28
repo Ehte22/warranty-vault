@@ -7,7 +7,7 @@ export interface validationRulesSchema {
 export interface ValidationRules {
     required?: boolean;
     file?: boolean;
-    checkbox?: boolean;
+    array?: boolean;
     accept?: string[];
     maxSize?: number;
     email?: boolean;
@@ -26,7 +26,7 @@ const generateSchema = (fieldName: string, rules: ValidationRules) => {
 
     if (Array.isArray(rules)) {
         schema = z.array(z.object(generateObjectSchema(rules[0])))
-    } else if (rules.checkbox) {
+    } else if (rules.array) {
         schema = z.union([
             z.array(z.string()),
             z.array(z.number()),
@@ -35,7 +35,7 @@ const generateSchema = (fieldName: string, rules: ValidationRules) => {
 
         if (rules.required) {
             schema = schema.refine((values: string[] | number[] | string) => values.length > 0, {
-                message: ` ${fieldName} are required`,
+                message: `${fieldName} are required`,
             });
         }
     } else if (rules.object) {

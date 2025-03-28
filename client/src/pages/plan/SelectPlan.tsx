@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Button, Box, Divider, ToggleButtonGroup, ToggleButton, Paper, Badge, Grid2 } from "@mui/material";
+import { Card, CardContent, Typography, Button, Box, Divider, ToggleButtonGroup, ToggleButton, Paper, Badge, Grid2, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import { useGetPlansQuery, useSelectPlanMutation } from "../../redux/apis/plan.api";
 import { useNavigate } from "react-router-dom";
@@ -7,32 +7,44 @@ import Toast from "../../components/Toast";
 import { useInitiatePaymentMutation, useVerifyPaymentMutation } from "../../redux/apis/payment.api";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
+import { useApplyCouponMutation } from "../../redux/apis/coupon.api";
 
 const SelectPlan = () => {
-    const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+    const [selectedPlan, setSelectedPlan] = useState<string>("");
+    const [selectedPlanPrice, setSelectedPlanPrice] = useState<string>("");
     const [billingCycle, setBillingCycle] = useState<{ [key: string]: "monthly" | "yearly" }>({
         Free: "monthly",
         Pro: "monthly",
         Family: "monthly",
     });
+    const [openModal, setOpenModal] = useState(false);
+    const [coupon, setCoupon] = useState("");
+    const [discountedPrice, setDiscountedPrice] = useState("");
 
     const navigate = useNavigate()
     const { user } = useSelector((state: RootState) => state.auth)
 
     const { data } = useGetPlansQuery({ isFetchAll: true })
     const [selectPlan, { isSuccess }] = useSelectPlanMutation()
+    const [applyCoupon, { data: couponData, isSuccess: isApplyCouponSuccess, isError: isApplyCouponError, error: applyCouponError }] = useApplyCouponMutation()
     const [initiatePayment] = useInitiatePaymentMutation()
     const [verifyPayment, { data: paymentData, isSuccess: paymentSuccess, error: paymentErrorData, isError: paymentError }] = useVerifyPaymentMutation()
 
-    const handleSelect = async (plan: string, billingCycle: string) => {
-        setSelectedPlan(plan);
-        // const selectedPlan = `${plan} ${billingCycle.charAt(0).toUpperCase()}${billingCycle.slice(1)}`
+    const handleCloseModal = () => {
+        setCoupon("")
+        setSelectedPlanPrice("")
+        setDiscountedPrice("")
+        setOpenModal(false)
+    };
 
+    const handleSelect = async (plan: string, billingCycle: string) => {
+        setOpenModal(true)
+        setSelectedPlan(plan);
         if (plan === "Free") {
             selectPlan({ selectedPlan: plan })
         } else {
 
-            const response = await initiatePayment({ selectedPlan: plan, billingCycle }).unwrap()
+            const response = await initiatePayment({ selectedPlan: plan, billingCycle, code: coupon }).unwrap()
 
             const options: any = {
                 key: `${import.meta.env.VITE_RAZORPAY_API_KEY}`,
@@ -70,6 +82,12 @@ const SelectPlan = () => {
         }
     };
 
+    const handleApplyCoupon = (plan: string) => {
+        if (coupon && plan === "Pro" || plan === "Family") {
+            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan] })
+        }
+    }
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const result = params.get('result');
@@ -99,9 +117,18 @@ const SelectPlan = () => {
         }
     }, [isSuccess, navigate])
 
+    useEffect(() => {
+        if (isApplyCouponSuccess) {
+            setDiscountedPrice(couponData.finalAmount.toString())
+        }
+    }, [couponData])
+
     return <>
         {paymentSuccess && <Toast type="success" message={paymentData.message} />}
         {paymentError && <Toast type="error" message={paymentErrorData as string} />}
+
+        {isApplyCouponSuccess && <Toast type="success" message={couponData.message} />}
+        {isApplyCouponError && <Toast type="error" message={applyCouponError as string} />}
         <Box sx={{ height: "100vh", px: { xs: 3, md: 4, lg: 12, xl: 28, } }} >
             <Grid2 container spacing={3} sx={{ minHeight: "100%", alignItems: "center", py: 8 }}>
                 {data?.result.map((plan) => {
@@ -189,21 +216,92 @@ const SelectPlan = () => {
                                     </Box>
                                     <Divider sx={{ my: 2 }} />
                                     <Button
-                                        variant={selectedPlan === plan.name ? "contained" : "outlined"}
+                                        variant="outlined"
                                         color="secondary"
                                         fullWidth
-                                        onClick={() => handleSelect(plan.name, billingCycle[plan.name])}
-                                        sx={{ mt: 2, color: selectedPlan === plan.name ? "white" : "" }}
-                                    >
-                                        {selectedPlan === plan.name ? "Selected" : "Choose Plan"}
+                                        onClick={() => { setOpenModal(true), setSelectedPlan(plan.name), setSelectedPlanPrice(plan.price[billingCycle[plan.name]]) }}
+                                        sx={{ mt: 2 }}
+                                    > Select Plan
                                     </Button>
                                 </CardContent>
                             </Card>
                         </Paper>
                     </Grid2 >
                 })}
+                <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+                    <DialogTitle>{selectedPlan === "Free" ? "Free Plan" : "Enter Coupon or Pay"}</DialogTitle>
+                    <DialogContent>
+                        {selectedPlan === "Free"
+                            ? <Typography sx={{ mb: 2 }}>
+                                Are you continue with free plan?
+                            </Typography>
+                            : <Typography sx={{ mb: 2 }}>
+                                If you have a coupon, please enter it to get a discount. Otherwise, you can proceed without entering one.
+                            </Typography>
+                        }
+
+                        {!discountedPrice && (
+                            <Typography variant="h6" sx={{ mb: 1 }}>
+                                Price: ₹{selectedPlanPrice}
+                            </Typography>
+                        )}
+
+                        {discountedPrice && (
+                            <Typography variant="h6" color="green" sx={{ mb: 1 }}>
+                                Discounted Price: ₹{discountedPrice}
+                            </Typography>
+                        )}
+
+                        {selectedPlan !== "Free" && <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
+                            <TextField
+                                fullWidth
+                                variant="outlined"
+                                size="small"
+                                value={coupon}
+                                onChange={(e) => setCoupon(e.target.value)}
+                                placeholder="Enter coupon"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        "&:hover fieldset": {
+                                            borderColor: "gray",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "black",
+                                            borderWidth: "1px",
+                                        },
+                                    },
+                                }}
+                            />
+
+                            <Button
+                                onClick={() => handleApplyCoupon(selectedPlan)}
+                                color="secondary"
+                                variant="outlined"
+                                sx={{ height: "40px" }}
+                            >
+                                Apply
+                            </Button>
+                        </Box>
+                        }
+
+                    </DialogContent>
+
+                    <DialogActions>
+                        <Button onClick={handleCloseModal} variant="contained" sx={{ backgroundColor: "#f3f3f3" }} color="inherit">Cancel</Button>
+                        <Button
+                            onClick={() => handleSelect(selectedPlan as string, billingCycle[selectedPlan as string])}
+                            variant="contained"
+                            sx={{ backgroundColor: "#00c979", color: "white" }}
+                        >
+                            {selectedPlan === "Free" ? "Continue" : "Pay Now"}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+
             </Grid2>
-        </Box >
+
+        </Box>
     </>
 };
 

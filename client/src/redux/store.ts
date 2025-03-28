@@ -9,6 +9,7 @@ import { planApi } from "./apis/plan.api";
 import { notificationApi } from "./apis/notification.api";
 import { paymentApi } from "./apis/payment.api";
 import { userApi } from "./apis/user.api";
+import { couponApi } from "./apis/coupon.api";
 
 const reduxStore = configureStore({
     reducer: {
@@ -20,6 +21,7 @@ const reduxStore = configureStore({
         [policyTypeApi.reducerPath]: policyTypeApi.reducer,
         [planApi.reducerPath]: planApi.reducer,
         [notificationApi.reducerPath]: notificationApi.reducer,
+        [couponApi.reducerPath]: couponApi.reducer,
         [paymentApi.reducerPath]: paymentApi.reducer,
         auth: authSlice,
     },
@@ -33,6 +35,7 @@ const reduxStore = configureStore({
             policyTypeApi.middleware,
             planApi.middleware,
             notificationApi.middleware,
+            couponApi.middleware,
             paymentApi.middleware,
         )
 })

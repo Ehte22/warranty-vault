@@ -4,6 +4,7 @@ import { customValidator, validationRulesSchema } from "../utils/validator"
 import Plan from "../models/Plan"
 import { User } from "../models/User"
 import { IUserProtected } from "../utils/protected"
+import { generateToken } from "../utils/generateToken"
 
 // Get All
 export const getAllPlans = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -31,7 +32,7 @@ export const getAllPlans = asyncHandler(async (req: Request, res: Response, next
 
     let result = []
     if (isFetchAll) {
-        result = await Plan.find({ deletedAt: null }).sort({ priority: 1 }).lean()
+        result = await Plan.find({ deletedAt: null, isActive: true }).sort({ priority: 1 }).lean()
     } else {
         result = await Plan.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -150,10 +151,14 @@ export const deletePlan = asyncHandler(async (req: Request, res: Response, next:
     res.status(200).json({ message: "Plan delete successfully" })
 })
 
-export const selectPlan = asyncHandler(async (req, res) => {
+export const selectPlan = asyncHandler(async (req: Request, res: Response): Promise<any> => {
     const { selectedPlan = "Free", billingCycle } = req.body;
 
     const { userId } = req.user as IUserProtected
+    const user = await User.findById(userId).lean()
+    if (!user) {
+        return res.status(404).json({ message: "User NOt Fund" })
+    }
 
     const today = new Date()
     const startDate = today
@@ -171,5 +176,18 @@ export const selectPlan = asyncHandler(async (req, res) => {
         subscription: { startDate, expiryDate, paymentStatus: "Active" }
     }, { new: true });
 
-    res.json({ message: "Plan Update Successfully" });
+    const token = generateToken({ userId: user._id, name: user.name, role: user.role })
+
+    const result = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        profile: user.profile,
+        role: user.role,
+        plan: selectedPlan,
+        token
+    }
+
+    res.json({ message: "Plan Update Successfully", result });
 });

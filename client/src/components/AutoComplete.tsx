@@ -8,10 +8,25 @@ const AutoComplete: React.FC<IFieldProps> = ({ controllerField, field, errors })
     return <>
         <Paper>
             <Autocomplete
-                value={field.options?.find(opt => opt.value === controllerField.value) || null}
+                multiple={field.multiple || false}
+                value={
+                    field.multiple
+                        ? field.options?.filter(opt => controllerField.value?.includes(opt.value)) || []
+                        : field.options?.find(opt => opt.value === controllerField.value) || null}
                 onChange={(_, newValue) => {
-                    if (newValue) {
-                        controllerField.onChange(newValue.value)
+                    if (field.multiple) {
+                        if (Array.isArray(newValue)) {
+                            const values = newValue.map(option => option.value)
+                            controllerField.onChange(values);
+                        } else {
+                            controllerField.onChange("");
+                        }
+                    } else {
+                        if (newValue && !Array.isArray(newValue) && "value" in newValue) {
+                            controllerField.onChange(newValue.value);
+                        } else {
+                            controllerField.onChange("");
+                        }
                     }
                 }}
                 sx={textFieldStyles}

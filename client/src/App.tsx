@@ -23,6 +23,8 @@ import AddNotification from "./pages/notification/AddNotification";
 import SelectPlan from "./pages/plan/SelectPlan";
 import Users from "./pages/users/Users";
 import AddUser from "./pages/users/AddUsers";
+import Coupons from "./pages/coupon/Coupons";
+import AddCoupon from "./pages/coupon/AddCoupon";
 
 const theme = createTheme({
   palette: {
@@ -100,6 +102,12 @@ const App = () => {
                 <Route index element={<Users />} />
                 <Route path="add" element={<AddUser />} />
                 <Route path="update/:id" element={<AddUser />} />
+              </Route>
+
+              <Route path="coupons">
+                <Route index element={<Coupons />} />
+                <Route path="add" element={<AddCoupon />} />
+                <Route path="update/:id" element={<AddCoupon />} />
               </Route>
 
             </Route>

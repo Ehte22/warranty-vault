@@ -15,6 +15,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import GavelIcon from '@mui/icons-material/Gavel';
+import RedeemIcon from '@mui/icons-material/Redeem';
 
 const NAVIGATION = [
     {
@@ -56,6 +57,11 @@ const NAVIGATION = [
         segment: 'notifications',
         title: 'Notifications',
         icon: <NotificationsIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
+    },
+    {
+        segment: 'coupons',
+        title: 'Coupons',
+        icon: <RedeemIcon sx={{ fontSize: "20px", color: "#00c979" }} />,
     },
 ];
 
