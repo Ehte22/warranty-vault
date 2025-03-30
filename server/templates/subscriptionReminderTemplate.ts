@@ -1,10 +1,9 @@
 interface SubscriptionReminder {
-    firstName: string
-    lastName: string
+    name: string
     days: number
 }
 
-export const subscriptionReminderTemplate = ({ firstName, lastName, days }: SubscriptionReminder) => {
+export const subscriptionReminderTemplate = ({ name, days }: SubscriptionReminder) => {
     return `
     <!DOCTYPE html>
 <html lang="en">
@@ -29,7 +28,7 @@ export const subscriptionReminderTemplate = ({ firstName, lastName, days }: Subs
         }
 
         .header {
-            background-color: #4F46E5;
+            background-color: #00C979;
             color: white;
             text-align: center;
             padding: 30px 20px;
@@ -78,7 +77,7 @@ export const subscriptionReminderTemplate = ({ firstName, lastName, days }: Subs
         </div>
         <div class="content">
             <p class="message">
-                Dear ${firstName} ${lastName},<br><br>
+                Dear ${name},<br><br>
                 Your clinic subscription will expire in <b>${days}</b> days. Please contact us to renew
                 your
                 subscription

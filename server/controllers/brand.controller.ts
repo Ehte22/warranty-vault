@@ -35,7 +35,7 @@ export const getAllBrands = asyncHandler(async (req: Request, res: Response, nex
 
     let result = []
     if (isFetchAll) {
-        result = await Brand.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
+        result = await Brand.find(query).sort({ createdAt: -1 }).lean()
     } else {
         result = await Brand.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }

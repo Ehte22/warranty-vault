@@ -65,17 +65,14 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
     if (referrer) {
         const referrerUser = await User.findOne({ referralCode: referrer });
         if (referrerUser) {
-            await User.findByIdAndUpdate(newUser._id, { referredBy: referrer })
+            await User.findByIdAndUpdate(newUser._id, { referredBy: referrerUser._id, points: 50 })
 
             await User.findByIdAndUpdate(
-                referrerUser,
+                referrerUser._id,
                 { $push: { referrals: { _id: newUser._id, name: newUser.name } }, points: referrerUser.points += 100 }
             )
         }
     }
-
-    console.log("user", user);
-
 
     const token = generateToken({ userId: newUser._id, name: newUser.name, role: newUser.role })
 
@@ -89,6 +86,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         plan: newUser.plan,
         referralCode: newUser.referralCode,
         referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${newUser.referralCode}`,
+        points: newUser.points,
         token
     }
 
@@ -133,6 +131,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         role: user.role,
         plan: user.plan,
         referralCode: user.referralCode,
+        points: user.points,
         referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
         token
     }
@@ -185,6 +184,7 @@ export const googleLoginResponse = asyncHandler(async (req: Request, res: Respon
             profile: user.profile,
             role: user.role,
             plan: user.plan,
+            points: user.points,
             referralCode: user.referralCode,
             referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
             token

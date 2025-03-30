@@ -7,10 +7,6 @@ const GoogleLoginButton: React.FC = () => {
         window.location.href = "http://localhost:5000/api/v1/auth/google"
     };
 
-    // const handleGoogleLogin = () => {
-    //     window.open("http://localhost:5000/api/v1/auth/google", "_self")
-    // };s
-
     return (
         <Button
             onClick={handleGoogleLogin}

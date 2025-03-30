@@ -37,7 +37,7 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response, n
 
     let result = []
     if (isFetchAll) {
-        result = await Product.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
+        result = await Product.find(query).sort({ createdAt: -1 }).lean()
     } else {
         result = await Product.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }

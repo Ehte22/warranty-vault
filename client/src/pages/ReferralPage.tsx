@@ -71,6 +71,28 @@ const ReferralPage = () => {
                     Copy
                 </Button>
             </Box>
+
+            <Box
+                sx={{
+                    mt: 2,
+                    p: 2,
+                    backgroundColor: "#f9f9f9",
+                    borderRadius: "8px",
+                }}
+            >
+                <Typography variant="body1" fontWeight={500} color="textPrimary">
+                    Earn Rewards with Referrals!
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    You earn <strong>100 points</strong> for each successful referral.
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    Your friend gets <strong>50 points</strong> when they sign up.
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    Coins can only be **redeemed when purchasing a paid plan**.
+                </Typography>
+            </Box>
         </Paper>
         <Paper sx={{ mt: 2, pt: 4, pb: 3, px: 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -116,7 +138,7 @@ const ReferralPage = () => {
                                             {user.name}
                                         </Typography>
                                         <Typography sx={{ width: "30%", textAlign: "center", fontWeight: 500 }}>
-                                            {data.points}
+                                            {data?.points && data.referrals?.length ? data.points / data.referrals.length : 100}
                                         </Typography>
                                     </ListItem>
                                 ))}

@@ -91,9 +91,6 @@ const AddPolicy = () => {
             }
         }
 
-        console.log(updateData);
-
-
         const formData = new FormData()
 
         Object.keys(updatedData).forEach((key) => {
@@ -129,9 +126,7 @@ const AddPolicy = () => {
 
     }
 
-    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
-    console.log(watch());
-
+    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
 
     useEffect(() => {
         if (id && data) {

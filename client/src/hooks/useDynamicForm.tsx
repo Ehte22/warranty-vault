@@ -198,8 +198,6 @@ const useDynamicForm = <T extends FieldValues>({
                                             {field.formGroup &&
                                                 Object.entries(field.formGroup).map(([_, subField]) => {
                                                     const fieldName = `${field.name}.${subField.name}`;
-                                                    console.log(subField.size);
-
                                                     return (
                                                         <Grid2 key={fieldName} size={subField.size}>
                                                             <InputLabel htmlFor={subField.name} sx={{ fontWeight: 500, color: "black" }}>

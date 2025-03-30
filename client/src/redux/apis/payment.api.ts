@@ -10,7 +10,7 @@ export const paymentApi = createApi({
     tagTypes: ["payment"],
     endpoints: (builder) => {
         return {
-            initiatePayment: builder.mutation<{ message: string, orderId: string, amount: number }, { selectedPlan: string, billingCycle: string, code: string }>({
+            initiatePayment: builder.mutation<{ message: string, orderId: string, amount: number }, { selectedPlan: string, billingCycle: string, code: string, points?: number }>({
                 query: plan => {
                     return {
                         url: "/initiate-payment",

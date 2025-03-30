@@ -112,7 +112,7 @@ export const couponApi = createApi({
                 invalidatesTags: ["coupon"]
             }),
 
-            applyCoupon: builder.mutation<{ message: string, discountAmount: number, finalAmount: number }, { code: string, selectedPlan: string, billingCycle: string }>({
+            applyCoupon: builder.mutation<{ message: string, discountAmount: number, finalAmount: number }, { code: string, selectedPlan: string, billingCycle: string, points?: number }>({
                 query: couponData => {
                     return {
                         url: "/apply-coupon",

@@ -10,6 +10,7 @@ import { notificationApi } from "./apis/notification.api";
 import { paymentApi } from "./apis/payment.api";
 import { userApi } from "./apis/user.api";
 import { couponApi } from "./apis/coupon.api";
+import { dashboardApi } from "./apis/dashboard.api";
 
 const reduxStore = configureStore({
     reducer: {
@@ -23,6 +24,7 @@ const reduxStore = configureStore({
         [notificationApi.reducerPath]: notificationApi.reducer,
         [couponApi.reducerPath]: couponApi.reducer,
         [paymentApi.reducerPath]: paymentApi.reducer,
+        [dashboardApi.reducerPath]: dashboardApi.reducer,
         auth: authSlice,
     },
     middleware: (getDefaultMiddleware) =>
@@ -37,6 +39,7 @@ const reduxStore = configureStore({
             notificationApi.middleware,
             couponApi.middleware,
             paymentApi.middleware,
+            dashboardApi.middleware,
         )
 })
 

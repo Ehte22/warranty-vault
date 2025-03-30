@@ -10,7 +10,7 @@ import Coupon from "../models/Cupon"
 dotenv.config()
 
 export const initiatePayment = asyncHandler(async (req: Request, res): Promise<any> => {
-    const { selectedPlan, billingCycle, code } = req.body
+    const { selectedPlan, billingCycle, code, points } = req.body
     const instance = new razorpay({
         key_id: process.env.RAZORPAY_API_KEY,
         key_secret: process.env.RAZORPAY_SECRET_KEY
@@ -23,7 +23,7 @@ export const initiatePayment = asyncHandler(async (req: Request, res): Promise<a
         return res.status(404).json({ message: "Plan Not Found" })
     }
 
-    let amount
+    let amount = 0
     if (selectedPlan === "Pro") {
         if (billingCycle === "monthly") {
             amount = +plan.price.monthly
@@ -51,19 +51,20 @@ export const initiatePayment = asyncHandler(async (req: Request, res): Promise<a
         amount = amount - discount
     }
 
-
-    console.log(amount);
+    if (points && amount) {
+        amount = amount - points
+    }
 
     if (amount) {
         instance.orders.create({
-            amount: amount * 100,
+            amount: Math.round(amount * 100),
             currency: "INR",
             receipt: uuid()
         }, (err: any, order) => {
             if (err) {
                 return res.status(500).json({ message: err.message || "Unable to process request" })
             }
-            return res.status(200).json({ message: "initiate success", orderId: order.id, amount })
+            return res.status(200).json({ message: "Initiate success", orderId: order.id, amount })
         })
     }
 })

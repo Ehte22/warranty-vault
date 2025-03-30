@@ -12,6 +12,7 @@ export interface IUser extends Document {
     status: 'active' | 'inactive';
     sessionToken: string | null
     plan?: string
+    planType?: string
     subscription?: {
         startDate: string
         expiryDate: string
@@ -50,13 +51,14 @@ const userSchema = new Schema<IUser>({
     status: { type: String, default: "active", enum: ['active', 'inactive'] },
     sessionToken: { type: String, default: null },
     plan: { type: String, enum: ["Free", "Pro", "Family"], default: "Free" },
+    planType: { type: String, enum: ["Monthly", "Yearly", "Unlimited"], default: "Unlimited" },
     subscription: {
         startDate: { type: Date },
         expiryDate: { type: Date },
         paymentStatus: { type: String, enum: ["Active", "Expired", "Pending"], default: "Pending" },
     },
     referralCode: { type: String, unique: true },
-    referredBy: { type: String, default: null },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, default: null },
     referrals: [
         {
             _id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

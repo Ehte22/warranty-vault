@@ -152,7 +152,7 @@ export const deletePlan = asyncHandler(async (req: Request, res: Response, next:
 })
 
 export const selectPlan = asyncHandler(async (req: Request, res: Response): Promise<any> => {
-    const { selectedPlan = "Free", billingCycle } = req.body;
+    const { selectedPlan = "Free", billingCycle, points } = req.body;
 
     const { userId } = req.user as IUserProtected
     const user = await User.findById(userId).lean()
@@ -160,20 +160,26 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         return res.status(404).json({ message: "User Not Fund" })
     }
 
+    let planType = "Unlimited"
+
     const today = new Date()
     const startDate = today
     let expiryDate = new Date(today)
     if (selectedPlan !== "Free") {
         if (billingCycle === "monthly") {
+            planType = "Monthly"
             expiryDate.setDate(expiryDate.getDate() + 30)
         } else if (billingCycle === "yearly") {
+            planType = "Yearly"
             expiryDate.setDate(expiryDate.getDate() + 365)
         }
     }
 
     await User.findByIdAndUpdate(userId, {
         plan: selectedPlan,
-        subscription: { startDate, expiryDate, paymentStatus: "Active" }
+        planType,
+        subscription: { startDate, expiryDate, paymentStatus: "Active" },
+        points: user.points - points
     }, { new: true });
 
     const token = generateToken({ userId: user._id, name: user.name, role: user.role })
@@ -186,6 +192,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         profile: user.profile,
         role: user.role,
         plan: selectedPlan,
+        points: user.points - points,
         referralCode: user.referralCode,
         referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
         token

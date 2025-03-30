@@ -10,7 +10,7 @@ const customBaseQuery = createCustomBaseQuery(baseUrl)
 export const planApi = createApi({
     reducerPath: "planApi",
     baseQuery: customBaseQuery,
-    tagTypes: ["plan"],
+    tagTypes: ["plan", "user"],
     endpoints: (builder) => {
         return {
             getPlans: builder.query<{ result: IPlan[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean, selectedUser: string }>>({
@@ -113,7 +113,7 @@ export const planApi = createApi({
                 invalidatesTags: ["plan"]
             }),
 
-            selectPlan: builder.mutation<{ message: string, result: IUser }, { selectedPlan: string, billingCycle?: string }>({
+            selectPlan: builder.mutation<{ message: string, result: IUser }, { selectedPlan: string, billingCycle?: string, points?: number }>({
                 query: (planData) => {
                     return {
                         url: `/select-plan`,
@@ -128,7 +128,7 @@ export const planApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                invalidatesTags: ["plan"]
+                invalidatesTags: ["plan", "user"]
             }),
 
         }

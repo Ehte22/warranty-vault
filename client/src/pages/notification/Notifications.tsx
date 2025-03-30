@@ -56,7 +56,7 @@ const Notifications = () => {
             }
         },
         {
-            field: 'status', headerName: 'status', minWidth: 150, flex: 0.8,
+            field: 'status', headerName: 'Status', minWidth: 150, flex: 0.8,
             renderCell: (params) => {
                 const handleClick = () => {
                     console.info('You clicked the Chip.');

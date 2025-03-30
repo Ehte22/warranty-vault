@@ -26,7 +26,7 @@ const Navbar: React.FC<INavbarProps> = ({ open, toggleSideBar }) => {
                     {open ? <MenuOpenIcon /> : <MenuIcon />}
                 </IconButton>
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} >
-                    Matic UI
+                    Warranty Vault
                 </Typography>
                 <AccountMenu />
             </Toolbar >

@@ -1,25 +1,28 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Button, Box, Divider, ToggleButtonGroup, ToggleButton, Paper, Badge, Grid2, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material";
-import CheckIcon from "@mui/icons-material/Check";
-import { useGetPlansQuery, useSelectPlanMutation } from "../../redux/apis/plan.api";
-import { useNavigate } from "react-router-dom";
-import Toast from "../../components/Toast";
-import { useInitiatePaymentMutation, useVerifyPaymentMutation } from "../../redux/apis/payment.api";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
-import { useApplyCouponMutation } from "../../redux/apis/coupon.api";
+import { useEffect, useState } from "react"
+import { Card, CardContent, Typography, Button, Box, Divider, ToggleButtonGroup, ToggleButton, Paper, Badge, Grid2, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material"
+import CheckIcon from "@mui/icons-material/Check"
+import { useGetPlansQuery, useSelectPlanMutation } from "../../redux/apis/plan.api"
+import { useNavigate } from "react-router-dom"
+import Toast from "../../components/Toast"
+import { useInitiatePaymentMutation, useVerifyPaymentMutation } from "../../redux/apis/payment.api"
+import { useSelector } from "react-redux"
+import { RootState } from "../../redux/store"
+import { useApplyCouponMutation } from "../../redux/apis/coupon.api"
+import { IPlan } from "../../models/plan.interface"
 
 const UpgradePlan = () => {
-    const [selectedPlan, setSelectedPlan] = useState<string>("");
-    const [selectedPlanPrice, setSelectedPlanPrice] = useState<string>("");
+    const [selectedPlan, setSelectedPlan] = useState<string>("")
+    const [selectedPlanPrice, setSelectedPlanPrice] = useState<string>("")
+    const [originalPrice, setOriginalPrice] = useState<string>("")
     const [billingCycle, setBillingCycle] = useState<{ [key: string]: "monthly" | "yearly" }>({
         Free: "monthly",
         Pro: "monthly",
         Family: "monthly",
-    });
-    const [openModal, setOpenModal] = useState(false);
-    const [coupon, setCoupon] = useState("");
-    const [discountedPrice, setDiscountedPrice] = useState("");
+    })
+    const [openModal, setOpenModal] = useState(false)
+    const [coupon, setCoupon] = useState("")
+    const [points, setPoints] = useState("")
+    const [isPointsApplied, setIsPointsApplied] = useState(false)
 
     const navigate = useNavigate()
     const { user } = useSelector((state: RootState) => state.auth)
@@ -30,21 +33,23 @@ const UpgradePlan = () => {
     const [initiatePayment] = useInitiatePaymentMutation()
     const [verifyPayment, { data: paymentData, isSuccess: paymentSuccess, error: paymentErrorData, isError: paymentError }] = useVerifyPaymentMutation()
 
+
     const handleCloseModal = () => {
         setCoupon("")
         setSelectedPlanPrice("")
-        setDiscountedPrice("")
+        setPoints("")
         setOpenModal(false)
-    };
+        setIsPointsApplied(false)
+    }
 
     const handleSelect = async (plan: string, billingCycle: string) => {
         setOpenModal(true)
-        setSelectedPlan(plan);
+        setSelectedPlan(plan)
         if (plan === "Free") {
             selectPlan({ selectedPlan: plan })
         } else {
 
-            const response = await initiatePayment({ selectedPlan: plan, billingCycle, code: coupon }).unwrap()
+            const response = await initiatePayment({ selectedPlan: plan, billingCycle, code: coupon, points: +points || 0 }).unwrap()
 
             const options: any = {
                 key: `${import.meta.env.VITE_RAZORPAY_API_KEY}`,
@@ -54,10 +59,10 @@ const UpgradePlan = () => {
                 description: "Payment for plan subscription",
                 order_id: response.orderId,
                 handler: async function (paymentResponse: any) {
-                    const verifyRes = await verifyPayment(paymentResponse).unwrap();
+                    const verifyRes = await verifyPayment(paymentResponse).unwrap()
 
                     if (verifyRes.success) {
-                        await selectPlan({ selectedPlan: plan, billingCycle })
+                        await selectPlan({ selectedPlan: plan, billingCycle, points: +points || 0 })
                     }
                 },
                 prefill: {
@@ -68,23 +73,39 @@ const UpgradePlan = () => {
                 theme: {
                     color: "#3399cc"
                 }
-            };
+            }
 
-            const razor = new (window as any).Razorpay(options);
-            razor.open();
+            const razor = new (window as any).Razorpay(options)
+            razor.open()
 
         }
-    };
+    }
+
+    const handleSelectPlan = (plan: IPlan) => {
+        setOpenModal(true)
+        setSelectedPlan(plan.name)
+        setSelectedPlanPrice(plan.price[billingCycle[plan.name]])
+        setOriginalPrice(plan.price[billingCycle[plan.name]])
+    }
 
     const handleBillingChange = (plan: string, newCycle: "monthly" | "yearly") => {
         if (newCycle) {
-            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }));
+            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }))
         }
-    };
+    }
 
     const handleApplyCoupon = (plan: string) => {
         if (coupon && plan === "Pro" || plan === "Family") {
-            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan] })
+            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan], points: +points || 0 })
+        }
+    }
+
+    const handleApplyPoints = () => {
+        if (selectedPlanPrice && user?.points && (+points > 0)) {
+            const availablePoints = Math.min(+points, user?.points)
+            const priceAfterPoints = +originalPrice - availablePoints
+            setSelectedPlanPrice(priceAfterPoints.toString())
+            setIsPointsApplied(true)
         }
     }
 
@@ -92,15 +113,21 @@ const UpgradePlan = () => {
         if (isSuccess) {
             setTimeout(() => {
                 navigate("/")
-            }, 2000);
+            }, 2000)
         }
     }, [isSuccess, navigate])
 
     useEffect(() => {
         if (isApplyCouponSuccess) {
-            setDiscountedPrice(couponData.finalAmount.toString())
+            setSelectedPlanPrice(couponData.finalAmount.toString())
         }
     }, [couponData])
+
+    useEffect(() => {
+        if (!points) {
+            setSelectedPlanPrice(originalPrice)
+        }
+    }, [points])
 
     return <>
         {paymentSuccess && <Toast type="success" message={paymentData.message} />}
@@ -198,7 +225,7 @@ const UpgradePlan = () => {
                                         variant="outlined"
                                         color="secondary"
                                         fullWidth
-                                        onClick={() => { setOpenModal(true), setSelectedPlan(plan.name), setSelectedPlanPrice(plan.price[billingCycle[plan.name]]) }}
+                                        onClick={() => handleSelectPlan(plan)}
                                         sx={{ mt: 2 }}
                                     > Select Plan
                                     </Button>
@@ -219,18 +246,58 @@ const UpgradePlan = () => {
                             </Typography>
                         }
 
-                        {!discountedPrice && (
+                        {!isApplyCouponSuccess && (
                             <Typography variant="h6" sx={{ mb: 1 }}>
                                 Price: ₹{selectedPlanPrice}
                             </Typography>
                         )}
 
-                        {discountedPrice && (
+                        {isApplyCouponSuccess && (
                             <Typography variant="h6" color="green" sx={{ mb: 1 }}>
-                                Discounted Price: ₹{discountedPrice}
+                                Discounted Price: ₹{Math.round(+selectedPlanPrice)}
                             </Typography>
                         )}
 
+                        <Typography sx={{ mb: 2, fontWeight: 600, color: "green" }}>
+                            {user?.points} Points Available
+                        </Typography>
+
+                        {/* Points Field */}
+                        {selectedPlan !== "Free" && <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
+                            <TextField
+                                fullWidth
+                                disabled={isPointsApplied}
+                                type="number"
+                                variant="outlined"
+                                size="small"
+                                onChange={(e) => setPoints(e.target.value)}
+                                placeholder="Enter Points"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        "&:hover fieldset": {
+                                            borderColor: "gray",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor: "black",
+                                            borderWidth: "1px",
+                                        },
+                                    },
+                                }}
+                            />
+
+                            <Button
+                                onClick={handleApplyPoints}
+                                color="secondary"
+                                variant="outlined"
+                                sx={{ height: "40px" }}
+                                disabled={+points > (user?.points as number) || +points < 1 || isPointsApplied}
+                            >
+                                Apply
+                            </Button>
+                        </Box>
+                        }
+
+                        {/* Coupon Field */}
                         {selectedPlan !== "Free" && <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
                             <TextField
                                 fullWidth
@@ -257,6 +324,7 @@ const UpgradePlan = () => {
                                 color="secondary"
                                 variant="outlined"
                                 sx={{ height: "40px" }}
+                                disabled={!coupon || isApplyCouponSuccess}
                             >
                                 Apply
                             </Button>
@@ -282,6 +350,6 @@ const UpgradePlan = () => {
 
         </Box >
     </>
-};
+}
 
-export default UpgradePlan;
+export default UpgradePlan

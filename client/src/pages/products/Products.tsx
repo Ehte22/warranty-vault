@@ -18,7 +18,7 @@ const Products = () => {
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        showSelector: false,
+        showSelector: true,
         onSearch: setSearchQuery,
         onSelect: setSelectedUser
     }

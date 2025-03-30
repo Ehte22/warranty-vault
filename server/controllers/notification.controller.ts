@@ -35,7 +35,7 @@ export const getAllNotifications = asyncHandler(async (req: Request, res: Respon
 
     let result = []
     if (isFetchAll) {
-        result = await Notification.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
+        result = await Notification.find(query).sort({ createdAt: -1 }).lean()
     } else {
         result = await Notification.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }

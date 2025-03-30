@@ -33,7 +33,7 @@ export const getCoupons = asyncHandler(async (req: Request, res: Response, next:
 
     let result = []
     if (isFetchAll) {
-        result = await Coupon.find({ deletedAt: null }).sort({ createdAt: -1 }).lean()
+        result = await Coupon.find(query).sort({ createdAt: -1 }).lean()
     } else {
         result = await Coupon.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
@@ -125,7 +125,8 @@ export const deleteCoupon = asyncHandler(async (req: Request, res: Response, nex
 })
 
 export const applyCoupon = asyncHandler(async (req: Request, res: Response): Promise<any> => {
-    const { code, selectedPlan, billingCycle } = req.body
+    const { code, selectedPlan, billingCycle, points } = req.body
+
     const { userId } = req.user as IUserProtected
 
     const plan = await Plan.findOne({ name: selectedPlan, isActive: true, deletedAt: null }).lean()
@@ -184,10 +185,18 @@ export const applyCoupon = asyncHandler(async (req: Request, res: Response): Pro
 
     await Coupon.findByIdAndUpdate(coupon._id, { usedCount: coupon.usedCount += 1 })
 
+    let finalAmount
+    if (points) {
+        let x = price - discount
+        finalAmount = x - points
+    } else {
+        finalAmount = price - discount
+    }
+
     res.json({
         message: "Coupon Applied Successfully",
         discountAmount: discount,
-        finalAmount: price - discount
+        finalAmount
     })
 
 })

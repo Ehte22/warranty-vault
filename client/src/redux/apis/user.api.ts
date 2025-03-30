@@ -9,7 +9,7 @@ const customBaseQuery = createCustomBaseQuery(baseUrl)
 export const userApi = createApi({
     reducerPath: "userApi",
     baseQuery: customBaseQuery,
-    tagTypes: ["user"],
+    tagTypes: ["user", "plan"],
     endpoints: (builder) => {
         return {
             getUsers: builder.query<{ result: IUser[], pagination: IPagination }, Partial<{ page: number, limit: number, searchQuery: string, isFetchAll: boolean, selectedUser: string }>>({
@@ -42,7 +42,7 @@ export const userApi = createApi({
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
                     return error.data?.message
                 },
-                providesTags: ["user"]
+                providesTags: ["user", "plan"]
             }),
 
             addUser: builder.mutation<{ message: string, result: IUser }, FormData>({

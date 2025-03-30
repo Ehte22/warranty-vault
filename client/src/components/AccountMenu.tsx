@@ -18,7 +18,6 @@ import { useGetUserByIdQuery } from '../redux/apis/user.api';
 const AccountMenu = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-
     const { user } = useSelector((state: RootState) => state.auth)
 
     const [signOut, { data, error, isLoading, isSuccess, isError }] = useSignOutMutation()

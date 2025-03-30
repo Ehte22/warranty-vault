@@ -1,9 +1,9 @@
 import mongoose, { Model, Schema } from "mongoose"
 
 export interface INotification {
-    user: { _id: mongoose.Schema.Types.ObjectId, name: string }
-    product: { _id: mongoose.Schema.Types.ObjectId, name: string }
-    policy: { _id: mongoose.Schema.Types.ObjectId, name: string }
+    user: { _id: mongoose.Types.ObjectId, name: string }
+    product: { _id: mongoose.Types.ObjectId, name: string }
+    policy: { _id: any, name: string }
     message: string
     status: string
     scheduleDate: Date
@@ -11,7 +11,7 @@ export interface INotification {
     deletedAt?: Date | null
 }
 
-const planSchema = new Schema<INotification>({
+const notificationSchema = new Schema<INotification>({
     user: {
         _id: { type: mongoose.Schema.ObjectId, required: true, ref: "User" },
         name: { type: String, required: true }
@@ -31,5 +31,5 @@ const planSchema = new Schema<INotification>({
     deletedAt: { type: Date, default: null },
 }, { timestamps: true })
 
-const Notification: Model<INotification> = mongoose.model<INotification>("Notification", planSchema)
+const Notification: Model<INotification> = mongoose.model<INotification>("Notification", notificationSchema)
 export default Notification

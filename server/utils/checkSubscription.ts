@@ -1,125 +1,92 @@
-// import { NextFunction, Request, Response } from "express";
-// import { IUserProtected } from "./protected";
-// import { Clinic } from "../models/Clinic";
-// import { User } from "../models/User";
-// import { sendEmail } from "./email";
-// import mongoose from "mongoose";
-// import { subscriptionReminderTemplate } from "../templates/subscriptionReminderTemplate";
-// import { invalidateCache } from "./redisMiddleware";
+import { User } from "../models/User";
+import { sendEmail } from "./email";
+import { subscriptionReminderTemplate } from "../templates/subscriptionReminderTemplate";
+import moment from "moment-timezone";
+import Notification from "../models/Notification";
+import { notificationEmailTemplate } from "../templates/notificationEmailTemplate";
 
-// export const checkSubscription = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+const INDIA_TIMEZONE = "Asia/Kolkata";
 
-//     const { clinicId, role } = req.user as IUserProtected
+export const checkAndDeactivateExpiredSubscriptionUser = async () => {
+    const todayIST = moment().tz(INDIA_TIMEZONE).startOf("day").toDate();
 
-//     if (role === "Super Admin") {
-//         return next();
-//     }
+    await User.updateMany(
+        { "subscription.expiryDate": { $lt: todayIST }, plan: { $ne: "Free" } },
+        { $set: { plan: "Free", planType: "Unlimited" } },
+    );
 
-//     if (!clinicId) {
-//         return res.status(400).json({ message: "Clinic ID is required." });
-//     }
+};
 
-//     const clinic = await Clinic.findById({ _id: clinicId });
+export const sendSubscriptionReminders = async () => {
+    const todayIST = moment().tz(INDIA_TIMEZONE).startOf("day"); // Get start of the day in IST
+    const daysBeforeExpiry = [30, 15, 5];
 
-//     if (!clinic) {
-//         return res.status(404).json({ message: "Clinic not found" });
-//     }
+    for (const days of daysBeforeExpiry) {
+        const reminderDate = todayIST.clone().add(days, "days"); // Future date for reminders
+        const startOfDay = reminderDate.startOf("day").toDate();
+        const endOfDay = reminderDate.endOf("day").toDate();
 
-//     if (clinic.status === "inactive") {
-//         return res.status(403).json({ message: "Subscription expired. Please renew your plan." });
-//     }
+        // Fetch users who are expiring on that date & are "User Admin"
+        const expiringUsers = await User.find({
+            "subscription.expiryDate": { $gte: startOfDay, $lte: endOfDay },
+            plan: { $ne: "Free" },
+            role: "User"
+        });
 
-//     next();
-// };
+        if (expiringUsers.length > 0) {
+            const emailPromises = expiringUsers.map(user =>
+                sendEmail({
+                    to: user.email,
+                    subject: `Plan Expiry Reminder: ${days} days left`,
+                    text: subscriptionReminderTemplate({ name: user.name, days })
+                })
+            );
 
+            await Promise.all(emailPromises); // Send all emails concurrently
+        }
+    }
+};
 
-// export const checkAndDeactivateExpiredClinics = async () => {
-//     const today = new Date();
-//     const session = await mongoose.startSession(); // Start a session for atomic operations
+export const sendNotifications = async () => {
+    const todayIST = moment().tz(INDIA_TIMEZONE).startOf("day").toDate();
+    const endOfDayIST = moment(todayIST).endOf("day").toDate();
 
-//     try {
-//         session.startTransaction(); // Begin the transaction
+    const notifications = await Notification.find({
+        scheduleDate: { $gte: todayIST, $lt: endOfDayIST },
+        status: "Pending",
+    }).populate("policy._id")
 
-//         // Update clinics to inactive where expiryDate is before today
-//         const updatedClinics = await Clinic.updateMany(
-//             { endDate: { $lt: today }, status: "active" },
-//             { $set: { status: "inactive" } },
-//             { session } // Ensure the operation is part of the transaction
-//         );
+    if (notifications.length === 0) {
+        return;
+    }
 
-//         if (updatedClinics.modifiedCount > 0) {
-//             // Fetch the clinic IDs that were updated (inactive status)
-//             const clinicIds = await Clinic.find(
-//                 { endDate: { $lt: today }, status: "inactive" },
-//                 { _id: 1 },
-//                 { session } // Ensure the query is part of the transaction
-//             );
+    const userIds = notifications.map(n => n.user._id);
+    const users = await User.find({ _id: { $in: userIds } }, "email name"); // Fetch only needed fields
 
-//             const clinicIdList = clinicIds.map(clinic => clinic._id);
+    const userMap = new Map(users.map(user => [user._id.toString(), user]));
 
-//             // Update users linked to these clinics
-//             await User.updateMany(
-//                 { clinicId: { $in: clinicIdList }, role: { $in: ["Clinic Admin", "Doctor", "Receptionist"] } },
-//                 { $set: { status: "inactive" } },
-//                 { session } // Include in the same transaction
-//             );
+    for (const notification of notifications) {
+        const user = userMap.get(notification.user._id.toString());
 
-//             invalidateCache("clinics:*")
-//             invalidateCache("users:*")
-//             // console.log(`Deactivated ${updatedClinics.modifiedCount} expired clinics and their associated users.`);
-//         }
+        if (!user) {
+            continue;
+        }
 
-//         await session.commitTransaction(); // Commit the transaction if everything went well
-//     } catch (error) {
-//         await session.abortTransaction(); // Rollback transaction in case of error
-//         // console.error("Error deactivating expired clinics and users:", error);
-//     } finally {
-//         session.endSession(); // End the session
-//     }
-// };
+        await sendEmail({
+            to: user.email,
+            subject: `Policy Expiry Reminder`,
+            text: notificationEmailTemplate({
+                name: notification.user.name,
+                product: notification.product.name,
+                policy: notification.policy.name,
+                expiryDate: moment(notification.policy._id.expiryDate).format("DD MMM YYYY"),
+                message: notification.message,
+            }),
+        });
 
-// export const sendSubscriptionReminders = async () => {
-//     const today = new Date();
-//     today.setUTCHours(0, 0, 0, 0); // Reset time to midnight
-
-//     // Check for clinics expiring in 30, 15, and 5 days
-//     const daysBeforeExpiry = [30, 15, 5];
-
-//     for (const days of daysBeforeExpiry) {
-//         const reminderDate = new Date(today);
-//         reminderDate.setDate(today.getDate() + days);
-//         reminderDate.setUTCHours(0, 0, 0, 0); // Ensure time is set to midnight
-
-//         // Create start and end range for the entire day
-//         const startOfDay = new Date(reminderDate);
-//         const endOfDay = new Date(reminderDate);
-//         endOfDay.setUTCHours(23, 59, 59, 999); // End of day
-
-//         // console.log(`Checking for clinics expiring on: ${reminderDate.toISOString()}`);
-
-//         // Query clinics expiring exactly on that day
-//         const expiringClinics = await Clinic.find({
-//             endDate: { $gte: startOfDay, $lte: endOfDay },
-//             status: "active"
-//         });
-
-//         // console.log(`Found ${expiringClinics.length} clinics expiring in ${days} days:`, expiringClinics);
-
-//         for (const clinic of expiringClinics) {
-//             const clinicAdmin = await User.findOne({ clinicId: clinic._id, role: "Clinic Admin" });
-
-//             if (clinicAdmin) {
-//                 const subject = `Subscription Expiry Reminder: ${days} days left`;
-
-//                 const reminderTemplate = subscriptionReminderTemplate({ firstName: clinicAdmin.firstName, lastName: clinicAdmin.lastName, days })
-
-//                 await sendEmail({
-//                     to: clinicAdmin.email,
-//                     subject,
-//                     text: reminderTemplate
-//                 });
-//             }
-//         }
-//     }
-// };
-
+        await Notification.updateOne(
+            { _id: notification._id },
+            { $set: { status: "Sent", sentAt: new Date() } }
+        );
+    }
+};

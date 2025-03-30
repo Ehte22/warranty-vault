@@ -38,7 +38,7 @@ export const getAllPolicies = asyncHandler(async (req: Request, res: Response, n
 
     let result = []
     if (isFetchAll) {
-        result = await Policy.find({ "user._id": userId, deletedAt: null }).sort({ createdAt: -1 }).lean()
+        result = await Policy.find(query).sort({ createdAt: -1 }).lean()
     } else {
         result = await Policy.find(query).skip(skip).limit(pageLimit).sort({ createdAt: -1 }).lean()
     }
