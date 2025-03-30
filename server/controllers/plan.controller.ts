@@ -179,7 +179,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         plan: selectedPlan,
         planType,
         subscription: { startDate, expiryDate, paymentStatus: "Active" },
-        points: user.points - points
+        points: +user.points - +points
     }, { new: true });
 
     const token = generateToken({ userId: user._id, name: user.name, role: user.role })
