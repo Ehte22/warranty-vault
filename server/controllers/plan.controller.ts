@@ -160,6 +160,14 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         return res.status(404).json({ message: "User Not Fund" })
     }
 
+    let userPoints = user.points
+    console.log(points);
+    console.log(userPoints);
+
+    if (points) {
+        userPoints = userPoints - +points
+    }
+
     let planType = "Unlimited"
 
     const today = new Date()
@@ -179,7 +187,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         plan: selectedPlan,
         planType,
         subscription: { startDate, expiryDate, paymentStatus: "Active" },
-        points: +user.points - +points
+        points: userPoints
     }, { new: true });
 
     const token = generateToken({ userId: user._id, name: user.name, role: user.role })
@@ -192,7 +200,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         profile: user.profile,
         role: user.role,
         plan: selectedPlan,
-        points: user.points - points,
+        points: userPoints,
         referralCode: user.referralCode,
         referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
         token

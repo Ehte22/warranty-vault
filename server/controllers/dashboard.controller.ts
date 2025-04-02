@@ -81,7 +81,7 @@ export const userDashboard = asyncHandler(async (req: Request, res: Response) =>
 })
 
 export const adminDashboard = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const totalUsers = await User.countDocuments({ deletedAt: null })
+    const totalUsers = await User.countDocuments({ deletedAt: null, role: { $ne: "Admin" } })
     const totalProducts = await Product.countDocuments({ deletedAt: null })
     const totalPolicies = await Policy.countDocuments({ deletedAt: null })
     const totalBrands = await Brand.countDocuments({ deletedAt: null })
@@ -149,7 +149,7 @@ export const adminDashboard = asyncHandler(async (req: Request, res: Response, n
         .sort((a, b) => a.year - b.year || a.month - b.month);
 
     const statusStats = await User.aggregate([
-        { $match: { deletedAt: null } },
+        { $match: { deletedAt: null, role: { $ne: "Admin" } } },
         { $group: { _id: "$status", count: { $sum: 1 } } }
     ])
 

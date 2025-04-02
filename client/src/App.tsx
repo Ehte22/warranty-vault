@@ -36,6 +36,8 @@ const Register = lazy(() => import("./pages/auth/Register"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
+// import Users from "./pages/users/Users";
+
 const theme = createTheme({
   palette: {
     mode: "light",
@@ -79,82 +81,80 @@ const App = () => {
       <ImageContextProvider>
         <BrowserRouter>
           <Suspense fallback={<Box sx={{ height: "100vh" }}><Loader /></Box>}>
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Layout />} >
+            <Routes>
+              <Route path="/" element={<Layout />} >
 
-                  <Route index element={<Protected roles={user?.role === "Admin" ? ["Admin"] : ["User", "Admin"]} compo={user?.role === "Admin" ? <AdminDashboard /> : < Dashboard />} />} />
-                  <Route path="user-dashboard" element={<Protected roles={["User", "Admin"]} compo={< Dashboard />} />} />
-                  <Route path="admin" element={<Protected roles={["Admin"]} compo={<AdminDashboard />} />} />
+                <Route index element={<Protected roles={user?.role === "Admin" ? ["Admin"] : ["User", "Admin"]} compo={user?.role === "Admin" ? <ErrorBoundary><AdminDashboard /> </ErrorBoundary> : <ErrorBoundary><Dashboard /> </ErrorBoundary>} />} />
+                <Route path="user-dashboard" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Dashboard /> </ErrorBoundary>} />} />
+                <Route path="admin" element={<Protected roles={["Admin"]} compo={<ErrorBoundary><AdminDashboard /> </ErrorBoundary>} />} />
 
-                  <Route path="products">
-                    <Route index element={<Protected roles={["User", "Admin"]} compo={<Products />} />} />
-                    <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<AddProduct />} />} />
-                    <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<AddProduct />} />} />
-                  </Route>
-
-                  <Route path="brands">
-                    <Route index element={<Protected roles={["User", "Admin"]} compo={<Brands />} />} />
-                    <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<AddBrand />} />} />
-                    <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<AddBrand />} />} />
-                  </Route>
-
-                  <Route path="policies">
-                    <Route index element={<Protected roles={["User", "Admin"]} compo={<Policies />} />} />
-                    <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<AddPolicy />} />} />
-                    <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<AddPolicy />} />} />
-                  </Route>
-
-                  <Route path="policy-types">
-                    <Route index element={<Protected roles={["User", "Admin"]} compo={<PolicyTypes />} />} />
-                    <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<AddPolicyType />} />} />
-                    <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<AddPolicyType />} />} />
-                  </Route>
-
-                  <Route path="plans">
-                    <Route index element={<Protected roles={["Admin"]} compo={<Plans />} />} />
-                    <Route path="add" element={<Protected roles={["Admin"]} compo={<AddPlan />} />} />
-                    <Route path="update/:id" element={<Protected roles={["Admin"]} compo={<AddPlan />} />} />
-                  </Route>
-
-                  <Route path="notifications">
-                    <Route index element={<Protected roles={["User", "Admin"]} compo={<Notifications />} />} />
-                    <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<AddNotification />} />} />
-                    <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<AddNotification />} />} />
-                  </Route>
-
-                  <Route path="users">
-                    <Route index element={<Protected roles={["User", "Admin"]} compo={<Users />} />} />
-                    <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<AddUser />} />} />
-                    <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<AddUser />} />} />
-                  </Route>
-
-                  <Route path="coupons">
-                    <Route index element={<Protected roles={["Admin"]} compo={<Coupons />} />} />
-                    <Route path="add" element={<Protected roles={["Admin"]} compo={<AddCoupon />} />} />
-                    <Route path="update/:id" element={<Protected roles={["Admin"]} compo={<AddCoupon />} />} />
-                  </Route>
-
-                  <Route path="referrals" element={<Protected roles={["User", "Admin"]} compo={<ReferralPage />} />} />
-                  <Route path="profile/:id" element={<Protected roles={["User", "Admin"]} compo={<Profile />} />} />
-                  <Route path="upgrade-plan" element={<Protected roles={["User", "Admin"]} compo={<UpgradePlan />} />} />
-
+                <Route path="products">
+                  <Route index element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Products /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddProduct /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddProduct /> </ErrorBoundary>} />} />
                 </Route>
 
-                <Route path="sign-in" element={<Login />} />
-                <Route path="sign-up" element={<Register />} />
-                <Route path="select-plan" element={<SelectPlan />} />
-                <Route path="forgot-password" element={<ForgotPassword />} />
-                <Route path="reset-password" element={<ResetPassword />} />
-                <Route path="unauthorized" element={<Unauthorized />} />
-                <Route path="*" element={<PageNotFound />} />
+                <Route path="brands">
+                  <Route index element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Brands /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddBrand /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddBrand /> </ErrorBoundary>} />} />
+                </Route>
 
-              </Routes>
-            </ErrorBoundary>
+                <Route path="policies">
+                  <Route index element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Policies /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddPolicy /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddPolicy /> </ErrorBoundary>} />} />
+                </Route>
+
+                <Route path="policy-types">
+                  <Route index element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><PolicyTypes /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddPolicyType /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddPolicyType /> </ErrorBoundary>} />} />
+                </Route>
+
+                <Route path="plans">
+                  <Route index element={<Protected roles={["Admin"]} compo={<ErrorBoundary><Plans /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["Admin"]} compo={<ErrorBoundary><AddPlan /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["Admin"]} compo={<ErrorBoundary><AddPlan /> </ErrorBoundary>} />} />
+                </Route>
+
+                <Route path="notifications">
+                  <Route index element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Notifications /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddNotification /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddNotification /> </ErrorBoundary>} />} />
+                </Route>
+
+                <Route path="users">
+                  <Route index element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Users /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddUser /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><AddUser /> </ErrorBoundary>} />} />
+                </Route>
+
+                <Route path="coupons">
+                  <Route index element={<Protected roles={["Admin"]} compo={<ErrorBoundary><Coupons /> </ErrorBoundary>} />} />
+                  <Route path="add" element={<Protected roles={["Admin"]} compo={<ErrorBoundary><AddCoupon /> </ErrorBoundary>} />} />
+                  <Route path="update/:id" element={<Protected roles={["Admin"]} compo={<ErrorBoundary><AddCoupon /> </ErrorBoundary>} />} />
+                </Route>
+
+                <Route path="referrals" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><ReferralPage /> </ErrorBoundary>} />} />
+                <Route path="profile/:id" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Profile /> </ErrorBoundary>} />} />
+                <Route path="upgrade-plan" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><UpgradePlan /> </ErrorBoundary>} />} />
+
+              </Route>
+
+              <Route path="sign-in" element={<Login />} />
+              <Route path="sign-up" element={<Register />} />
+              <Route path="select-plan" element={<SelectPlan />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="unauthorized" element={<Unauthorized />} />
+              <Route path="*" element={<PageNotFound />} />
+
+            </Routes>
           </Suspense>
         </BrowserRouter>
       </ImageContextProvider>
-    </ThemeProvider>
+    </ThemeProvider >
   </>
 }
 

@@ -1,4 +1,5 @@
 import React, { Component, ReactNode } from "react";
+import { Button, Card, CardContent, Typography, Box } from "@mui/material";
 
 interface ErrorBoundaryProps {
     children: ReactNode;
@@ -30,16 +31,26 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     render() {
         if (this.state.hasError) {
             return (
-                <div className="flex flex-col items-center justify-center  bg-red-100 p-6 text-center">
-                    <h2 className="text-xl font-bold text-red-700">Something went wrong!</h2>
-                    <p className="text-red-600 mt-2">{this.state.errorMessage}</p>
-                    <button
-                        className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                        onClick={this.handleReset}
-                    >
-                        Try Again
-                    </button>
-                </div>
+                <Box display="flex" justifyContent="center" alignItems="center" height="100">
+                    <Card sx={{ textAlign: "center", bgcolor: "#ffebee", p: 3, borderRadius: 2, boxShadow: 3 }}>
+                        <CardContent>
+                            <Typography variant="h5" color="error" fontWeight="bold">
+                                Something went wrong!
+                            </Typography>
+                            <Typography variant="body1" color="textSecondary" sx={{ mt: 2 }}>
+                                {this.state.errorMessage}
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={this.handleReset}
+                                sx={{ mt: 3 }}
+                            >
+                                Try Again
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Box>
             );
         }
 
