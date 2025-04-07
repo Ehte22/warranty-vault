@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ehtesham22.mobile"
     },
     "web": {
       "bundler": "metro",
@@ -36,6 +37,15 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "razorpayKey": "rzp_test_8g7frJOzzN5wml",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "656bf504-affb-42b2-812a-d741d9cf2702"
+      }
     }
   }
 }

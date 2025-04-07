@@ -49,8 +49,8 @@ const textFieldStyles = {
 
 const fields: FieldConfig[] = [
     {
-        name: "email",
-        label: "Email Address",
+        name: "username",
+        label: "Username",
         type: "text",
         rules: { required: true }
     },
@@ -73,10 +73,10 @@ const Login: React.FC = () => {
 
     type FormValues = z.infer<typeof schema>
 
-    const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } })
+    const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { username: "", password: "" } })
 
     const onSubmit = (values: FormValues) => {
-        signIn({ email: values.email, password: values.password })
+        signIn({ username: values.username, password: values.password })
     }
 
     useEffect(() => {
@@ -102,17 +102,17 @@ const Login: React.FC = () => {
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
 
-                    {/* Email */}
+                    {/* Username */}
                     <TextField
-                        {...register("email")}
+                        {...register("username")}
                         fullWidth
-                        label="Email"
-                        type="email"
+                        label="Username"
+                        type="text"
                         variant="outlined"
                         margin="normal"
                         sx={textFieldStyles}
-                        error={!!errors.email}
-                        helperText={errors.email?.message as string}
+                        error={!!errors.username}
+                        helperText={errors.username?.message as string}
                     />
 
                     {/* Password */}

@@ -37,7 +37,7 @@ const SelectPlan = () => {
         setOpenModal(false)
     };
 
-    const handleSelect = async (plan: string, billingCycle: string) => {
+    const handlePay = async (plan: string, billingCycle: string) => {
         setOpenModal(true)
         setSelectedPlan(plan);
         if (plan === "Free") {
@@ -289,7 +289,7 @@ const SelectPlan = () => {
                     <DialogActions>
                         <Button onClick={handleCloseModal} variant="contained" sx={{ backgroundColor: "#f3f3f3" }} color="inherit">Cancel</Button>
                         <Button
-                            onClick={() => handleSelect(selectedPlan as string, billingCycle[selectedPlan as string])}
+                            onClick={() => handlePay(selectedPlan as string, billingCycle[selectedPlan as string])}
                             variant="contained"
                             sx={{ backgroundColor: "#00c979", color: "white" }}
                         >

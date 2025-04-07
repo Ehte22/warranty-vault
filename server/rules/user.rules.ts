@@ -22,7 +22,7 @@ export const verifyOTPRules: validationRulesSchema = {
 }
 
 export const signInRules: validationRulesSchema = {
-    email: { required: true, email: true },
+    username: { required: true },
     password: { required: true }
 }
 

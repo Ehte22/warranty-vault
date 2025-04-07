@@ -1,43 +1,10 @@
-import { BaseQueryFn, createApi, FetchArgs, fetchBaseQuery, FetchBaseQueryError } from "@reduxjs/toolkit/query/react"
-import { RootState } from "../store"
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { IUser } from "../../models/user.interface";
-import { logoutUser, openSessionExpiredModal } from "../slices/auth.slice";
-
-const baseQuery = fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_BACKEND_URL}/api/v1/auth`,
-    credentials: "include",
-    prepareHeaders(headers, { getState }) {
-        const state = getState() as RootState;
-        const token = state.auth.user?.token;
-
-        if (token) {
-            headers.set("Authorization", `Bearer ${token}`);
-        }
-        return headers;
-    },
-});
-
-const customBaseQuery: BaseQueryFn<
-    string | FetchArgs,
-    unknown,
-    FetchBaseQueryError
-> = async (args, api, extraOptions) => {
-    const response = await baseQuery(args, api, extraOptions);
-
-    if (response.error?.status === 401) {
-        const errorData = response.error.data as { message?: string };
-        if (errorData?.message === "Session has expired. Please log in again.") {
-            api.dispatch(logoutUser());
-            api.dispatch(openSessionExpiredModal())
-        }
-    }
-
-    return response;
-};
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const authApi = createApi({
     reducerPath: "authApi",
-    baseQuery: customBaseQuery,
+    baseQuery: fetchBaseQuery({ baseUrl: `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/v1/auth` }),
     endpoints: (builder) => {
         return {
             signUp: builder.mutation<{ message: string, result: IUser }, IUser>({
@@ -49,7 +16,7 @@ export const authApi = createApi({
                     }
                 },
                 transformResponse: (data: { message: string, result: IUser }) => {
-                    localStorage.setItem("user", JSON.stringify(data.result))
+                    AsyncStorage.setItem("user", JSON.stringify(data.result))
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
@@ -57,7 +24,7 @@ export const authApi = createApi({
                 }
             }),
 
-            signIn: builder.mutation<{ message: string, result: IUser }, { username: string, password: string }>({
+            signIn: builder.mutation<{ message: string, result: IUser }, { email: string, password: string }>({
                 query: userData => {
                     return {
                         url: "/sign-in",
@@ -66,7 +33,7 @@ export const authApi = createApi({
                     }
                 },
                 transformResponse: (data: { message: string, result: IUser }) => {
-                    localStorage.setItem("user", JSON.stringify(data.result))
+                    AsyncStorage.setItem("user", JSON.stringify(data.result))
                     return data
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {
@@ -82,7 +49,7 @@ export const authApi = createApi({
                     }
                 },
                 transformResponse: (data: { message: string }) => {
-                    localStorage.removeItem("user")
+                    AsyncStorage.removeItem("user")
                     return data.message
                 },
                 transformErrorResponse: (error: { status: number, data: { message: string } }) => {

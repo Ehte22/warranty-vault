@@ -2,12 +2,11 @@ export interface IUser {
     _id?: string
     name: string;
     email: string;
-    phone: number
-    username?: string;
+    phone: string
     password?: string;
     confirmPassword?: string
     profile?: string
-    role: 'Admin' | 'User'
+    role?: 'Admin' | 'User'
     status?: 'active' | 'inactive';
     token?: string
     plan?: string

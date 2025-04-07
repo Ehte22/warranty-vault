@@ -95,7 +95,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
 
 // Sign In
 export const signIn = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { email, password }: IUser = req.body
+    const { username, password }: IUser = req.body
 
     const { isError, error } = customValidator(req.body, signInRules)
 
@@ -103,10 +103,15 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         return res.status(422).json({ message: "Validation errors", error })
     }
 
-    const user = await User.findOne({ email }).select("-password, -__v, -updatedAt, -createdAt").lean()
+    const user = await User.findOne({
+        $or: [
+            { email: username },
+            { phone: username },
+        ]
+    }).select("-password, -__v, -updatedAt, -createdAt").lean()
 
     if (!user) {
-        return res.status(401).json({ message: "Invalid Credential - Email not found" })
+        return res.status(401).json({ message: "Invalid Credential - Username not found" })
     }
 
     const verifyPassword = await bcryptjs.compare(password, user.password)

@@ -17,6 +17,9 @@ export const initiatePayment = asyncHandler(async (req: Request, res): Promise<a
     })
 
     const coupon = await Coupon.findOne({ code }).lean()
+    if (code && !coupon) {
+        return res.status(400).json({ message: "Invalid coupon code" });
+    }
 
     const plan = await Plan.findOne({ name: selectedPlan }).lean()
     if (!plan) {
@@ -55,6 +58,10 @@ export const initiatePayment = asyncHandler(async (req: Request, res): Promise<a
         amount = amount - points
     }
 
+    if (amount < 1) {
+        amount = 1;
+    }
+
     if (amount) {
         instance.orders.create({
             amount: Math.round(amount * 100),
@@ -72,9 +79,20 @@ export const initiatePayment = asyncHandler(async (req: Request, res): Promise<a
 export const verifyPayment = asyncHandler(async (req: Request, res: Response): Promise<any> => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-    const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET_KEY as string);
-    hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-    const generatedSignature = hmac.digest("hex");
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const generatedSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_SECRET_KEY!)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest("hex");
+
+    // Use timingSafeEqual for secure comparison
+    // const expected = Buffer.from(generatedSignature, "utf-8");
+    // const received = Buffer.from(razorpay_signature, "utf-8");
+
+    // const isValid = expected.length === received.length && crypto.timingSafeEqual(expected, received);
 
     if (generatedSignature === razorpay_signature) {
         return res.json({ success: true, message: "Payment successful" });
