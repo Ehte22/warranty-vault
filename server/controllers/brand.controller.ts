@@ -96,6 +96,7 @@ export const addBrand = asyncHandler(async (req: Request, res: Response, next: N
 // Update
 export const updateBrand = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
+    const { remove } = req.body
 
     const brand = await Brand.findById(id).lean()
     if (!brand) {
@@ -111,11 +112,18 @@ export const updateBrand = asyncHandler(async (req: Request, res: Response, next
         logo = secure_url
     }
 
+    if (remove === "true") {
+        const publicId = brand.logo?.split("/").pop()?.split(".")[0]
+        if (publicId) {
+            await cloudinary.uploader.destroy(publicId)
+            logo = ""
+        }
+    }
+
     const updatedData = { ...req.body, logo };
     const isSame = Object.keys(updatedData).every(key =>
         updatedData[key as keyof IBrand] == brand[key as keyof IBrand]
     );
-
 
     if (isSame) {
         return res.status(200).json({ message: "No Changes Detected" });
@@ -152,5 +160,5 @@ export const deleteBrand = asyncHandler(async (req: Request, res: Response, next
 
     await Brand.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
-    res.status(200).json({ message: "Brand delete successfully" })
+    res.status(200).json({ message: "Brand Delete Successfully" })
 })

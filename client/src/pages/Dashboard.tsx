@@ -82,7 +82,7 @@ const Dashboard = () => {
                                     : "N/A"}
                             </Typography>
 
-                            <Typography color={subscriptionDetails?.subscription?.paymentStatus === "Paid" ? "green" : "red"}>
+                            <Typography color={subscriptionDetails?.subscription?.paymentStatus === "Active" ? "green" : "red"}>
                                 {subscriptionDetails?.subscription?.paymentStatus}
                             </Typography>
                         </CardContent>

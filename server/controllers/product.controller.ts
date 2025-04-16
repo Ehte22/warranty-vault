@@ -68,6 +68,9 @@ export const getProductById = asyncHandler(async (req: Request, res: Response, n
 // Add
 export const addProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { name } = req.body
+    console.log(req.body);
+    console.log(req.file);
+
 
     let image = ""
     if (req.file) {
@@ -98,6 +101,9 @@ export const addProduct = asyncHandler(async (req: Request, res: Response, next:
 // Update
 export const updateProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
+    const { remove } = req.body
+    console.log(req.body);
+    console.log(req.file);
 
     const product = await Product.findById(id).lean()
     if (!product) {
@@ -111,6 +117,14 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response, ne
 
         const { secure_url } = await cloudinary.uploader.upload(req.file.path)
         image = secure_url
+    }
+
+    if (remove === "true") {
+        const publicId = product.image?.split("/").pop()?.split(".")[0]
+        if (publicId) {
+            await cloudinary.uploader.destroy(publicId)
+            image = ""
+        }
     }
 
     const updatedData = { ...req.body, image };

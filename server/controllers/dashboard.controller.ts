@@ -12,6 +12,9 @@ export const userDashboard = asyncHandler(async (req: Request, res: Response) =>
     const { userId, role } = req.user as IUserProtected
     const { selectedUser } = req.query
 
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1)
+    const endOfYear = new Date(new Date().getFullYear(), 11, 31, 23, 59, 59, 999)
+
     const user = role === "Admin"
         ? selectedUser && new mongoose.Types.ObjectId(selectedUser as string)
         : new mongoose.Types.ObjectId(userId)
@@ -28,8 +31,8 @@ export const userDashboard = asyncHandler(async (req: Request, res: Response) =>
             $match: {
                 deletedAt: null,
                 expiryDate: {
-                    $gte: new Date(),
-                    $lte: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                    $gte: startOfYear,
+                    $lte: endOfYear
                 },
                 $expr: { $eq: ["$user._id", user] },
             }

@@ -108,19 +108,28 @@ export const addPolicy = asyncHandler(async (req: Request, res: Response, next: 
 // Update
 export const updatePolicy = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
+    const { remove } = req.body
 
-    const product = await Policy.findById(id).lean()
-    if (!product) {
+    const policy = await Policy.findById(id).lean()
+    if (!policy) {
         return res.status(404).json({ message: "Policy Not Found" })
     }
 
-    let document = product.document
+    let document = policy.document
     if (req.file) {
-        const publicId = product.document?.split("/").pop()?.split(".")[0]
+        const publicId = policy.document?.split("/").pop()?.split(".")[0]
         publicId && await cloudinary.uploader.destroy(publicId)
 
         const { secure_url } = await cloudinary.uploader.upload(req.file.path)
         document = secure_url
+    }
+
+    if (remove === "true") {
+        const publicId = policy.document?.split("/").pop()?.split(".")[0]
+        if (publicId) {
+            await cloudinary.uploader.destroy(publicId)
+            document = ""
+        }
     }
 
     const updatedData = { ...req.body, document };
@@ -135,8 +144,8 @@ export const updatePolicyStatus = asyncHandler(async (req: Request, res: Respons
     const { id } = req.params
     const { status } = req.body
 
-    const product = await Policy.findById(id).lean()
-    if (!product) {
+    const policy = await Policy.findById(id).lean()
+    if (!policy) {
         return res.status(404).json({ message: "Policy Not Found" })
     }
 
@@ -148,9 +157,9 @@ export const updatePolicyStatus = asyncHandler(async (req: Request, res: Respons
 export const deletePolicy = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params
 
-    const product = await Policy.findById(id)
+    const policy = await Policy.findById(id)
 
-    if (!product) {
+    if (!policy) {
         return res.status(404).json({ message: "Policy Not Found" })
     }
 

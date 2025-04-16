@@ -81,9 +81,10 @@ const Login: React.FC = () => {
 
     useEffect(() => {
         if (isSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isSuccess, navigate])
 

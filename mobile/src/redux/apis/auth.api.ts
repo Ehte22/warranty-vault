@@ -24,7 +24,7 @@ export const authApi = createApi({
                 }
             }),
 
-            signIn: builder.mutation<{ message: string, result: IUser }, { email: string, password: string }>({
+            signIn: builder.mutation<{ message: string, result: IUser }, { username: string, password: string }>({
                 query: userData => {
                     return {
                         url: "/sign-in",
@@ -121,7 +121,22 @@ export const authApi = createApi({
                 }
             }),
 
-
+            signInWithGoogle: builder.mutation<{ message: string, result: IUser }, { idToken: string }>({
+                query: userData => {
+                    return {
+                        url: "/signin-with-google",
+                        method: "POST",
+                        body: userData
+                    }
+                },
+                transformResponse: (data: { message: string, result: IUser }) => {
+                    AsyncStorage.setItem("user", JSON.stringify(data.result))
+                    return data
+                },
+                transformErrorResponse: (error: { status: number, data: { message: string } }) => {
+                    return error.data?.message
+                }
+            }),
         }
     }
 })
@@ -133,5 +148,6 @@ export const {
     useSendOTPMutation,
     useVerifyOTPMutation,
     useForgotPasswordMutation,
-    useResetPasswordMutation
+    useResetPasswordMutation,
+    useSignInWithGoogleMutation,
 } = authApi

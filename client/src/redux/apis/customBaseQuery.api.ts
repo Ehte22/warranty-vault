@@ -10,6 +10,10 @@ export const createCustomBaseQuery = (baseUrl: string): BaseQueryFn<
     const baseQuery = fetchBaseQuery({
         baseUrl,
         credentials: "include",
+        // headers: {
+        //     Accept: 'application/json',
+        //     'Content-Type': 'multipart/form-data',
+        // },
         prepareHeaders(headers, { getState }) {
             const state = getState() as RootState;
             const token = state.auth.user?.token;

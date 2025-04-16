@@ -19,20 +19,21 @@ const defaultValues = {
 }
 
 const AddProduct = () => {
+    const [brandOptions, setBrandOptions] = useState<{ label: string, value?: string }[]>([])
+
     const { id } = useParams()
     const { setPreviewImages } = useImagePreview()
     const navigate = useNavigate()
 
-    const { data: brands } = useGetBrandsQuery({ isFetchAll: true })
     const [addProduct, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddProductMutation()
     const [updateProduct, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateProductMutation()
     const { data } = useGetProductByIdQuery(id as string, { skip: !id })
+    const { data: brands } = useGetBrandsQuery({ isFetchAll: true })
 
     const config: DataContainerConfig = {
         pageTitle: id ? "Edit Product" : "Add Product",
         backLink: "../",
     }
-    const [brandOptions, setBrandOptions] = useState<{ label: string, value: string | undefined }[]>([])
 
     const fields: FieldConfig[] = [
         {
@@ -140,17 +141,19 @@ const AddProduct = () => {
 
     useEffect(() => {
         if (isAddSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/products")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isAddSuccess])
 
     useEffect(() => {
         if (isUpdateSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/products")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isUpdateSuccess])
 

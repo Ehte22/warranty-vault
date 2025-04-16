@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ehtesham22.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +26,13 @@
     },
     "plugins": [
       "expo-router",
+      "@react-native-community/datetimepicker",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.195321382919-59fvu1pkgvlr27mtdepi4adqu0n28coo"
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -44,7 +52,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "656bf504-affb-42b2-812a-d741d9cf2702"
+        "projectId": "f75b9a19-6857-4e5b-9e35-84654ae35bf5"
       }
     }
   }

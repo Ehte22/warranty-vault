@@ -143,17 +143,19 @@ const AddPlan = () => {
 
   useEffect(() => {
     if (isAddSuccess) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         navigate("/coupons")
       }, 2000);
+      return () => clearTimeout(timeout)
     }
   }, [isAddSuccess])
 
   useEffect(() => {
     if (isUpdateSuccess) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         navigate("/coupons")
       }, 2000);
+      return () => clearTimeout(timeout)
     }
   }, [isUpdateSuccess])
 

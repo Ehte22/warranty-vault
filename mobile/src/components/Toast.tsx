@@ -27,7 +27,7 @@ const Toast: React.FC<IToastProps> = ({ type, message }) => {
                 }}
                 style={[styles.snackbar, typeStyle[type]]}
             >
-                {message}
+                <Text style={{ color: "white" }}>{message}</Text>
             </Snackbar>
         </View>
     </>

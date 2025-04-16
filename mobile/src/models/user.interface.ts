@@ -1,8 +1,10 @@
 export interface IUser {
     _id?: string
+    serialNo?: number
     name: string;
     email: string;
     phone: string
+    username?: string;
     password?: string;
     confirmPassword?: string
     profile?: string
@@ -10,6 +12,7 @@ export interface IUser {
     status?: 'active' | 'inactive';
     token?: string
     plan?: string
+    route?: string
     type?: string
     referralCode?: string
     referrals?: { _id: string, name: string }[]

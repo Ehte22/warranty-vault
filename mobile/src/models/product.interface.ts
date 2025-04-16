@@ -1,5 +1,6 @@
 export interface IProduct {
     _id?: string
+    serialNo?: number
     name: string,
     brand: { _id: string, name: string }
     image: string

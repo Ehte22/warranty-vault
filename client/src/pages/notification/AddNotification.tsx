@@ -140,17 +140,19 @@ const AddPolicyType = () => {
 
     useEffect(() => {
         if (isAddSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/notifications")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isAddSuccess])
 
     useEffect(() => {
         if (isUpdateSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/notifications")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isUpdateSuccess])
 
@@ -168,20 +170,22 @@ const AddPolicyType = () => {
                 <Box component="form" onSubmit={handleSubmit(onSubmit)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
-                        {/* Name */}
+                        {/* Product */}
                         <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                             {renderSingleInput("product")}
                         </Grid2>
 
-                        {/* Description */}
+                        {/* Policy */}
                         <Grid2 size={{ xs: 12, sm: 6, md: 4 }} >
                             {renderSingleInput("policy")}
                         </Grid2>
 
+                        {/* Schedule Date */}
                         <Grid2 size={{ xs: 12, sm: 6, md: 4 }} >
                             {renderSingleInput("scheduleDate")}
                         </Grid2>
 
+                        {/* Message */}
                         <Grid2 size={{ xs: 12, sm: 6, md: 4 }} >
                             {renderSingleInput("message")}
                         </Grid2>

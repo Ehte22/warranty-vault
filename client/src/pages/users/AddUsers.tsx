@@ -112,7 +112,7 @@ const AddUser = () => {
         if (id && data) {
             setValue("name", data.name)
             setValue("email", data.email)
-            setValue("phone", data.phone)
+            setValue("phone", data.phone || "")
 
             if (data.profile) {
                 setValue("profile", data.profile)
@@ -123,17 +123,19 @@ const AddUser = () => {
 
     useEffect(() => {
         if (isAddSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/users")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isAddSuccess])
 
     useEffect(() => {
         if (isUpdateSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/users")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isUpdateSuccess])
 

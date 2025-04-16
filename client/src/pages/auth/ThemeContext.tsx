@@ -10,5 +10,5 @@ export function useColorSchemeShim() {
         }
     }, []);
 
-    return { mode, systemMode: 'light' }; // Default system mode
+    return { mode, systemMode: 'light' };
 }

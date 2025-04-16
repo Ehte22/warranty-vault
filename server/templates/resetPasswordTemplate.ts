@@ -23,7 +23,7 @@ export const resetPasswordTemplate = (resetLink: string) => {
         }
 
         .header {
-            background-color: #4F46E5;
+            background-color: #00C979;
             color: white;
             text-align: center;
             padding: 30px 20px;
@@ -54,7 +54,7 @@ export const resetPasswordTemplate = (resetLink: string) => {
         .reset-link {
             font-size: 16px;
             font-weight: bold;
-            color: #4F46E5;
+            color: #00C979;
             margin-top: 20px;
         }
 

@@ -14,5 +14,6 @@ authRouter
     .put("/reset-password", authController.resetPassword)
     .get("/google", authController.googleLogin)
     .get("/google/callback", authController.googleLoginResponse)
+    .post("/signin-with-google", authController.googleLoginMobile)
 
 export default authRouter

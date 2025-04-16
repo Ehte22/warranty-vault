@@ -26,7 +26,6 @@ const fields: FieldConfig[] = [
         name: "logo",
         type: "file",
         label: "Logo",
-        multiple: true,
         placeholder: "Logo",
         rules: { required: false, file: true }
     },
@@ -94,9 +93,10 @@ const AddBrand = () => {
 
     useEffect(() => {
         if (isAddSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/brands")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isAddSuccess])
 
@@ -132,7 +132,7 @@ const AddBrand = () => {
                             {renderSingleInput("description")}
                         </Grid2>
 
-                        {/* Name */}
+                        {/* Logo */}
                         <Grid2 size={{ xs: 12 }}>
                             {renderSingleInput("logo")}
                         </Grid2>

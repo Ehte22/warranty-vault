@@ -69,15 +69,6 @@ const SelectPlan = () => {
                 name: "Subscription",
                 description: "Payment for plan subscription",
                 order_id: response.orderId,
-                handler: async function (paymentResponse: any) {
-                    const verifyRes = await verifyPayment(paymentResponse).unwrap();
-                    console.log("verifyres", verifyRes);
-
-
-                    if (verifyRes.success) {
-                        await selectPlan({ selectedPlan: plan, billingCycle })
-                    }
-                },
                 prefill: {
                     name: user?.name,
                     email: user?.email,
@@ -96,9 +87,7 @@ const SelectPlan = () => {
                         await selectPlan({ selectedPlan: plan, billingCycle });
                     }
 
-                }).catch((error: any) => {
-                    alert(`Error: ${error.code} | ${error.description}`);
-                });
+                })
 
         }
     };
@@ -119,7 +108,7 @@ const SelectPlan = () => {
         if (isSuccess) {
             setOpenModal(false)
             setTimeout(() => {
-                router.navigate("/")
+                router.replace("/")
             }, 2000);
         }
     }, [isSuccess, router])

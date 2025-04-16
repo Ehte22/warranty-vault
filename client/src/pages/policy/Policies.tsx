@@ -12,6 +12,8 @@ import Loader from '../../components/Loader';
 const Policies = () => {
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<string>("")
+    const [policies, setPolicies] = useState<IPolicy[]>([])
+    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
 
     const config: DataContainerConfig = {
         pageTitle: "Policies",
@@ -23,8 +25,6 @@ const Policies = () => {
         onSelect: setSelectedUser
     }
 
-    const [policies, setPolicies] = useState<IPolicy[]>([])
-    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
     const { data, isLoading } = useGetPoliciesQuery({
@@ -55,7 +55,7 @@ const Policies = () => {
         },
         {
             field: 'document',
-            headerName: 'document',
+            headerName: 'Document',
             minWidth: 100,
             flex: 0.7,
             sortable: false,

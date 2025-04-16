@@ -147,9 +147,10 @@ const Register = () => {
 
     useEffect(() => {
         if (isSuccess && user?.token) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/select-plan")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isSuccess, user?.token, navigate])
 

@@ -117,9 +117,10 @@ const ResetPassword: React.FC = () => {
 
     useEffect(() => {
         if (isSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/sign-in")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isSuccess, navigate])
 

@@ -65,17 +65,19 @@ const AddPolicyType = () => {
 
     useEffect(() => {
         if (isAddSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/policy-types")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isAddSuccess])
 
     useEffect(() => {
         if (isUpdateSuccess) {
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 navigate("/policy-types")
             }, 2000);
+            return () => clearTimeout(timeout)
         }
     }, [isUpdateSuccess])
 

@@ -15,6 +15,7 @@ import { IUserProtected } from "../utils/protected"
 import cloudinary from "../utils/uploadConfig"
 import passport from "../services/passport"
 import { generateReferralCode } from "../utils/generateReferralCode"
+import { OAuth2Client } from "google-auth-library"
 
 dotenv.config({})
 
@@ -90,7 +91,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         token
     }
 
-    return res.status(200).json({ message: "Sign up successfully", result })
+    return res.status(200).json({ message: "Sign Up Successfully", result })
 })
 
 // Sign In
@@ -206,6 +207,79 @@ export const googleLoginResponse = asyncHandler(async (req: Request, res: Respon
         res.redirect(redirectUrl)
 
     })(req, res, next)
+})
+
+// Google Login Mobile 
+export const googleLoginMobile = asyncHandler(async (req: Request, res: Response): Promise<any> => {
+    const { idToken } = req.body
+
+    if (!idToken) {
+        return res.status(400).json({ message: 'Missing Google ID token' });
+    }
+
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+
+    const ticket = await client.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+        return res.status(401).json({ message: 'Invalid token payload' });
+    }
+
+    const { name, email, picture } = payload
+    const user = await User.findOne({ email }).lean()
+
+    if (user) {
+        const token = generateToken({ userId: user._id, name: user.name, role: user.role })
+
+        const result = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            profile: user.profile,
+            role: user.role,
+            plan: user.plan,
+            referralCode: user.referralCode,
+            points: user.points,
+            referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
+            route: "/",
+            token
+        }
+        res.status(200).json({ message: "Sign Up Successfully", result })
+    } else {
+        const referralCode = generateReferralCode()
+
+        const newUser = await User.create({
+            name,
+            email,
+            profile: picture,
+            referralCode
+        })
+
+        const token = generateToken({ userId: newUser._id, name: newUser.name, role: newUser.role })
+
+        const result = {
+            _id: newUser._id,
+            name: newUser.name,
+            email: newUser.email,
+            phone: newUser.phone,
+            profile: newUser.profile,
+            role: newUser.role,
+            plan: newUser.plan,
+            referralCode: newUser.referralCode,
+            referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${newUser.referralCode}`,
+            route: "/select-plan",
+            points: newUser.points,
+            token
+        }
+
+        return res.status(200).json({ message: "Sign In Successfully", result })
+    }
+
 })
 
 // Send OTP

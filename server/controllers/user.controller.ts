@@ -6,7 +6,6 @@ import cloudinary from "../utils/uploadConfig"
 import { IUser, User } from "../models/User"
 import { registerRules } from "../rules/user.rules"
 import bcryptjs from "bcryptjs"
-import mongoose from "mongoose"
 import { generateReferralCode } from "../utils/generateReferralCode"
 
 // Get All
@@ -141,7 +140,7 @@ export const addUser = asyncHandler(async (req: Request, res: Response, next: Ne
 // Update
 export const updateUser = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { id } = req.params;
-    const { email, phone } = req.body;
+    const { email, phone, remove } = req.body;
 
     const user = await User.findById(id).lean();
     if (!user) {
@@ -169,6 +168,14 @@ export const updateUser = asyncHandler(async (req: Request, res: Response, next:
 
         const { secure_url } = await cloudinary.uploader.upload(req.file.path);
         profile = secure_url;
+    }
+
+    if (remove === "true") {
+        const publicId = user.profile?.split("/").pop()?.split(".")[0]
+        if (publicId) {
+            await cloudinary.uploader.destroy(publicId)
+            profile = ""
+        }
     }
 
     const updatedData = { ...req.body, profile };

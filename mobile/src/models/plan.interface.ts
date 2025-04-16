@@ -1,5 +1,6 @@
 export interface IPlan {
     _id?: string
+    serialNo?: number
     name: string
     title: string
     priority: string

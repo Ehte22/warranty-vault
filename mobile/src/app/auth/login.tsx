@@ -1,23 +1,44 @@
 import GoogleLoginButton from '@/src/components/GoogleLoginButton';
 import { useCustomTheme } from '@/src/context/ThemeContext';
 import { CustomTheme } from '@/src/theme/theme';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { TextInput, Button, Text, Divider } from 'react-native-paper';
+import { TextInput, Button, Text, Divider, ActivityIndicator, HelperText } from 'react-native-paper';
 import { z } from "zod"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import { useSignInMutation, useSignInWithGoogleMutation } from '@/src/redux/apis/auth.api';
+import Toast from '@/src/components/Toast';
+import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
+import { useDispatch } from 'react-redux';
+import { setUser } from '@/src/redux/slices/auth.slice';
 
 const Login = () => {
     const [secureText, setSecureText] = useState(true);
+
+    useEffect(() => {
+        GoogleSignin.configure({
+            iosClientId: "195321382919-59fvu1pkgvlr27mtdepi4adqu0n28coo.apps.googleusercontent.com",
+            webClientId: "195321382919-tsnvc3kjooknep269f341otuln8q81q4.apps.googleusercontent.com",
+            profileImageSize: 150
+        })
+    }, [])
+
+    const router = useRouter()
+    const dispatch = useDispatch()
     const { theme } = useCustomTheme();
+
+    const styles = customStyle(theme)
+
+    const [signIn, { data, error, isSuccess, isError, isLoading }] = useSignInMutation()
+    const [signInWithGoogle, { data: googleLoginData, error: googleLoginError, isSuccess: isGoogleLoginSuccess, isError: isGoogleLoginError }] = useSignInWithGoogleMutation()
 
     const toggleSecureText = () => setSecureText(!secureText);
 
     const schema = z.object({
-        username: z.string().min(1, "Username is required"),
-        password: z.string().min(1, "Password is required")
+        username: z.string().min(1, "Field Username is required"),
+        password: z.string().min(1, "Field Password is required")
     })
 
     type FormValues = z.infer<typeof schema>
@@ -25,25 +46,57 @@ const Login = () => {
     const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { username: "", password: "" } })
 
     const onSubmit = (values: FormValues) => {
-        console.log('Logging in with', values);
+        signIn({ username: values.username, password: values.password })
     };
 
-    // const handleGoogleLogin = async () => {
-    //     try {
-    //         await GoogleSignin.hasPlayServices();
-    //         const userInfo = await GoogleSignin.signIn();
-    //         console.log('Google User Info:', userInfo);
-    //     } catch (error) {
-    //         console.error('Google Login Error:', error);
-    //     }
-    // };
+    const handleGoogleSignIn = async () => {
+        try {
+            await GoogleSignin.hasPlayServices()
+            await GoogleSignin.signOut();
 
-    const styles = customStyle(theme)
+            const response = await GoogleSignin.signIn()
+            if (isSuccessResponse(response)) {
+                const { idToken } = response.data
 
-    return (
+                if (idToken) {
+                    const { data } = await signInWithGoogle({ idToken })
+                    if (data?.result) {
+                        dispatch(setUser(data.result))
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+    useEffect(() => {
+        if (isSuccess) {
+            setTimeout(() => {
+                router.replace("/")
+            }, 2000);
+        }
+    }, [isSuccess, router])
+
+    useEffect(() => {
+        if (isGoogleLoginSuccess) {
+            setTimeout(() => {
+                router.replace(googleLoginData?.result.route as any);
+            }, 2000);
+        }
+    }, [isGoogleLoginSuccess, router]);
+
+
+    return <>
+        {isSuccess && <Toast type="success" message={data.message} />}
+        {isError && <Toast type="error" message={error as string} />}
+
+        {isGoogleLoginSuccess && <Toast type="success" message={googleLoginData.message} />}
+        {isGoogleLoginError && <Toast type="error" message={googleLoginError as string} />}
         <View style={styles.container}>
             <Text variant="headlineMedium" style={styles.heading}>Sign In</Text>
-            <Text variant="bodyMedium" style={styles.subText}>Welcome back! Please login to your account.</Text>
+            <Text variant="bodyMedium" style={styles.subText}>Welcome back! Please Sign In to your account.</Text>
 
             <View style={{ marginBottom: 16 }}>
                 <Controller
@@ -57,14 +110,17 @@ const Login = () => {
                             onBlur={onBlur}
                             value={value}
                             style={styles.input}
-                            keyboardType="email-address"
                             autoCapitalize="none"
                             error={!!errors.username}
                             left={<TextInput.Icon icon="account-circle-outline" />}
                         />
                     }}
                 />
-                {errors.username && <Text style={styles.errorText}>{errors.username.message}</Text>}
+                {
+                    errors.username && <HelperText type="error" >
+                        {errors.username.message}
+                    </HelperText>
+                }
             </View>
 
             <View style={{ marginBottom: 16 }}>
@@ -91,11 +147,15 @@ const Login = () => {
                         />
                     }}
                 />
-                {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+                {
+                    errors.password && <HelperText type="error" >
+                        {errors.password.message}
+                    </HelperText>
+                }
             </View>
 
             <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={{ color: theme.colors.primary }}>Forgot Password?</Text>
+                <Link href="/auth/forgot-password" style={{ color: theme.colors.text }}>Forgot Password?</Link>
             </TouchableOpacity>
 
             <Button
@@ -105,22 +165,26 @@ const Login = () => {
                 contentStyle={{ paddingVertical: 4 }}
                 labelStyle={{ fontSize: 16 }}
             >
-                Sign In
+                {isLoading ? (
+                    <ActivityIndicator size={19} animating={true} color={theme.colors.btnText} />
+                ) : (
+                    'Sign In'
+                )}
             </Button>
 
             <Divider style={styles.divider} />
             <Text style={styles.orText}>OR</Text>
 
-            <GoogleLoginButton />
+            <GoogleLoginButton onPress={handleGoogleSignIn} />
 
             <View style={styles.signupContainer}>
                 <Text style={{ color: theme.colors.text }}>Don't have an account?</Text>
                 <TouchableOpacity>
-                    <Link href="/(auth)/register" style={{ color: theme.colors.primary }}> Sign Up</Link>
+                    <Link href="/auth/register" style={{ color: theme.colors.primary }}> Sign Up</Link>
                 </TouchableOpacity>
             </View>
         </View>
-    );
+    </>
 };
 
 export default Login;
@@ -145,7 +209,6 @@ const customStyle = (theme: CustomTheme) => {
             color: theme.colors.text,
         },
         input: {
-            marginBottom: 4,
             backgroundColor: theme.colors.inputBackground,
         },
         forgotPassword: {
