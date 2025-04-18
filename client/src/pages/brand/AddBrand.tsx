@@ -77,6 +77,11 @@ const AddBrand = () => {
         }
     }
 
+    const handleReset = () => {
+        reset()
+        setPreviewImages([])
+    }
+
     const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
 
     useEffect(() => {
@@ -144,7 +149,7 @@ const AddBrand = () => {
                     <Box sx={{ textAlign: "end", px: 3 }}>
                         <Button
                             type='button'
-                            onClick={() => reset()}
+                            onClick={handleReset}
                             variant='contained'
                             sx={{ backgroundColor: "#F3F3F3", py: 0.65 }}>
                             Reset

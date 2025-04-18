@@ -67,10 +67,7 @@ export const getProductById = asyncHandler(async (req: Request, res: Response, n
 
 // Add
 export const addProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { name } = req.body
-    console.log(req.body);
-    console.log(req.file);
-
+    const { model } = req.body
 
     let image = ""
     if (req.file) {
@@ -80,7 +77,7 @@ export const addProduct = asyncHandler(async (req: Request, res: Response, next:
 
     const { userId, name: userName } = req.user as IUserProtected
 
-    const product = await Product.findOne({ "user._id": userId, name }).lean()
+    const product = await Product.findOne({ "user._id": userId, model, deletedAt: null }).lean()
     if (product) {
         return res.status(400).json({ message: "Product Already Exist" })
     }

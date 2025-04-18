@@ -92,6 +92,9 @@ export const adminDashboard = asyncHandler(async (req: Request, res: Response, n
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
 
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1)
+    const endOfYear = new Date(new Date().getFullYear(), 11, 31, 23, 59, 59, 999)
+
     const defaultIncomeStats = Array.from({ length: 12 }, (_, index) => ({
         month: index + 1,
         year: currentYear,
@@ -182,7 +185,7 @@ export const adminDashboard = asyncHandler(async (req: Request, res: Response, n
     const expiryTrend = await User.aggregate([
         {
             $match: {
-                "subscription.expiryDate": { $gte: new Date() }
+                "subscription.expiryDate": { $gte: startOfYear, $lte: endOfYear }
             }
         },
         {

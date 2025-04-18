@@ -98,10 +98,6 @@ export const updateBrand = asyncHandler(async (req: Request, res: Response, next
     const { id } = req.params
     const { remove } = req.body
 
-    console.log(req.body);
-    console.log(req.file);
-
-
     const brand = await Brand.findById(id).lean()
     if (!brand) {
         return res.status(404).json({ message: "Brand Not Found" })

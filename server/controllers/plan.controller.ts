@@ -184,7 +184,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
     await User.findByIdAndUpdate(userId, {
         plan: selectedPlan,
         planType,
-        subscription: { startDate, expiryDate, paymentStatus: "Active" },
+        subscription: selectedPlan === "Free" ? { paymentStatus: "Pending" } : { startDate, expiryDate, paymentStatus: "Active" },
         points: userPoints
     }, { new: true });
 

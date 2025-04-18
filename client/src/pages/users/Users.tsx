@@ -18,7 +18,6 @@ const Users = () => {
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
-        showSelector: true,
         onSearch: setSearchQuery,
         onSelect: setSelectedUser
     }
