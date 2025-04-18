@@ -154,6 +154,11 @@ export const deletePlan = asyncHandler(async (req: Request, res: Response, next:
 export const selectPlan = asyncHandler(async (req: Request, res: Response): Promise<any> => {
     const { selectedPlan = "Free", billingCycle, points } = req.body;
 
+    const plan = await Plan.findOne({ name: selectPlan }).lean()
+    if (!plan) {
+        return res.status(404).json({ message: "Plan Not Fund" })
+    }
+
     const { userId } = req.user as IUserProtected
     const user = await User.findById(userId).lean()
     if (!user) {

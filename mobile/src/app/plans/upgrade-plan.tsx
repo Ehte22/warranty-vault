@@ -29,6 +29,7 @@ const UpgradePlan = () => {
     const [points, setPoints] = useState("")
     const [isPointsApplied, setIsPointsApplied] = useState(false)
     const [isCouponApplied, setIsCouponApplied] = useState(false)
+    const [filteredPlan, setFilteredPlan] = useState<IPlan[]>([])
 
     const router = useRouter()
     const { user } = useSelector((state: RootState) => state.auth)
@@ -36,7 +37,7 @@ const UpgradePlan = () => {
     const { theme } = useCustomTheme()
     const styles = customStyles(theme)
 
-    const { data, isLoading } = useGetPlansQuery({ isFetchAll: true })
+    const { data: planData, isSuccess: isPlanFetchSuccess, isLoading } = useGetPlansQuery({ isFetchAll: true })
     const [selectPlan, { isSuccess }] = useSelectPlanMutation()
     const [applyCoupon, { data: couponData, isSuccess: isApplyCouponSuccess, isError: isApplyCouponError, error: applyCouponError }] = useApplyCouponMutation()
     const [initiatePayment] = useInitiatePaymentMutation()
@@ -121,6 +122,22 @@ const UpgradePlan = () => {
     }
 
     useEffect(() => {
+        if (isPlanFetchSuccess && planData) {
+            let filteredData: IPlan[] = []
+            if (user?.plan === "Free") {
+                filteredData = planData.result.filter((item: IPlan) => item.name !== "Free")
+            } else if (user?.plan === "Pro") {
+                filteredData = planData.result.filter((item: IPlan) => item.name === "Family")
+            } else {
+                filteredData = []
+            }
+
+            setFilteredPlan(filteredData)
+
+        }
+    }, [isPlanFetchSuccess, planData])
+
+    useEffect(() => {
         if (isSuccess) {
             setOpenModal(false)
             setTimeout(() => {
@@ -157,7 +174,7 @@ const UpgradePlan = () => {
         {isApplyCouponError && <Toast type="error" message={applyCouponError as string} />}
 
         <FlatList
-            data={data?.result}
+            data={filteredPlan}
             keyExtractor={(item) => item.name}
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}

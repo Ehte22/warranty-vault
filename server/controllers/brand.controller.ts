@@ -5,6 +5,7 @@ import Brand, { IBrand } from "../models/Brand"
 import { customValidator } from "../utils/validator"
 import { addBrandRules } from "../rules/brand.rules"
 import cloudinary from "../utils/uploadConfig"
+import { User } from "../models/User"
 
 // Get All
 export const getAllBrands = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -16,9 +17,19 @@ export const getAllBrands = asyncHandler(async (req: Request, res: Response, nex
     const pageLimit: number = parseInt(limit as string)
     const skip: number = (currentPage - 1) * pageLimit
 
+    const admins = await User.find({ role: "Admin" }, "_id").lean()
+    const adminIds = admins.map((item) => item._id)
+
     const query: any = {
         $and: [
-            role !== "Admin" ? { "user._id": userId } : selectedUser ? { "user._id": selectedUser } : {},
+            role !== "Admin"
+                ? {
+                    $or: [
+                        { "user._id": userId },
+                        { "user._id": { $in: adminIds } },
+                    ]
+                }
+                : selectedUser ? { "user._id": selectedUser } : {},
             { deletedAt: null },
             searchQuery
                 ? {
@@ -83,7 +94,18 @@ export const addBrand = asyncHandler(async (req: Request, res: Response, next: N
         return res.status(422).json({ message: "Validation Error", error })
     }
 
-    const brand = await Brand.findOne({ "user._id": userId, name, deletedAt: null }).lean()
+    const admins = await User.find({ role: "Admin" }, "_id").lean()
+    const adminIds = admins.map((item) => item._id)
+
+    const brand = await Brand.findOne({
+        $or: [
+            { "user._id": userId },
+            { "user._id": { $in: adminIds } }
+        ],
+        name,
+        deletedAt: null
+    }).lean()
+
     if (brand) {
         return res.status(400).json({ message: "Brand Already Exist" })
     }

@@ -9,6 +9,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "../../redux/store"
 import { useApplyCouponMutation } from "../../redux/apis/coupon.api"
 import { IPlan } from "../../models/plan.interface"
+import Loader from "../../components/Loader"
 
 const UpgradePlan = () => {
     const [selectedPlan, setSelectedPlan] = useState<string>("")
@@ -19,16 +20,17 @@ const UpgradePlan = () => {
         Pro: "monthly",
         Family: "monthly",
     })
-    const [openModal, setOpenModal] = useState(false)
-    const [coupon, setCoupon] = useState("")
-    const [points, setPoints] = useState("")
-    const [isPointsApplied, setIsPointsApplied] = useState(false)
-    const [isCouponApplied, setIsCouponApplied] = useState(false)
+    const [openModal, setOpenModal] = useState<boolean>(false)
+    const [coupon, setCoupon] = useState<string>("")
+    const [points, setPoints] = useState<string>("")
+    const [isPointsApplied, setIsPointsApplied] = useState<boolean>(false)
+    const [isCouponApplied, setIsCouponApplied] = useState<boolean>(false)
+    const [filteredPlan, setFilteredPlan] = useState<IPlan[]>([])
 
     const navigate = useNavigate()
     const { user } = useSelector((state: RootState) => state.auth)
 
-    const { data } = useGetPlansQuery({ isFetchAll: true })
+    const { data: planData, isSuccess: isPlanFetchSuccess, isLoading } = useGetPlansQuery({ isFetchAll: true })
     const [selectPlan, { isSuccess }] = useSelectPlanMutation()
     const [applyCoupon, { data: couponData, isSuccess: isApplyCouponSuccess, isError: isApplyCouponError, error: applyCouponError }] = useApplyCouponMutation()
     const [initiatePayment] = useInitiatePaymentMutation()
@@ -112,6 +114,23 @@ const UpgradePlan = () => {
     }
 
     useEffect(() => {
+        if (isPlanFetchSuccess && planData) {
+            let filteredData: IPlan[] = []
+            if (user?.plan === "Free") {
+                filteredData = planData.result.filter((item: IPlan) => item.name !== "Free")
+            } else if (user?.plan === "Pro") {
+                filteredData = planData.result.filter((item: IPlan) => item.name === "Family")
+            } else {
+                filteredData = []
+            }
+
+            setFilteredPlan(filteredData)
+
+        }
+    }, [isPlanFetchSuccess, planData])
+
+
+    useEffect(() => {
         if (isSuccess) {
             setTimeout(() => {
                 navigate("/")
@@ -132,17 +151,21 @@ const UpgradePlan = () => {
         }
     }, [points])
 
+    if (isLoading) {
+        return <Loader />
+    }
+
     return <>
         {paymentSuccess && <Toast type="success" message={paymentData.message} />}
         {paymentError && <Toast type="error" message={paymentErrorData as string} />}
 
         {isApplyCouponSuccess && <Toast type="success" message={couponData.message} />}
         {isApplyCouponError && <Toast type="error" message={applyCouponError as string} />}
-        <Box sx={{ px: {} }}>
-            <Grid2 container spacing={3} sx={{ minHeight: "100%", alignItems: "center", py: 8 }}>
-                {data?.result.map((plan) => {
+        <Box>
+            <Grid2 container spacing={3} sx={{ minHeight: "100%", alignItems: "center", py: 8, justifyContent: "center" }}>
+                {filteredPlan.map((plan) => {
                     const discount = (+plan.price.monthly * 12) - +plan.price.yearly
-                    return <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} key={plan._id} >
+                    return <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} key={plan._id}>
                         <Paper>
                             <Card
                                 sx={{
