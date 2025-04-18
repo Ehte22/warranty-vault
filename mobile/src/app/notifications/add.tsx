@@ -153,7 +153,8 @@ const AddNotification = () => {
     useEffect(() => {
         if (isAddSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/notifications")
+                router.replace("/")
+                router.push("/notifications")
             }, 2000);
             return () => clearTimeout(timeout)
         }
@@ -162,7 +163,8 @@ const AddNotification = () => {
     useEffect(() => {
         if (isUpdateSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/notifications")
+                router.replace("/")
+                router.push("/notifications")
             }, 2000);
             return () => clearTimeout(timeout)
         }

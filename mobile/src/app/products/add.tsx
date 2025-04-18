@@ -80,7 +80,7 @@ const AddProduct = () => {
     type FormValues = z.infer<typeof schema>
 
     const onSubmit = async (values: FormValues) => {
-        const brand = brands?.result.find(item => item._id === values.brand)
+        const brand = brands?.result.find((item: any) => item._id === values.brand)
 
         let updatedData = values
         if (brand) {
@@ -125,7 +125,7 @@ const AddProduct = () => {
 
     useEffect(() => {
         if (brands?.result) {
-            const transformedData = brands.result.map((item) => {
+            const transformedData = brands.result.map((item: any) => {
                 return { label: item.name, value: item._id }
             })
             setBrandOptions(transformedData)
@@ -149,7 +149,8 @@ const AddProduct = () => {
     useEffect(() => {
         if (isAddSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/products")
+                router.replace("/")
+                router.push("/products")
             }, 2000);
 
             return () => clearTimeout(timeout)
@@ -159,7 +160,8 @@ const AddProduct = () => {
     useEffect(() => {
         if (isUpdateSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/products")
+                router.replace("/")
+                router.push("/products")
             }, 2000);
             return () => clearTimeout(timeout)
         }
@@ -172,8 +174,8 @@ const AddProduct = () => {
     }, [isAddSuccess, isUpdateSuccess])
 
     return <>
-        {/* {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />} */}
+        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
+        {isAddError && !id && <Toast type="error" message={addError as string} />}
 
         {/* {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
         {isUpdateError && id && <Toast type="error" message={updateError as string} />} */}

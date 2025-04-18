@@ -126,7 +126,8 @@ const AddUser = () => {
     useEffect(() => {
         if (isAddSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/users")
+                router.replace("/")
+                router.push("/users")
             }, 2000);
 
             return () => clearTimeout(timeout)
@@ -136,7 +137,8 @@ const AddUser = () => {
     useEffect(() => {
         if (isUpdateSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/users")
+                router.replace("/")
+                router.push("/users")
             }, 2000);
             return () => clearTimeout(timeout)
         }

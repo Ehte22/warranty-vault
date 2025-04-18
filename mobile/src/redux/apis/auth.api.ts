@@ -1,10 +1,25 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
+import { RootState } from "../store"
 import { IUser } from "../../models/user.interface";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const baseQuery = fetchBaseQuery({
+    baseUrl: `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/v1/auth`,
+    credentials: "include",
+    prepareHeaders(headers, { getState }) {
+        const state = getState() as RootState;
+        const token = state.auth.user?.token;
+
+        if (token) {
+            headers.set("Authorization", `Bearer ${token}`);
+        }
+        return headers;
+    },
+});
+
 export const authApi = createApi({
     reducerPath: "authApi",
-    baseQuery: fetchBaseQuery({ baseUrl: `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/v1/auth` }),
+    baseQuery: baseQuery,
     endpoints: (builder) => {
         return {
             signUp: builder.mutation<{ message: string, result: IUser }, IUser>({

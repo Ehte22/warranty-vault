@@ -1,11 +1,11 @@
-import { FlatList, ScrollView, StyleSheet } from 'react-native'
+import { FlatList, RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import DataContainer, { DataContainerConfig } from '@/src/components/DataContainer'
 import { CustomTheme } from '@/src/theme/theme'
 import { View } from 'react-native'
 import { useCustomTheme } from '@/src/context/ThemeContext'
 import { useDebounce } from '@/src/utils/useDebounce'
-import { DataTable, Surface, Text } from 'react-native-paper'
+import { ActivityIndicator, DataTable, Surface, Text } from 'react-native-paper'
 import ActionsMenu from '@/src/components/ActionMenu'
 import Toast from '@/src/components/Toast'
 import { IPolicyType } from '@/src/models/policyType.interface'
@@ -20,7 +20,7 @@ const PolicyTypes = () => {
     const [page, setPage] = useState<number>(0)
     const [itemsPerPage, setItemsPerPage] = useState<number>(10)
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: "ascending" | "descending" } | null>(null)
-
+    const [refreshing, setRefreshing] = useState(false);
 
     const config: DataContainerConfig = {
         pageTitle: "Policy Types",
@@ -29,12 +29,13 @@ const PolicyTypes = () => {
         showSearchBar: true,
         showSelector: true,
         onSearch: setSearchQuery,
-        onSelect: setSelectedUser
+        onSelect: setSelectedUser,
+        searchQuery: searchQuery
     }
 
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
-    const { data, isLoading } = useGetPolicyTypesQuery({
+    const { data, isLoading, refetch } = useGetPolicyTypesQuery({
         page: page + 1,
         limit: itemsPerPage,
         searchQuery: debounceSearchQuery.toLowerCase(),
@@ -73,6 +74,19 @@ const PolicyTypes = () => {
         }));
     }
 
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        setSearchQuery("");
+        setSelectedUser("");
+        setItemsPerPage(10);
+        setPage(0);
+
+        setTimeout(async () => {
+            await refetch();
+            setRefreshing(false);
+        }, 600);
+    };
+
     const { theme } = useCustomTheme()
     const styles = customStyles(theme)
 
@@ -91,7 +105,9 @@ const PolicyTypes = () => {
 
 
     if (isLoading) {
-        return <Text>Loading...</Text>
+        return <View style={{ backgroundColor: theme.colors.background, flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator animating={true} size={32} color={theme.colors.primary} />
+        </View>
     }
 
     return <>
@@ -99,7 +115,7 @@ const PolicyTypes = () => {
         <View style={styles.container}>
             <DataContainer config={config} />
             <Surface style={styles.surface}>
-                <ScrollView horizontal>
+                <ScrollView horizontal refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
                     <DataTable style={{ backgroundColor: theme.colors.cardBg }}>
                         <DataTable.Header>
                             <DataTable.Title

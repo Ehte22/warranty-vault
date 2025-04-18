@@ -23,6 +23,7 @@ const UpgradePlan = () => {
     const [coupon, setCoupon] = useState("")
     const [points, setPoints] = useState("")
     const [isPointsApplied, setIsPointsApplied] = useState(false)
+    const [isCouponApplied, setIsCouponApplied] = useState(false)
 
     const navigate = useNavigate()
     const { user } = useSelector((state: RootState) => state.auth)
@@ -48,8 +49,9 @@ const UpgradePlan = () => {
         if (plan === "Free") {
             selectPlan({ selectedPlan: plan })
         } else {
-
-            const response = await initiatePayment({ selectedPlan: plan, billingCycle, code: coupon, points: +points || 0 }).unwrap()
+            const Coupon = isCouponApplied ? coupon : ""
+            const Points = isPointsApplied ? +points : 0
+            const response = await initiatePayment({ selectedPlan: plan, billingCycle, code: Coupon, points: Points }).unwrap()
 
             const options: any = {
                 key: `${import.meta.env.VITE_RAZORPAY_API_KEY}`,
@@ -62,7 +64,7 @@ const UpgradePlan = () => {
                     const verifyRes = await verifyPayment(paymentResponse).unwrap()
 
                     if (verifyRes.success) {
-                        await selectPlan({ selectedPlan: plan, billingCycle, points: +points || 0 })
+                        await selectPlan({ selectedPlan: plan, billingCycle, points: Points })
                     }
                 },
                 prefill: {
@@ -119,6 +121,7 @@ const UpgradePlan = () => {
 
     useEffect(() => {
         if (isApplyCouponSuccess) {
+            setIsCouponApplied(true)
             setSelectedPlanPrice(couponData.finalAmount.toString())
         }
     }, [couponData])
@@ -212,6 +215,7 @@ const UpgradePlan = () => {
                                     }
 
                                     <Divider sx={{ my: 2 }} />
+
                                     <Box sx={{ textAlign: "left", px: 2 }}>
                                         {plan?.includes?.map((feature, index) => (
                                             <Typography key={index} sx={{ display: "flex", alignItems: "center", mb: 1 }}>
@@ -220,14 +224,11 @@ const UpgradePlan = () => {
                                             </Typography>
                                         ))}
                                     </Box>
+
                                     <Divider sx={{ my: 2 }} />
-                                    <Button
-                                        variant="outlined"
-                                        color="secondary"
-                                        fullWidth
-                                        onClick={() => handleSelectPlan(plan)}
-                                        sx={{ mt: 2 }}
-                                    > Select Plan
+
+                                    <Button variant="outlined" color="secondary" fullWidth onClick={() => handleSelectPlan(plan)} sx={{ mt: 2 }}>
+                                        Select Plan
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -246,13 +247,13 @@ const UpgradePlan = () => {
                             </Typography>
                         }
 
-                        {!isApplyCouponSuccess && (
+                        {!isCouponApplied && (
                             <Typography variant="h6" sx={{ mb: 1 }}>
                                 Price: ₹{selectedPlanPrice}
                             </Typography>
                         )}
 
-                        {isApplyCouponSuccess && (
+                        {isCouponApplied && (
                             <Typography variant="h6" color="green" sx={{ mb: 1 }}>
                                 Discounted Price: ₹{Math.round(+selectedPlanPrice)}
                             </Typography>
@@ -266,10 +267,10 @@ const UpgradePlan = () => {
                         {selectedPlan !== "Free" && <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
                             <TextField
                                 fullWidth
-                                disabled={isPointsApplied}
                                 type="number"
                                 variant="outlined"
                                 size="small"
+                                disabled={isPointsApplied}
                                 onChange={(e) => setPoints(e.target.value)}
                                 placeholder="Enter Points"
                                 sx={{

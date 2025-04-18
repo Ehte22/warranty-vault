@@ -168,7 +168,8 @@ const AddPolicy = () => {
     useEffect(() => {
         if (isAddSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/policies")
+                router.replace("/")
+                router.push("/policies")
             }, 2000);
             return () => clearTimeout(timeout)
         }
@@ -177,7 +178,8 @@ const AddPolicy = () => {
     useEffect(() => {
         if (isUpdateSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/policies")
+                router.replace("/")
+                router.push("/policies")
             }, 2000);
             return () => clearTimeout(timeout)
         }

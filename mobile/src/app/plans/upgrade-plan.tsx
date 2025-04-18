@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useCustomTheme } from '@/src/context/ThemeContext'
 import { CustomTheme } from '@/src/theme/theme'
 import { useGetPlansQuery, useSelectPlanMutation } from '@/src/redux/apis/plan.api'
-import { Badge, Button, Card, Divider, Modal, Portal, Text, TextInput, ToggleButton } from 'react-native-paper'
+import { ActivityIndicator, Badge, Button, Card, Divider, Modal, Portal, Text, TextInput, ToggleButton } from 'react-native-paper'
 import Icon from "react-native-vector-icons/MaterialIcons"
 import { useApplyCouponMutation } from '@/src/redux/apis/coupon.api'
 import { useInitiatePaymentMutation, useVerifyPaymentMutation } from '@/src/redux/apis/payment.api'
@@ -13,10 +13,12 @@ import { useSelector } from 'react-redux'
 import { RootState } from '@/src/redux/store'
 import RazorpayCheckout from 'react-native-razorpay';
 import { razorpayKey } from '@/src/constants/razorpayConfig'
+import { IPlan } from '@/src/models/plan.interface'
 
-const SelectPlan = () => {
+const UpgradePlan = () => {
     const [selectedPlan, setSelectedPlan] = useState<string>("");
     const [selectedPlanPrice, setSelectedPlanPrice] = useState<string>("");
+    const [originalPrice, setOriginalPrice] = useState<string>("")
     const [billingCycle, setBillingCycle] = useState<{ [key: string]: "monthly" | "yearly" }>({
         Free: "monthly",
         Pro: "monthly",
@@ -24,17 +26,17 @@ const SelectPlan = () => {
     });
     const [openModal, setOpenModal] = useState(false);
     const [coupon, setCoupon] = useState("");
-    const [discountedPrice, setDiscountedPrice] = useState("");
-
-    const { user } = useSelector((state: RootState) => state.auth)
+    const [points, setPoints] = useState("")
+    const [isPointsApplied, setIsPointsApplied] = useState(false)
+    const [isCouponApplied, setIsCouponApplied] = useState(false)
 
     const router = useRouter()
+    const { user } = useSelector((state: RootState) => state.auth)
 
     const { theme } = useCustomTheme()
     const styles = customStyles(theme)
 
     const { data, isLoading } = useGetPlansQuery({ isFetchAll: true })
-
     const [selectPlan, { isSuccess }] = useSelectPlanMutation()
     const [applyCoupon, { data: couponData, isSuccess: isApplyCouponSuccess, isError: isApplyCouponError, error: applyCouponError }] = useApplyCouponMutation()
     const [initiatePayment] = useInitiatePaymentMutation()
@@ -43,14 +45,10 @@ const SelectPlan = () => {
     const handleCloseModal = () => {
         setCoupon("")
         setSelectedPlanPrice("")
-        setDiscountedPrice("")
+        setPoints("")
         setOpenModal(false)
-    };
-
-    const handleSelect = (plan: string, price: { monthly: string; yearly: string; }) => {
-        setOpenModal(true)
-        setSelectedPlan(plan)
-        setSelectedPlanPrice(price[billingCycle[plan]])
+        setIsPointsApplied(false)
+        setIsCouponApplied(false)
     }
 
     const handlePay = async (plan: string, billingCycle: string) => {
@@ -59,8 +57,9 @@ const SelectPlan = () => {
         if (plan === "Free") {
             selectPlan({ selectedPlan: plan })
         } else {
-
-            const response = await initiatePayment({ selectedPlan: plan, billingCycle, code: coupon }).unwrap()
+            const Coupon = isCouponApplied ? coupon : ""
+            const Points = isPointsApplied ? +points : 0
+            const response = await initiatePayment({ selectedPlan: plan, billingCycle, code: Coupon, points: Points }).unwrap()
 
             const options: any = {
                 key: razorpayKey,
@@ -84,7 +83,7 @@ const SelectPlan = () => {
                     const verifyRes = await verifyPayment(paymentResponse).unwrap();
 
                     if (verifyRes.success) {
-                        await selectPlan({ selectedPlan: plan, billingCycle });
+                        await selectPlan({ selectedPlan: plan, billingCycle, points: Points });
                     }
 
                 })
@@ -92,15 +91,32 @@ const SelectPlan = () => {
         }
     };
 
+
+    const handleSelect = (plan: IPlan) => {
+        setOpenModal(true)
+        setSelectedPlan(plan.name)
+        setSelectedPlanPrice(plan.price[billingCycle[plan.name]])
+        setOriginalPrice(plan.price[billingCycle[plan.name]])
+    }
+
     const handleBillingChange = (plan: string, newCycle: "monthly" | "yearly") => {
         if (newCycle) {
-            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }));
+            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }))
         }
-    };
+    }
 
     const handleApplyCoupon = (plan: string) => {
         if (coupon && plan === "Pro" || plan === "Family") {
-            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan] })
+            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan], points: +points || 0 })
+        }
+    }
+
+    const handleApplyPoints = () => {
+        if (selectedPlanPrice && user?.points && (+points > 0)) {
+            const availablePoints = Math.min(+points, user?.points)
+            const priceAfterPoints = +originalPrice - availablePoints
+            setSelectedPlanPrice(priceAfterPoints.toString())
+            setIsPointsApplied(true)
         }
     }
 
@@ -115,13 +131,22 @@ const SelectPlan = () => {
 
     useEffect(() => {
         if (isApplyCouponSuccess) {
-            setDiscountedPrice(couponData.finalAmount.toString())
+            setIsCouponApplied(true)
+            setSelectedPlanPrice(couponData.finalAmount.toString())
         }
     }, [couponData])
 
+    useEffect(() => {
+        if (!points) {
+            setSelectedPlanPrice(originalPrice)
+        }
+    }, [points])
+
 
     if (isLoading) {
-        return <Text>Loading...</Text>
+        return <View style={{ backgroundColor: theme.colors.background, flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator animating={true} size={32} color={theme.colors.primary} />
+        </View>
     }
 
     return <>
@@ -193,7 +218,7 @@ const SelectPlan = () => {
 
                         <Divider style={styles.divider} />
 
-                        <Button mode='outlined' style={styles.btn} onPress={() => handleSelect(plan.name, plan.price)} >
+                        <Button mode='outlined' style={styles.btn} onPress={() => handleSelect(plan)} >
                             SELECT PLAN
                         </Button>
 
@@ -201,7 +226,6 @@ const SelectPlan = () => {
                 </Card>
             }}
         />
-        {/* <Divider /> */}
 
         <Portal>
             <Modal visible={openModal} onDismiss={handleCloseModal} contentContainerStyle={styles.modal}>
@@ -218,30 +242,58 @@ const SelectPlan = () => {
                     </Text>
                 }
 
-                {!discountedPrice && (
+                {!isCouponApplied && (
                     <Text style={{ marginBottom: 8, fontSize: 18, fontWeight: "bold" }}>
                         Price: ₹{selectedPlanPrice}
                     </Text>
                 )}
 
-                {discountedPrice && (
+                {isCouponApplied && (
                     <Text style={{ marginBottom: 8, color: "green", fontSize: 18, fontWeight: "bold" }}>
-                        Discounted Price: ₹{discountedPrice}
+                        Discounted Price: ₹{+selectedPlanPrice}
                     </Text>
                 )}
 
+                <Text style={{ marginBottom: 16, fontWeight: 600, color: "green" }}>
+                    {user?.points} Points Available
+                </Text>
+
+                {/* Points Field */}
                 {selectedPlan !== "Free" && <View style={{ display: "flex", flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
+                    <TextInput
+                        mode="outlined"
+                        onChangeText={setPoints}
+                        placeholder="Enter Point"
+                        disabled={isPointsApplied}
+                        style={{ height: 40, flex: 1, backgroundColor: theme.colors.inputBackground }}
+                    />
+
+                    <Button
+                        onPress={handleApplyPoints}
+                        mode="outlined"
+                        style={{ height: 40, borderRadius: 4, borderColor: +points < 1 || isPointsApplied ? "gray" : theme.colors.primary, marginLeft: 8 }}
+                        disabled={+points > (user?.points as number) || +points < 1 || isPointsApplied}
+                    >
+                        APPLY
+                    </Button>
+                </View>
+                }
+
+                {/* Coupon Field */}
+                {selectedPlan !== "Free" && <View style={{ display: "flex", flexDirection: "row", alignItems: "center", marginBottom: 2, marginTop: 8 }}>
                     <TextInput
                         mode="outlined"
                         onChangeText={setCoupon}
                         placeholder="Enter coupon"
+                        disabled={isCouponApplied}
                         style={{ height: 40, flex: 1, backgroundColor: theme.colors.inputBackground }}
                     />
 
                     <Button
                         onPress={() => handleApplyCoupon(selectedPlan)}
                         mode="outlined"
-                        style={{ height: 40, borderRadius: 4, borderColor: theme.colors.primary, marginLeft: 8 }}
+                        disabled={isCouponApplied || !coupon}
+                        style={{ height: 40, borderRadius: 4, borderColor: !coupon || isCouponApplied ? "gray" : theme.colors.primary, marginLeft: 8 }}
                     >
                         APPLY
                     </Button>
@@ -269,7 +321,7 @@ const SelectPlan = () => {
     </>
 }
 
-export default SelectPlan
+export default UpgradePlan
 
 const customStyles = (theme: CustomTheme) => {
     return StyleSheet.create({

@@ -64,8 +64,6 @@ export const brandApi = createApi({
 
             updateBrand: builder.mutation<string, { id: string, brandData: FormData }>({
                 query: ({ id, brandData }) => {
-                    console.log("api", brandData);
-
                     return {
                         url: `/update/${id}`,
                         method: "PUT",

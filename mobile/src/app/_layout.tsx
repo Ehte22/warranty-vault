@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { PaperProvider, Text } from "react-native-paper";
 import ThemeProvider, { useCustomTheme } from "../context/ThemeContext";
 import { Provider, useDispatch } from "react-redux";
@@ -24,6 +24,7 @@ export default function RootLayout() {
 function LayoutWithTheme() {
   const { theme } = useCustomTheme();
   const dispatch = useDispatch();
+  const router = useRouter()
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -39,12 +40,16 @@ function LayoutWithTheme() {
       const storedUser = await AsyncStorage.getItem("user");
       if (storedUser) {
         dispatch(setUser(JSON.parse(storedUser)));
+        router.replace('/');
+      } else {
+        router.replace('/auth/login');
       }
     };
     loadUser();
   }, []);
 
-  return (
+
+  return <>
     <PaperProvider theme={theme}>
       <ImageContextProvider>
         <AutocompleteDropdownContextProvider>
@@ -64,6 +69,7 @@ function LayoutWithTheme() {
               name="dashboard"
               options={{
                 headerTitle: "",
+                headerStyle: { backgroundColor: theme.colors.background },
                 headerRight: () => <AccountMenu />,
                 headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
               }}
@@ -71,23 +77,17 @@ function LayoutWithTheme() {
 
             <Stack.Screen
               name="profile"
-              options={{
-                headerTitle: "",
-                headerRight: () => <AccountMenu />,
-                headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
-              }}
+              options={{ headerShown: false, }}
             />
 
             <Stack.Screen name="brands/index" options={{
               headerTitle: "",
-              headerBackVisible: false,
               headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
             <Stack.Screen name="brands/add" options={{
               headerTitle: "",
-              headerBackVisible: false,
               headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
@@ -95,52 +95,72 @@ function LayoutWithTheme() {
 
             <Stack.Screen name="users/index" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
             <Stack.Screen name="users/add" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
 
             <Stack.Screen name="notifications/index" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
             <Stack.Screen name="notifications/add" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
 
             <Stack.Screen name="products/index" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
             <Stack.Screen name="products/add" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
 
             <Stack.Screen name="policies/index" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
             <Stack.Screen name="policies/add" options={{
               headerTitle: "",
-              headerBackVisible: false,
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerRight: () => <AccountMenu />,
+              headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
+            }} />
+
+            <Stack.Screen name="policy-types/index" options={{
+              headerTitle: "",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerRight: () => <AccountMenu />,
+              headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
+            }} />
+            <Stack.Screen name="policy-types/add" options={{
+              headerTitle: "",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerRight: () => <AccountMenu />,
+              headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
+            }} />
+
+            <Stack.Screen name="referrals" options={{
+              headerTitle: "",
+              headerStyle: { backgroundColor: theme.colors.background },
               headerRight: () => <AccountMenu />,
               headerLeft: () => <Text style={{ fontSize: 18, fontWeight: "bold" }}>Warranty Wallet</Text>
             }} />
@@ -149,11 +169,13 @@ function LayoutWithTheme() {
             <Stack.Screen name="auth/register" options={{ headerShown: false }} />
             <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
             <Stack.Screen name="plans/select-plan" options={{ headerShown: false }} />
+            <Stack.Screen name="plans/upgrade-plan" options={{ headerShown: false }} />
+            <Stack.Screen name="settings" options={{ title: "Settings" }} />
 
           </Stack>
         </AutocompleteDropdownContextProvider>
       </ImageContextProvider>
-    </PaperProvider>
-  );
+    </PaperProvider >
+  </>
 }
 

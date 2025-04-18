@@ -10,7 +10,6 @@ import Toast from '@/src/components/Toast'
 import useDynamicForm, { FieldConfig } from '@/src/hooks/useDynamicForm'
 import { customValidator } from '@/src/utils/validator'
 import { useImagePreview } from '@/src/context/ImageContext'
-import { useAddUserMutation, useGetUserByIdQuery, useUpdateUserMutation } from '@/src/redux/apis/user.api'
 import { useAddPolicyTypeMutation, useGetPolicyTypeByIdQuery, useUpdatePolicyTypeMutation } from '@/src/redux/apis/policyType.api'
 
 const AddPolicyType = () => {
@@ -84,7 +83,8 @@ const AddPolicyType = () => {
     useEffect(() => {
         if (isAddSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/policy-types")
+                router.replace("/")
+                router.push("/policy-types")
             }, 2000);
 
             return () => clearTimeout(timeout)
@@ -94,7 +94,8 @@ const AddPolicyType = () => {
     useEffect(() => {
         if (isUpdateSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/policy-types")
+                router.replace("/")
+                router.push("/policy-types")
             }, 2000);
             return () => clearTimeout(timeout)
         }

@@ -1,4 +1,3 @@
-import { ThemeContext } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import {
@@ -327,7 +326,7 @@ const customStyles = (theme: CustomTheme) => StyleSheet.create({
         position: 'absolute',
         right: 20,
         top: 20,
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: theme.dark ? 'rgba(255,255,255,0.2)' : 'rgba(242, 229, 229, 0.81)',
     },
     userInfoSection: {
         paddingHorizontal: 20,

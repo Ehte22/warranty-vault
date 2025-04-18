@@ -6,8 +6,6 @@ import { Request } from "express";
 const multerMiddleware = (fileTypes: string[] = [], fileSize: number = 10) => {
     const storage = multer.diskStorage({
         filename: (req, file, cb) => {
-            console.log("kdkddkk", file);
-
             cb(null, v4() + path.extname(file.originalname))
         }
     });

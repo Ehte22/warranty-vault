@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, StyleSheet, Dimensions } from 'react-native';
-import { Title, Paragraph, Text, Surface } from 'react-native-paper';
+import { ScrollView, View, StyleSheet, Dimensions, RefreshControl } from 'react-native';
+import { Title, Paragraph, Text, Surface, ActivityIndicator } from 'react-native-paper';
 import { IUserDashboardData } from '../models/dashboard.interface';
 import { useCustomTheme } from '../context/ThemeContext';
 import { useGetUserDashboardQuery } from '../redux/apis/dashboard.api';
@@ -12,10 +12,9 @@ const screenWidth = Dimensions.get("window").width
 const Dashboard = () => {
     const { theme } = useCustomTheme();
     const [dashboardData, setDashboardData] = useState<IUserDashboardData | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
 
-    const { data, isLoading } = useGetUserDashboardQuery({});
-    console.log(data?.notificationStats);
-
+    const { data, isLoading, refetch } = useGetUserDashboardQuery({});
 
     const styles = customStyles(theme)
 
@@ -24,6 +23,15 @@ const Dashboard = () => {
             setDashboardData(data);
         }
     }, [data]);
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+
+        setTimeout(async () => {
+            await refetch();
+            setRefreshing(false);
+        }, 600);
+    };
 
     const subscriptionDetails = dashboardData?.subscriptionDetails
     const productCount = dashboardData?.productCount
@@ -35,11 +43,13 @@ const Dashboard = () => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     if (isLoading) {
-        return <Text>Loading...</Text>
+        return <View style={{ backgroundColor: theme.colors.background, flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator animating={true} size={32} color={theme.colors.primary} />
+        </View>
     }
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
 
             <View style={styles.row}>
                 {/* Subscription Details */}
@@ -154,6 +164,7 @@ const customStyles = (theme: CustomTheme) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 10,
+        backgroundColor: theme.colors.background
     },
     row: {
         flexDirection: 'row',

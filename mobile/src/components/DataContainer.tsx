@@ -22,6 +22,7 @@ export interface DataContainerConfig {
     totalPages?: any
     onSearch?: (query: string) => void;
     onSelect?: (query: string) => void;
+    searchQuery?: string
     onPageChange?: any
     pageIndex?: number
     pageSize?: number
@@ -83,6 +84,7 @@ const DataContainer: React.FC<DataContainerProps> = ({ config }) => {
                 config.showSearchBar && <TextInput
                     mode="outlined"
                     label="Search"
+                    value={config.searchQuery}
                     onChangeText={config.onSearch}
                     right={
                         <TextInput.Icon

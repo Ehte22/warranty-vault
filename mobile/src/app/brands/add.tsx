@@ -6,7 +6,7 @@ import DataContainer, { DataContainerConfig } from '@/src/components/DataContain
 import { ActivityIndicator, Divider, Surface, Text } from 'react-native-paper'
 import { z } from "zod"
 import { useAddBrandMutation, useGetBrandByIdQuery, useUpdateBrandMutation } from '@/src/redux/apis/brand.api'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
 import Toast from '@/src/components/Toast'
 import useDynamicForm, { FieldConfig } from '@/src/hooks/useDynamicForm'
 import { customValidator } from '@/src/utils/validator'
@@ -15,6 +15,7 @@ import { useImagePreview } from '@/src/context/ImageContext'
 const AddBrand = () => {
     const { id } = useLocalSearchParams()
     const router = useRouter()
+    const navigation = useNavigation()
     const { setPreviewImages } = useImagePreview()
 
     const config: DataContainerConfig = {
@@ -67,12 +68,9 @@ const AddBrand = () => {
 
         const formData = new FormData();
 
-        formData.append('name', values.name);
-        formData.append('description', values.description || '');
-        formData.append('type', 'brand');
-        if (values.logo) {
-            formData.append('logo', values.logo);
-        }
+        Object.keys(values).forEach((key) => {
+            formData.append(key, values[key])
+        })
 
         try {
 
@@ -91,7 +89,7 @@ const AddBrand = () => {
         }
     };
 
-    const { renderSingleInput, handleSubmit, setValue, reset, control, errors, watch } = useDynamicForm({ fields, defaultValues, onSubmit, schema })
+    const { renderSingleInput, handleSubmit, setValue, reset } = useDynamicForm({ fields, defaultValues, onSubmit, schema })
 
     const handleReset = async () => {
         reset()
@@ -117,17 +115,19 @@ const AddBrand = () => {
     useEffect(() => {
         if (isAddSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/brands")
+                router.replace("/")
+                router.push("/brands");
             }, 2000);
 
-            return () => clearTimeout(timeout)
+            return () => clearTimeout(timeout);
         }
-    }, [isAddSuccess])
+    }, [isAddSuccess]);
 
     useEffect(() => {
         if (isUpdateSuccess) {
             const timeout = setTimeout(() => {
-                router.replace("/brands")
+                router.replace("/")
+                router.push("/brands")
             }, 2000);
             return () => clearTimeout(timeout)
         }

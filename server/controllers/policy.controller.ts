@@ -24,8 +24,8 @@ export const getAllPolicies = asyncHandler(async (req: Request, res: Response, n
             searchQuery
                 ? {
                     $or: [
+                        { "name.name": { $regex: searchQuery, $options: "i" } },
                         { "product.name": { $regex: searchQuery, $options: "i" } },
-                        { type: { $regex: searchQuery, $options: "i" } },
                         { provider: { $regex: searchQuery, $options: "i" } }
                     ]
                 }

@@ -161,8 +161,6 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
     }
 
     let userPoints = user.points
-    console.log(points);
-    console.log(userPoints);
 
     if (points) {
         userPoints = userPoints - +points

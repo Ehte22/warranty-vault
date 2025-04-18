@@ -1,5 +1,4 @@
 import { BaseQueryFn, FetchArgs, FetchBaseQueryError, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { RootState } from "../store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const createCustomBaseQuery = (baseUrl: string): BaseQueryFn<
