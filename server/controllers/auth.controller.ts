@@ -88,6 +88,7 @@ export const SignUp = asyncHandler(async (req: Request, res: Response, next: Nex
         referralCode: newUser.referralCode,
         referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${newUser.referralCode}`,
         points: newUser.points,
+        pin: newUser.pin,
         token
     }
 
@@ -138,6 +139,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response, next: Nex
         plan: user.plan,
         referralCode: user.referralCode,
         points: user.points,
+        pin: user.pin,
         referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
         token
     }
@@ -191,6 +193,7 @@ export const googleLoginResponse = asyncHandler(async (req: Request, res: Respon
             role: user.role,
             plan: user.plan,
             points: user.points,
+            pin: user.pin,
             referralCode: user.referralCode,
             referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
             token
@@ -245,6 +248,7 @@ export const googleLoginMobile = asyncHandler(async (req: Request, res: Response
             plan: user.plan,
             referralCode: user.referralCode,
             points: user.points,
+            pin: user.pin,
             referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
             route: "/",
             token
@@ -272,7 +276,7 @@ export const googleLoginMobile = asyncHandler(async (req: Request, res: Response
             plan: newUser.plan,
             referralCode: newUser.referralCode,
             referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${newUser.referralCode}`,
-            route: "/select-plan",
+            route: "plans/select-plan",
             points: newUser.points,
             token
         }

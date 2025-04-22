@@ -112,6 +112,22 @@ export const userApi = createApi({
                 invalidatesTags: ["user"]
             }),
 
+            setPin: builder.mutation<string, string>({
+                query: (pin) => {
+                    return {
+                        url: `/set-pin`,
+                        method: "PUT",
+                        body: { pin }
+                    }
+                },
+                transformResponse: (data: { message: string }) => {
+                    return data.message
+                },
+                transformErrorResponse: (error: { status: number, data: { message: string } }) => {
+                    return error.data?.message
+                },
+            }),
+
         }
     }
 })
@@ -122,5 +138,6 @@ export const {
     useAddUserMutation,
     useUpdateUserMutation,
     useUpdateUserStatusMutation,
-    useDeleteUserMutation
+    useDeleteUserMutation,
+    useSetPinMutation
 } = userApi

@@ -9,6 +9,7 @@ import { RootState } from '../redux/store';
 import { useSignOutMutation } from '../redux/apis/auth.api';
 import { useRouter } from 'expo-router';
 import Toast from '../components/Toast';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Settings = () => {
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -30,7 +31,8 @@ const Settings = () => {
 
     useEffect(() => {
         if (isSuccess) {
-            setTimeout(() => {
+            setTimeout(async () => {
+                await AsyncStorage.removeItem('hasAuthenticated')
                 router.replace("/auth/login")
             }, 2000);
         }
@@ -149,7 +151,6 @@ const Settings = () => {
                 </TouchableOpacity>
             </ScrollView>
 
-            {/* Fixed logout button at the bottom */}
             <View style={styles.logoutContainer}>
                 <TouchableOpacity
                     disabled={isLoading}

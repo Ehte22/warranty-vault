@@ -12,7 +12,7 @@ import Toast from '@/src/components/Toast'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/src/redux/store'
 import RazorpayCheckout from 'react-native-razorpay';
-import { razorpayKey } from '@/src/constants/razorpayConfig'
+import { razorpayKey } from '@/src/constants/config'
 import { IPlan } from '@/src/models/plan.interface'
 
 const UpgradePlan = () => {
@@ -173,76 +173,83 @@ const UpgradePlan = () => {
         {isApplyCouponSuccess && <Toast type="success" message={couponData.message} />}
         {isApplyCouponError && <Toast type="error" message={applyCouponError as string} />}
 
-        <FlatList
-            data={filteredPlan}
-            keyExtractor={(item) => item.name}
-            contentContainerStyle={styles.container}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item: plan, index }) => {
-                const discount = (+plan.price.monthly * 12) - +plan.price.yearly
-                return <Card key={index} style={styles.card} >
-                    <Card.Content style={{ alignItems: "center" }}>
-                        <Text variant='titleLarge' style={styles.cardTitle}>{plan.title}</Text>
+        {filteredPlan.length
+            ? <FlatList
+                data={filteredPlan}
+                keyExtractor={(item) => item.name}
+                contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item: plan, index }) => {
+                    const discount = (+plan.price.monthly * 12) - +plan.price.yearly
+                    return <Card key={index} style={styles.card} >
+                        <Card.Content style={{ alignItems: "center" }}>
+                            <Text variant='titleLarge' style={styles.cardTitle}>{plan.title}</Text>
 
-                        <ToggleButton.Row
-                            onValueChange={(newCycle) => {
-                                if (newCycle !== null) {
-                                    handleBillingChange(plan.name, newCycle as "monthly" | "yearly")
-                                    setBillingCycle({
-                                        ...billingCycle, [plan.name]: newCycle as "monthly" | "yearly"
-                                    })
-                                }
-                            }}
-                            value={billingCycle[plan.name]} style={{ marginTop: 12 }}
-                        >
-                            <ToggleButton
-                                style={[styles.toggleBtn, plan.name === "Free" ? { backgroundColor: theme.colors.cardBg } : null]}
-                                value='monthly'
-                                icon={() => <Text style={{ color: plan.name === "Free" ? "gray" : billingCycle[plan.name] === "monthly" ? "black" : "gray" }}>MONTHLY</Text>}
-                                disabled={plan.name === "Free"}
-                            />
-                            <ToggleButton
-                                style={[styles.toggleBtn, plan.name === "Free" ? { backgroundColor: theme.colors.cardBg, } : null]}
-                                value="yearly"
-                                icon={() => <Text style={{ color: plan.name !== "Free" ? billingCycle[plan.name] === "yearly" ? "black" : "gray" : "gray" }}>YEARLY</Text>}
-                                disabled={plan.name === "Free"}
-                            />
-                        </ToggleButton.Row>
+                            <ToggleButton.Row
+                                onValueChange={(newCycle) => {
+                                    if (newCycle !== null) {
+                                        handleBillingChange(plan.name, newCycle as "monthly" | "yearly")
+                                        setBillingCycle({
+                                            ...billingCycle, [plan.name]: newCycle as "monthly" | "yearly"
+                                        })
+                                    }
+                                }}
+                                value={billingCycle[plan.name]} style={{ marginTop: 12 }}
+                            >
+                                <ToggleButton
+                                    style={[styles.toggleBtn, plan.name === "Free" ? { backgroundColor: theme.colors.cardBg } : null]}
+                                    value='monthly'
+                                    icon={() => <Text style={{ color: plan.name === "Free" ? "gray" : billingCycle[plan.name] === "monthly" ? "black" : "gray" }}>MONTHLY</Text>}
+                                    disabled={plan.name === "Free"}
+                                />
+                                <ToggleButton
+                                    style={[styles.toggleBtn, plan.name === "Free" ? { backgroundColor: theme.colors.cardBg, } : null]}
+                                    value="yearly"
+                                    icon={() => <Text style={{ color: plan.name !== "Free" ? billingCycle[plan.name] === "yearly" ? "black" : "gray" : "gray" }}>YEARLY</Text>}
+                                    disabled={plan.name === "Free"}
+                                />
+                            </ToggleButton.Row>
 
-                        {billingCycle[plan.name] === "yearly" && discount > 0 ? (
-                            <View style={styles.priceContainer}>
-                                <Badge style={styles.discountBadge}>{`₹${discount} OFF`}</Badge>
-                                <Text variant="headlineSmall" style={styles.price}>₹{plan.price.yearly}</Text>
+                            {billingCycle[plan.name] === "yearly" && discount > 0 ? (
+                                <View style={styles.priceContainer}>
+                                    <Badge style={styles.discountBadge}>{`₹${discount} OFF`}</Badge>
+                                    <Text variant="headlineSmall" style={styles.price}>₹{plan.price.yearly}</Text>
+                                </View>
+                            ) : (
+                                <Text variant='headlineSmall' style={styles.price}>₹{plan.price[billingCycle[plan.name]]}</Text>
+                            )}
+
+                            <Divider style={styles.divider} />
+
+                            <View style={styles.featureView}>
+                                <FlatList
+                                    data={plan?.includes}
+                                    keyExtractor={(_, index) => index.toString()}
+                                    renderItem={({ item }) => (
+                                        <View style={styles.featureItem}>
+                                            <Icon name="check" size={24} color={theme.colors.primary} />
+                                            <Text style={{ marginLeft: 8, fontSize: 16, color: theme.colors.text }}>{item}</Text>
+                                        </View>
+                                    )}
+                                />
                             </View>
-                        ) : (
-                            <Text variant='headlineSmall' style={styles.price}>₹{plan.price[billingCycle[plan.name]]}</Text>
-                        )}
 
-                        <Divider style={styles.divider} />
+                            <Divider style={styles.divider} />
 
-                        <View style={styles.featureView}>
-                            <FlatList
-                                data={plan?.includes}
-                                keyExtractor={(_, index) => index.toString()}
-                                renderItem={({ item }) => (
-                                    <View style={styles.featureItem}>
-                                        <Icon name="check" size={24} color={theme.colors.primary} />
-                                        <Text style={{ marginLeft: 8, fontSize: 16, color: theme.colors.text }}>{item}</Text>
-                                    </View>
-                                )}
-                            />
-                        </View>
+                            <Button mode='outlined' style={styles.btn} onPress={() => handleSelect(plan)} >
+                                SELECT PLAN
+                            </Button>
 
-                        <Divider style={styles.divider} />
-
-                        <Button mode='outlined' style={styles.btn} onPress={() => handleSelect(plan)} >
-                            SELECT PLAN
-                        </Button>
-
-                    </Card.Content>
-                </Card>
-            }}
-        />
+                        </Card.Content>
+                    </Card>
+                }}
+            />
+            : <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: "center" }}>
+                <Text style={{ marginTop: 60, color: theme.colors.text, fontWeight: "bold", fontSize: 16 }}>
+                    You have subscribed to the max plan
+                </Text>
+            </View>
+        }
 
         <Portal>
             <Modal visible={openModal} onDismiss={handleCloseModal} contentContainerStyle={styles.modal}>
@@ -346,8 +353,8 @@ const customStyles = (theme: CustomTheme) => {
             paddingTop: 40,
             paddingBottom: 20,
             paddingHorizontal: 24,
-            backgroundColor: theme.colors.background
-
+            backgroundColor: theme.colors.background,
+            flex: 1
         },
         card: {
             backgroundColor: theme.colors.cardBg,

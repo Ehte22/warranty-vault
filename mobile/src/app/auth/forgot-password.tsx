@@ -109,10 +109,6 @@ const customStyle = (theme: CustomTheme) => {
         input: {
             backgroundColor: theme.colors.inputBackground,
         },
-        forgotPassword: {
-            alignItems: 'flex-end',
-            marginBottom: 20,
-        },
         btn: {
             borderRadius: 4,
             marginTop: 16,

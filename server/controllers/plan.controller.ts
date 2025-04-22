@@ -154,9 +154,9 @@ export const deletePlan = asyncHandler(async (req: Request, res: Response, next:
 export const selectPlan = asyncHandler(async (req: Request, res: Response): Promise<any> => {
     const { selectedPlan = "Free", billingCycle, points } = req.body;
 
-    const plan = await Plan.findOne({ name: selectPlan }).lean()
+    const plan = await Plan.findOne({ name: selectedPlan }).lean()
     if (!plan) {
-        return res.status(404).json({ message: "Plan Not Fund" })
+        return res.status(400).json({ message: "Plan Not Fund" })
     }
 
     const { userId } = req.user as IUserProtected
@@ -189,7 +189,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
     await User.findByIdAndUpdate(userId, {
         plan: selectedPlan,
         planType,
-        subscription: selectedPlan === "Free" ? { paymentStatus: "Pending" } : { startDate, expiryDate, paymentStatus: "Active" },
+        subscription: { startDate, expiryDate, paymentStatus: "Active" },
         points: userPoints
     }, { new: true });
 
@@ -204,6 +204,7 @@ export const selectPlan = asyncHandler(async (req: Request, res: Response): Prom
         role: user.role,
         plan: selectedPlan,
         points: userPoints,
+        pin: user.pin,
         referralCode: user.referralCode,
         referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
         token

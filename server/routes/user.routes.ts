@@ -13,5 +13,6 @@ userRouter
     .put("/update/:id", upload.single("profile"), userController.updateUser)
     .put("/status/:id", userController.updateUserStatus)
     .put("/delete/:id", userController.deleteUser)
+    .put("/set-pin/:id", userController.setPin)
 
 export default userRouter

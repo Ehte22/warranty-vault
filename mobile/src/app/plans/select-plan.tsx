@@ -12,7 +12,7 @@ import Toast from '@/src/components/Toast'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/src/redux/store'
 import RazorpayCheckout from 'react-native-razorpay';
-import { razorpayKey } from '@/src/constants/razorpayConfig'
+import { razorpayKey } from '@/src/constants/config'
 
 const SelectPlan = () => {
     const [selectedPlan, setSelectedPlan] = useState<string>("");
@@ -107,9 +107,11 @@ const SelectPlan = () => {
     useEffect(() => {
         if (isSuccess) {
             setOpenModal(false)
-            setTimeout(() => {
-                router.replace("/")
+            const timeout = setTimeout(() => {
+                router.replace("/pin/set")
             }, 2000);
+
+            return () => clearTimeout(timeout)
         }
     }, [isSuccess, router])
 

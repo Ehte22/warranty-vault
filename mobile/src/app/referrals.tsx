@@ -6,7 +6,7 @@ import { RootState } from '../redux/store';
 import Toast from '../components/Toast';
 import { useCustomTheme } from '../context/ThemeContext';
 import { useGetUserByIdQuery } from '../redux/apis/user.api';
-// import * as Clipboard from 'expo-clipboard'
+import * as Clipboard from 'expo-clipboard'
 
 const Referrals = () => {
     const { theme } = useCustomTheme();
@@ -17,7 +17,7 @@ const Referrals = () => {
 
     const handleCopy = async () => {
         if (user?.referralLink) {
-            // await Clipboard.setStringAsync(user.referralLink);
+            await Clipboard.setStringAsync(user.referralLink);
             setIsCopied(true);
             setTimeout(() => setIsCopied(false), 2000);
         }

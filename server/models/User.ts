@@ -25,6 +25,7 @@ export interface IUser extends Document {
     referredBy?: string
     referrals?: { _id: string, name: string }[]
     points: number
+    pin: string
 }
 
 export interface IOTP extends Document {
@@ -56,7 +57,7 @@ const userSchema = new Schema<IUser>({
     subscription: {
         startDate: { type: Date },
         expiryDate: { type: Date },
-        paymentStatus: { type: String, enum: ["Active", "Expired", "Pending"], default: "Pending" },
+        paymentStatus: { type: String, enum: ["Active", "Expired", "Pending"], default: "Active" },
     },
     referralCode: { type: String, unique: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, default: null },
@@ -66,7 +67,8 @@ const userSchema = new Schema<IUser>({
             name: { type: String }
         }
     ],
-    points: { type: Number, default: 0 }
+    points: { type: Number, default: 0 },
+    pin: { type: String }
 }, { timestamps: true });
 
 const OTPSchema = new Schema<IOTP>({

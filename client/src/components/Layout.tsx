@@ -54,10 +54,10 @@ const Layout = () => {
                         },
                     }}
                 >
-                    <Sidebar open={open} />
+                    <Sidebar open={open} setOpen={setOpen} />
                 </Drawer>
             ) : (
-                <Sidebar open={open} />
+                <Sidebar open={open} setOpen={setOpen} />
             )}
 
             <Box

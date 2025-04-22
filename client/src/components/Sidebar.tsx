@@ -1,11 +1,11 @@
-import { styled, Theme, CSSObject } from "@mui/material/styles"
+import { styled, Theme, CSSObject, useTheme } from "@mui/material/styles"
 import MuiDrawer from "@mui/material/Drawer"
 import List from "@mui/material/List"
 import ListItem from "@mui/material/ListItem"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
-import { CssBaseline, Tooltip, Typography } from "@mui/material"
+import { CssBaseline, Tooltip, Typography, useMediaQuery } from "@mui/material"
 import { Link, useLocation } from "react-router-dom"
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import GroupIcon from '@mui/icons-material/Group'
@@ -63,9 +63,12 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== "open" 
 )
 
 
-const Sidebar = ({ open }: { open: boolean }) => {
+const Sidebar = ({ open, setOpen }: { open: boolean, setOpen: (value: boolean) => void }) => {
 
     const location = useLocation()
+
+    const theme = useTheme()
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"))
 
     const { user } = useSelector((state: RootState) => state.auth)
 
@@ -166,6 +169,11 @@ const Sidebar = ({ open }: { open: boolean }) => {
                                 justifyContent: open ? "initial" : "center",
                                 backgroundColor: isActive ? "#f0f0f0" : "transparent",
 
+                            }}
+                            onClick={() => {
+                                if (isSmallScreen) {
+                                    setOpen(false)
+                                }
                             }}
                         >
                             <Tooltip title={item.title}>

@@ -48,10 +48,6 @@ export const checkPlanLimit = async (req: Request, res: Response, next: NextFunc
         }
     }
 
-    if (plan === "Free" || plan === "Pro" && type === "user") {
-        return res.status(400).json({ message: `${plan} plan does not allow adding users` });
-    }
-
     if (userPlan?.maxFamilyMembers !== "Unlimited") {
         if (plan === "Family" && type === "user" && familyCount.length >= Number(userPlan?.maxFamilyMembers)) {
             return res.status(400).json({ message: `Family plan allows a maximum of ${userPlan?.maxFamilyMembers} family members` });

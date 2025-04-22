@@ -13,14 +13,15 @@ import Toast from '@/src/components/Toast';
 import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
 import { useDispatch } from 'react-redux';
 import { setUser } from '@/src/redux/slices/auth.slice';
+import { iosApiClientId, webApiClientId } from '@/src/constants/config';
 
 const Login = () => {
     const [secureText, setSecureText] = useState(true);
 
     useEffect(() => {
         GoogleSignin.configure({
-            iosClientId: "195321382919-59fvu1pkgvlr27mtdepi4adqu0n28coo.apps.googleusercontent.com",
-            webClientId: "195321382919-tsnvc3kjooknep269f341otuln8q81q4.apps.googleusercontent.com",
+            iosClientId: iosApiClientId,
+            webClientId: webApiClientId,
             profileImageSize: 150
         })
     }, [])
@@ -66,8 +67,7 @@ const Login = () => {
                 }
             }
         } catch (error) {
-            console.log(error);
-
+            console.error(error);
         }
     }
 

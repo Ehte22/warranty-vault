@@ -7,6 +7,7 @@ import { IUser, User } from "../models/User"
 import { registerRules } from "../rules/user.rules"
 import bcryptjs from "bcryptjs"
 import { generateReferralCode } from "../utils/generateReferralCode"
+import { generateToken } from "../utils/generateToken"
 
 // Get All
 export const getAllUsers = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -75,6 +76,12 @@ export const addUser = asyncHandler(async (req: Request, res: Response, next: Ne
     const user = await User.findOne({ $or: [{ email }, { phone }] }).lean()
 
     const { userId, role } = req.user as IUserProtected
+
+    const loggedInUser = await User.findById(userId).lean()
+
+    if (loggedInUser?.plan === "Free" || loggedInUser?.plan === "Pro") {
+        return res.status(400).json({ message: `${loggedInUser.plan} plan does not allow adding users` });
+    }
 
     const owner = await User.findById(userId).lean()
 
@@ -183,8 +190,7 @@ export const updateUser = asyncHandler(async (req: Request, res: Response, next:
     await User.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
 
     res.status(200).json({ message: "User Updated Successfully" });
-});
-
+})
 
 // Update Status
 export const updateUserStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -213,4 +219,37 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response, next:
     await User.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true, runValidators: true })
 
     res.status(200).json({ message: "User Delete Successfully" })
+})
+
+// Set pin
+export const setPin = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    const { pin } = req.body
+
+    const { userId } = req.user as IUserProtected
+    const user = await User.findById(userId)
+
+    if (!user) {
+        return res.status(404).json({ message: "User Not Found" })
+    }
+
+    await User.findByIdAndUpdate(userId, { pin }, { new: true, runValidators: true })
+
+    const token = generateToken({ userId: user._id, name: user.name, role: user.role })
+
+    const result = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        profile: user.profile,
+        role: user.role,
+        plan: user.plan,
+        referralCode: user.referralCode,
+        points: user.points,
+        pin,
+        referralLink: `${process.env.FRONTEND_URL}/sign-up?ref=${user.referralCode}`,
+        token
+    }
+
+    res.status(200).json({ message: "Pin Set Successfully", result })
 })

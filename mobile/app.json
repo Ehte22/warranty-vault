@@ -48,11 +48,13 @@
     },
     "extra": {
       "razorpayKey": "rzp_test_8g7frJOzzN5wml",
+      "iosApiClientId": "195321382919-59fvu1pkgvlr27mtdepi4adqu0n28coo.apps.googleusercontent.com",
+      "webApiClientId": "195321382919-tsnvc3kjooknep269f341otuln8q81q4.apps.googleusercontent.com",
       "router": {
         "origin": false
       },
       "eas": {
-        "projectId": "f75b9a19-6857-4e5b-9e35-84654ae35bf5"
+        "projectId": "9c8e76eb-e77a-4f05-acdd-dcccad801e3d"
       }
     }
   }

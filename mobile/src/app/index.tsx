@@ -1,9 +1,14 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCustomTheme } from '../context/ThemeContext';
 import { CustomTheme } from '../theme/theme';
-import { Surface } from 'react-native-paper';
+import { Button, Divider, Modal, Portal, Surface } from 'react-native-paper';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const menuItems = [
   { id: '1', name: 'Dashboard', icon: 'dashboard', screen: '/dashboard' },
@@ -20,8 +25,10 @@ const menuItems = [
 const Home = () => {
   const router = useRouter();
   const { theme } = useCustomTheme()
-
+  const [isError, setIsError] = useState(false)
   const styles = customStyles(theme)
+  const { user } = useSelector((state: RootState) => state.auth)
+  const params = useLocalSearchParams()
 
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
@@ -33,12 +40,50 @@ const Home = () => {
     </TouchableOpacity>
   );
 
-  return (
+
+  useEffect(() => {
+    const checkAuthCapabilities = async () => {
+
+      if (!user) {
+        router.replace("/auth/login");
+        return;
+      }
+
+      if (params.verified === "true") return;
+
+      const alreadyAuthed = await AsyncStorage.getItem('hasAuthenticated');
+      if (alreadyAuthed === 'true') return;
+
+      const enrolledLevel = await LocalAuthentication.getEnrolledLevelAsync();
+
+      if (enrolledLevel > 0) {
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: 'Login with Mobile Password',
+          fallbackLabel: 'Use PIN or Password',
+          disableDeviceFallback: false,
+        })
+
+        if (result.success) {
+          await AsyncStorage.setItem('hasAuthenticated', 'true');
+        } else {
+          setIsError(true)
+        }
+
+      } else {
+        router.replace("/pin/verify")
+      }
+
+    }
+
+    checkAuthCapabilities()
+
+  }, [])
+
+  return <>
     <View style={styles.container}>
 
-      <Surface>
+      <Surface style={{ marginBottom: 10 }}>
         <Image height={200} width={100} source={theme.dark ? require("../../assets/images/home-img-dark.gif") : require("../../assets/images/home-img-light.gif")} />
-
       </Surface>
 
       <FlatList
@@ -47,15 +92,28 @@ const Home = () => {
         keyExtractor={(item) => item.id}
         numColumns={3}
         contentContainerStyle={styles.menuContainer}
+        showsVerticalScrollIndicator={false}
       />
-
-      <Link href="/auth/login">Login</Link>
-
-
-
     </View>
 
-  );
+
+    <Portal>
+      <Modal contentContainerStyle={{ backgroundColor: theme.colors.cardBg, marginHorizontal: 24, borderRadius: 8 }} visible={isError}>
+        <View style={{ padding: 20, }}>
+          <Text style={{ fontSize: 20, fontWeight: "bold", color: theme.colors.text }}>Wallet is locked</Text>
+          <Text style={{ marginTop: 16, color: theme.colors.text }}>
+            Authentication is required to access the Wallet app
+          </Text>
+        </View>
+        <Divider />
+        <View style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <Button style={{ marginVertical: 10 }} onPress={() => router.replace("/")} >
+            <Text style={{ fontSize: 16 }}>Unlock now</Text>
+          </Button>
+        </View>
+      </Modal>
+    </Portal>
+  </>
 }
 
 const customStyles = (theme: CustomTheme) => {
@@ -92,8 +150,6 @@ const customStyles = (theme: CustomTheme) => {
       backgroundColor: theme.colors.cardBg,
       borderRadius: 4,
       elevation: 3,
-      marginTop: 24
-
     },
     menuText: {
       marginTop: 8,

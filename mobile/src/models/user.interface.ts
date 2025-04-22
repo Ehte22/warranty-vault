@@ -12,6 +12,7 @@ export interface IUser {
     status?: 'active' | 'inactive';
     token?: string
     plan?: string
+    pin?: string
     route?: string
     type?: string
     referralCode?: string
