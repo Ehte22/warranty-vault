@@ -197,6 +197,7 @@ const AddPolicy = () => {
 
         {/* {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
         {isUpdateError && id && <Toast type="error" message={updateError as string} />} */}
+
         <View style={styles.container}>
             <DataContainer config={config} />
             <Surface style={styles.formContainer}>
