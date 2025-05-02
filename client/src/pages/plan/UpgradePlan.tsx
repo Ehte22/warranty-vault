@@ -258,6 +258,7 @@ const UpgradePlan = React.memo(() => {
                         </Paper>
                     </Grid2 >
                 })}
+                {filteredPlan.length === 0 && <Typography sx={{ fontWeight: "bold", fontSize: 18 }}>You have subscribed to the max plan</Typography>}
                 <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
                     <DialogTitle>{selectedPlan === "Free" ? "Free Plan" : "Enter Coupon or Pay"}</DialogTitle>
                     <DialogContent>
