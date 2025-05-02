@@ -154,10 +154,6 @@ const useDynamicForm = <T extends FieldValues>({
 
                             case "date":
                                 return <>
-                                    {/* <DateField
-                                        controllerField={controllerField}
-                                        field={field}
-                                        errors={errors[field.name as keyof T]?.message?.toString()} /> */}
                                     <DateField
                                         field={field}
                                         onChange={onChange}
@@ -174,11 +170,7 @@ const useDynamicForm = <T extends FieldValues>({
 
                             case "autoComplete":
                                 return <>
-                                    {/* <AutoComplete
-                                        controllerField={controllerField}
-                                        field={field}
-                                        errors={errors[field.name as keyof T]?.message?.toString()}
-                                    /> */}
+
                                     <AutoComplete
                                         field={field}
                                         onChange={onChange}

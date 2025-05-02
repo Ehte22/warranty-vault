@@ -3,7 +3,7 @@ import DataContainer, { DataContainerConfig } from '../../components/DataContain
 import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
-import { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useImagePreview } from '../../context/ImageContext'
 import Toast from '../../components/Toast'
@@ -19,7 +19,7 @@ const defaultValues = {
     document: ""
 }
 
-const AddPolicy = () => {
+const AddPolicy = React.memo(() => {
     const [productOptions, setProductOptions] = useState<{ label: string, value: string | undefined }[]>([])
     const [policyTypeOptions, setPolicyTypeOptions] = useState<{ label: string, value: string | undefined }[]>([])
 
@@ -27,18 +27,19 @@ const AddPolicy = () => {
     const { setPreviewImages } = useImagePreview()
     const navigate = useNavigate()
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: id ? "Edit Policy" : "Add Policy",
         backLink: "../",
     }
+    ), [id])
 
     const { data: products } = useGetProductsQuery({ isFetchAll: true })
     const { data: policyTypes } = useGetPolicyTypesQuery({ isFetchAll: true })
-    const [addPolicy, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPolicyMutation()
-    const [updatePolicy, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePolicyMutation()
+    const [addPolicy, add] = useAddPolicyMutation()
+    const [updatePolicy, update] = useUpdatePolicyMutation()
     const { data } = useGetPolicyByIdQuery(id as string, { skip: !id })
 
-    const fields: FieldConfig[] = [
+    const fields: FieldConfig[] = useMemo(() => [
         {
             name: "product",
             type: "autoComplete",
@@ -71,67 +72,69 @@ const AddPolicy = () => {
             label: "Document",
             rules: { required: data?.document ? false : true, file: true }
         },
-    ]
+    ], [productOptions, policyTypeOptions, data?.document])
 
-    const schema = customValidator(fields)
+    const handleSave = useCallback(
+        (values: z.infer<ReturnType<typeof customValidator>>) => {
+            const product = products?.result.find(item => item._id === values.product)
+            const name = policyTypes?.result.find(item => item._id === values.name)
 
-    type FormValues = z.infer<typeof schema>
-
-    const onSubmit = (values: FormValues) => {
-        const product = products?.result.find(item => item._id === values.product)
-        const name = policyTypes?.result.find(item => item._id === values.name)
-
-        let updatedData = values
-        if (product && name) {
-            updatedData = {
-                ...values,
-                product: { _id: product._id, name: product.name },
-                name: { _id: name._id, name: name.name },
-                type: "policy"
-            }
-        }
-
-        const formData = new FormData()
-
-        Object.keys(updatedData).forEach((key) => {
-            if (!updatedData[key]) return;
-
-            const value = updatedData[key];
-
-            if (value instanceof FileList) {
-                Array.from(value).forEach((file) => {
-                    formData.append(key, file);
-                });
-            } else if (typeof value === "object" && value !== null) {
-                if (Array.isArray(value)) {
-                    value.forEach((item, index) => {
-                        formData.append(`${key}[${index}]`, JSON.stringify(item));
-                    });
-                } else {
-                    Object.entries(value).forEach(([objKey, objValue]) => {
-                        formData.append(`${key}[${objKey}]`, objValue as any);
-                    });
+            let updatedData = values
+            if (product && name) {
+                updatedData = {
+                    ...values,
+                    product: { _id: product._id, name: product.name },
+                    name: { _id: name._id, name: name.name },
+                    type: "policy"
                 }
-            } else {
-                formData.append(key, value);
             }
-        });
+
+            const formData = new FormData()
+
+            Object.keys(updatedData).forEach((key) => {
+                if (!updatedData[key]) return;
+
+                const value = updatedData[key];
+
+                if (value instanceof FileList) {
+                    Array.from(value).forEach((file) => {
+                        formData.append(key, file);
+                    });
+                } else if (typeof value === "object" && value !== null) {
+                    if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            formData.append(`${key}[${index}]`, JSON.stringify(item));
+                        });
+                    } else {
+                        Object.entries(value).forEach(([objKey, objValue]) => {
+                            formData.append(`${key}[${objKey}]`, objValue as any);
+                        });
+                    }
+                } else {
+                    formData.append(key, value);
+                }
+            });
 
 
-        if (id && data) {
-            updatePolicy({ id, policyData: formData })
-        } else {
-            addPolicy(formData)
-        }
+            if (id && data) {
+                updatePolicy({ id, policyData: formData })
+            } else {
+                addPolicy(formData)
+            }
 
-    }
+        }, [id, data, addPolicy, updatePolicy, products, policyTypes])
 
-    const handleReset = () => {
+    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({
+        fields,
+        defaultValues,
+        schema: customValidator(fields),
+        onSubmit: handleSave
+    })
+
+    const handleReset = useCallback(() => {
         reset()
         setPreviewImages([])
-    }
-
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    }, [reset, setPreviewImages])
 
     useEffect(() => {
         if (id && data) {
@@ -167,35 +170,22 @@ const AddPolicy = () => {
     }, [policyTypes?.result])
 
     useEffect(() => {
-        if (isAddSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/policies")
-            }, 2000);
+        if (add.isSuccess || update.isSuccess) {
+            const timeout = setTimeout(() => navigate('/policies'), 2000)
             return () => clearTimeout(timeout)
         }
-    }, [isAddSuccess])
-
-    useEffect(() => {
-        if (isUpdateSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/policies")
-            }, 2000);
-            return () => clearTimeout(timeout)
-        }
-    }, [isUpdateSuccess])
-
+    }, [add.isSuccess, update.isSuccess, navigate])
 
     return <>
-        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+        {add.isSuccess && <Toast type="success" message={add.data?.message} />}
+        {add.isError && <Toast type="error" message={add.error as string} />}
+        {update.isSuccess && <Toast type={update.data === 'No Changes Detected' ? 'info' : 'success'} message={update.data} />}
+        {update.isError && <Toast type="error" message={update.error as string} />}
 
         <Box>
             <DataContainer config={config} />
             <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Box component="form" onSubmit={handleSubmit(handleSave)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Name */}
@@ -237,7 +227,7 @@ const AddPolicy = () => {
                         </Button>
                         <Button
                             type='submit'
-                            loading={addLoading || updateLoading}
+                            loading={add.isLoading || update.isLoading}
                             variant='contained'
                             sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
                             Save
@@ -247,6 +237,6 @@ const AddPolicy = () => {
             </Paper>
         </Box>
     </>
-}
+})
 
 export default AddPolicy

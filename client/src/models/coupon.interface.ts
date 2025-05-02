@@ -1,5 +1,6 @@
 
 export interface ICoupon {
+    _id?: string
     code: string
     discountType: "Percentage" | "Fixed Amount"
     discountValue: string

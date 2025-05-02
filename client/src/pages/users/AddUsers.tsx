@@ -3,37 +3,29 @@ import DataContainer, { DataContainerConfig } from '../../components/DataContain
 import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
-import { useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useImagePreview } from '../../context/ImageContext'
 import Toast from '../../components/Toast'
 import { useAddUserMutation, useGetUserByIdQuery, useUpdateUserMutation } from '../../redux/apis/user.api'
 
-const defaultValues = {
-    name: "",
-    email: "",
-    phone: "",
-    profile: "",
-    password: "",
-}
-
-const AddUser = () => {
+const AddUser = React.memo(() => {
     const { id } = useParams()
 
     const navigate = useNavigate()
 
     const { setPreviewImages } = useImagePreview()
 
-    const [addUser, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddUserMutation()
-    const [updateUser, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateUserMutation()
+    const [addUser, add] = useAddUserMutation()
+    const [updateUser, update] = useUpdateUserMutation()
     const { data } = useGetUserByIdQuery(id as string, { skip: !id })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: id ? "Edit User" : "Add User",
         backLink: "../",
-    }
+    }), [id])
 
-    const fields: FieldConfig[] = [
+    const fields: FieldConfig[] = useMemo(() => [
         {
             name: "name",
             type: "text",
@@ -64,54 +56,64 @@ const AddUser = () => {
             type: "file",
             rules: { required: false, file: true }
         },
-    ]
+    ], [])
 
-    const schema = customValidator(fields)
-
-    type FormValues = z.infer<typeof schema>
-
-    const onSubmit = (values: FormValues) => {
-        const formData = new FormData()
-
-        const updatedData: Record<string, any> = { ...values, type: "user" }
-
-        Object.keys(updatedData).forEach((key) => {
-            const value = updatedData[key];
-
-            if (value instanceof FileList) {
-                Array.from(value).forEach((file) => {
-                    formData.append(key, file);
-                });
-            } else if (typeof value === "object" && value !== null) {
-                if (Array.isArray(value)) {
-                    value.forEach((item, index) => {
-                        formData.append(`${key}[${index}]`, JSON.stringify(item));
-                    });
-                } else {
-                    Object.entries(value).forEach(([objKey, objValue]) => {
-                        formData.append(`${key}[${objKey}]`, objValue as any);
-                    });
-                }
-            } else {
-                formData.append(key, value);
-            }
-        });
-
-
-        if (id && data) {
-            updateUser({ id, userData: formData })
-        } else {
-            addUser(formData)
-        }
-
+    const defaultValues = {
+        name: "",
+        email: "",
+        phone: "",
+        profile: "",
+        password: "",
     }
 
-    const handleReset = () => {
+    const handleSave = useCallback(
+        (values: z.infer<ReturnType<typeof customValidator>>) => {
+            const formData = new FormData()
+
+            const updatedData: Record<string, any> = { ...values, type: "user" }
+
+            Object.keys(updatedData).forEach((key) => {
+                const value = updatedData[key];
+
+                if (value instanceof FileList) {
+                    Array.from(value).forEach((file) => {
+                        formData.append(key, file);
+                    });
+                } else if (typeof value === "object" && value !== null) {
+                    if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            formData.append(`${key}[${index}]`, JSON.stringify(item));
+                        });
+                    } else {
+                        Object.entries(value).forEach(([objKey, objValue]) => {
+                            formData.append(`${key}[${objKey}]`, objValue as any);
+                        });
+                    }
+                } else {
+                    formData.append(key, value);
+                }
+            });
+
+
+            if (id && data) {
+                updateUser({ id, userData: formData })
+            } else {
+                addUser(formData)
+            }
+
+        }, [id, data, addUser, updateUser])
+
+    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({
+        fields,
+        defaultValues,
+        schema: customValidator(fields),
+        onSubmit: handleSave
+    })
+
+    const handleReset = useCallback(() => {
         reset()
         setPreviewImages([])
-    }
-
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    }, [reset, setPreviewImages])
 
     useEffect(() => {
         if (id && data) {
@@ -127,35 +129,22 @@ const AddUser = () => {
     }, [id, data])
 
     useEffect(() => {
-        if (isAddSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/users")
-            }, 2000);
+        if (add.isSuccess || update.isSuccess) {
+            const timeout = setTimeout(() => navigate('/users'), 2000)
             return () => clearTimeout(timeout)
         }
-    }, [isAddSuccess])
-
-    useEffect(() => {
-        if (isUpdateSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/users")
-            }, 2000);
-            return () => clearTimeout(timeout)
-        }
-    }, [isUpdateSuccess])
-
+    }, [add.isSuccess, update.isSuccess, navigate])
 
     return <>
-        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+        {add.isSuccess && <Toast type="success" message={add.data?.message} />}
+        {add.isError && <Toast type="error" message={add.error as string} />}
+        {update.isSuccess && <Toast type={update.data === 'No Changes Detected' ? 'info' : 'success'} message={update.data} />}
+        {update.isError && <Toast type="error" message={update.error as string} />}
 
         <Box>
             <DataContainer config={config} />
             <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Box component="form" onSubmit={handleSubmit(handleSave)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Name */}
@@ -199,7 +188,7 @@ const AddUser = () => {
                         </Button>
                         <Button
                             type='submit'
-                            loading={addLoading || updateLoading}
+                            loading={add.isLoading || update.isLoading}
                             variant='contained'
                             sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
                             Save
@@ -209,6 +198,6 @@ const AddUser = () => {
             </Paper>
         </Box>
     </>
-}
+})
 
 export default AddUser

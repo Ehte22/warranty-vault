@@ -4,33 +4,17 @@ import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Toast from '../../components/Toast'
 import { useAddPlanMutation, useGetPlanByIdQuery, useUpdatePlanMutation } from '../../redux/apis/plan.api'
 import { IPlan } from '../../models/plan.interface'
 
-const defaultValues = {
-    name: "",
-    title: "",
-    priority: "",
-    monthlyPrice: "",
-    yearlyPrice: "",
-    maxBrands: "",
-    maxProducts: "",
-    maxPolicies: "",
-    maxPolicyTypes: "",
-    maxNotifications: "",
-    maxFamilyMembers: "",
-    includes: [
-        { item: "" }
-    ]
-}
-
-const AddPlan = () => {
+const AddPlan = React.memo(() => {
     const { id } = useParams()
     const navigate = useNavigate()
     const [selectedPlan, setSelectedPlan] = useState("")
-    const [fields, setFields] = useState<FieldConfig[]>([
+
+    const baseFields: FieldConfig[] = [
         {
             name: "name",
             type: "select",
@@ -52,7 +36,11 @@ const AddPlan = () => {
             name: "priority",
             type: "text",
             placeholder: "Priority",
-            rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" },
+            rules: {
+                required: true,
+                pattern: /^\d+$/,
+                patternMessage: "Only numbers are allowed"
+            }
         },
         {
             name: "includes",
@@ -67,111 +55,144 @@ const AddPlan = () => {
             ],
             rules: { required: true }
         },
-    ])
+    ]
 
-    const [addPlan, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPlanMutation()
-    const [updatePlan, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePlanMutation()
+    const [fields, setFields] = useState<FieldConfig[]>(baseFields)
+
+    const defaultValues = {
+        name: "",
+        title: "",
+        priority: "",
+        monthlyPrice: "",
+        yearlyPrice: "",
+        maxBrands: "",
+        maxProducts: "",
+        maxPolicies: "",
+        maxPolicyTypes: "",
+        maxNotifications: "",
+        maxFamilyMembers: "",
+        includes: [
+            { item: "" }
+        ]
+    }
+
+    const [addPlan, add] = useAddPlanMutation()
+    const [updatePlan, update] = useUpdatePlanMutation()
     const { data } = useGetPlanByIdQuery(id as string, { skip: !id })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: id ? "Edit Plan" : "Add Plan",
         backLink: "../",
-    }
+    }), [id])
 
-    const schema = customValidator(fields)
+    const handleSave = useCallback(
+        (values: z.infer<ReturnType<typeof customValidator>>) => {
+            let updatedData = values
 
-    type FormValues = z.infer<typeof schema>
+            const includes = values.includes.map(({ item }: any) => item)
+            const price = { monthly: values.monthlyPrice, yearly: values.yearlyPrice }
 
-    const onSubmit = (values: FormValues) => {
-        let updatedData = values
+            if (values.name === "Free") {
+                updatedData = { ...values, includes }
+            } else {
+                updatedData = { ...values, includes, price }
+            }
 
-        const includes = values.includes.map(({ item }: any) => item)
-        const price = { monthly: values.monthlyPrice, yearly: values.yearlyPrice }
-        if (values.name === "Free") {
-            updatedData = { ...values, includes }
-        } else {
-            updatedData = { ...values, includes, price }
+            if (id && data) {
+                updatePlan({ id, planData: updatedData as IPlan })
+            } else {
+                addPlan(updatedData as IPlan)
+            }
+        }, [id, data, addPlan, updatePlan])
+
+    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({
+        fields,
+        defaultValues,
+        schema: customValidator(fields),
+        onSubmit: handleSave
+    })
+
+    const updateFieldsForPlan = (planName: string) => {
+        let dynamicFields: FieldConfig[] = []
+
+        if (planName === "Pro" || planName === "Family") {
+            dynamicFields = [
+                {
+                    name: "monthlyPrice",
+                    type: "text",
+                    placeholder: "Monthly Price",
+                    rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                },
+                {
+                    name: "yearlyPrice",
+                    type: "text",
+                    placeholder: "Yearly Price",
+                    rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                }
+            ]
+            if (planName === "Family") {
+                dynamicFields.push({
+                    name: "maxFamilyMembers",
+                    type: "text",
+                    placeholder: "Max Family Members",
+                    rules: {
+                        required: true,
+                        pattern: /^(Unlimited|\d+)$/,
+                        patternMessage: "Only numbers or 'Unlimited' are allowed"
+                    }
+                })
+            }
         }
 
-        if (id && data) {
-            updatePlan({ id, planData: updatedData as IPlan })
-        } else {
-            addPlan(updatedData as IPlan)
+        if (planName === "Free") {
+            dynamicFields = [
+                {
+                    name: "maxProducts",
+                    type: "text",
+                    placeholder: "Max Products",
+                    rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                },
+                {
+                    name: "maxPolicies",
+                    type: "text",
+                    placeholder: "Max Policies",
+                    rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                },
+                {
+                    name: "maxPolicyTypes",
+                    type: "text",
+                    placeholder: "Max Policy Types",
+                    rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                },
+                {
+                    name: "maxBrands",
+                    type: "text",
+                    placeholder: "Max Brands",
+                    rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                },
+                {
+                    name: "maxNotifications",
+                    type: "text",
+                    placeholder: "Max Notifications",
+                    rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
+                }
+            ]
         }
-    }
 
-    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+        setFields([...baseFields, ...dynamicFields])
+    }
 
     useEffect(() => {
         const subscription = watch((values) => {
-            setSelectedPlan(values.name)
-            if (values.name === "Pro" || values.name === "Family") {
-                const newFields: FieldConfig[] = [
-                    {
-                        name: "monthlyPrice",
-                        type: "text",
-                        placeholder: "Monthly Price",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" },
-                    },
-                    {
-                        name: "yearlyPrice",
-                        type: "text",
-                        placeholder: "Yearly Price",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" },
-                    },
-                ];
-
-                if (values.name === "Family") {
-                    newFields.push({
-                        name: "maxFamilyMembers",
-                        type: "text",
-                        placeholder: "Max Family Members",
-                        rules: { required: true, pattern: /^(Unlimited|\d+)$/, patternMessage: "Only numbers or the word 'Unlimited' are allowed" },
-                    });
-                }
-
-                setFields([...fields, ...newFields]);
-            } else if (values.name === "Free") {
-                setFields([
-                    ...fields,
-                    {
-                        name: "maxProducts",
-                        type: "text",
-                        placeholder: "Max Products",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
-                    },
-                    {
-                        name: "maxPolicies",
-                        type: "text",
-                        placeholder: "Max Policies",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
-                    },
-                    {
-                        name: "maxPolicyTypes",
-                        type: "text",
-                        placeholder: "Max Policy Types",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
-                    },
-                    {
-                        name: "maxBrands",
-                        type: "text",
-                        placeholder: "Max Brands",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
-                    },
-                    {
-                        name: "maxNotifications",
-                        type: "text",
-                        placeholder: "Max Notifications",
-                        rules: { required: true, pattern: /^\d+$/, patternMessage: "Only numbers are allowed" }
-                    },
-                ])
-            } else {
-                setFields([...fields])
+            const planName = values.name
+            if (planName && planName !== selectedPlan) {
+                setSelectedPlan(planName)
+                updateFieldsForPlan(planName)
             }
         })
 
         return () => subscription.unsubscribe()
-    }, [watch])
+    }, [watch, selectedPlan])
 
 
     useEffect(() => {
@@ -195,39 +216,25 @@ const AddPlan = () => {
             if (data.maxFamilyMembers) setValue("maxFamilyMembers", data.maxFamilyMembers)
 
         }
-    }, [id, data])
+    }, [id, data, setValue])
 
     useEffect(() => {
-        if (isAddSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/plans")
-            }, 2000);
-
+        if (add.isSuccess || update.isSuccess) {
+            const timeout = setTimeout(() => navigate('/plans'), 2000)
             return () => clearTimeout(timeout)
         }
-    }, [isAddSuccess])
-
-    useEffect(() => {
-        if (isUpdateSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/plans")
-            }, 2000);
-            return () => clearTimeout(timeout)
-        }
-    }, [isUpdateSuccess])
-
+    }, [add.isSuccess, update.isSuccess, navigate])
 
     return <>
-        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+        {add.isSuccess && <Toast type="success" message={add.data?.message} />}
+        {add.isError && <Toast type="error" message={add.error as string} />}
+        {update.isSuccess && <Toast type={update.data === 'No Changes Detected' ? 'info' : 'success'} message={update.data} />}
+        {update.isError && <Toast type="error" message={update.error as string} />}
 
         <Box>
             <DataContainer config={config} />
             <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Box component="form" onSubmit={handleSubmit(handleSave)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Name */}
@@ -321,7 +328,7 @@ const AddPlan = () => {
                             Reset
                         </Button>
                         <Button
-                            loading={id ? updateLoading : addLoading}
+                            loading={id ? update.isLoading : add.isLoading}
                             type='submit'
                             variant='contained'
                             sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
@@ -332,6 +339,6 @@ const AddPlan = () => {
             </Paper >
         </Box >
     </>
-}
+})
 
 export default AddPlan

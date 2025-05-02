@@ -4,7 +4,7 @@ import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Toast from '../../components/Toast'
 import { useAddNotificationMutation, useGetNotificationByIdQuery, useUpdateNotificationMutation } from '../../redux/apis/notification.api'
 import { INotification } from '../../models/notification.interface'
@@ -18,25 +18,25 @@ const defaultValues = {
     scheduleDate: ""
 }
 
-const AddPolicyType = () => {
+const AddPolicyType = React.memo(() => {
     const { id } = useParams()
     const navigate = useNavigate()
 
     const [productOptions, setProductOptions] = useState<{ label?: string, value?: string }[]>([])
     const [policyOptions, setPolicyOptions] = useState<{ label?: string, value?: string }[]>([])
 
-    const [addNotification, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddNotificationMutation()
-    const [updateNotification, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateNotificationMutation()
+    const [addNotification, addStatus] = useAddNotificationMutation()
+    const [updateNotification, updateStatus] = useUpdateNotificationMutation()
     const { data } = useGetNotificationByIdQuery(id as string, { skip: !id })
     const { data: products } = useGetProductsQuery({ isFetchAll: true })
     const { data: policies } = useGetPoliciesQuery({ isFetchAll: true })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: id ? "Edit Notification" : "Add Notification",
         backLink: "../",
-    }
+    }), [id])
 
-    const fields: FieldConfig[] = [
+    const fields: FieldConfig[] = useMemo(() => [
         {
             name: "product",
             type: "autoComplete",
@@ -63,34 +63,37 @@ const AddPolicyType = () => {
             placeholder: "message",
             rules: { required: true }
         },
-    ]
+    ], [productOptions, policyOptions])
 
-    const schema = customValidator(fields)
 
-    type FormValues = z.infer<typeof schema>
+    const handleSave = useCallback(
+        (values: z.infer<ReturnType<typeof customValidator>>) => {
+            const product = products?.result.find(item => item._id === values.product)
+            const policy = policyOptions.find(item => item.value === values.policy)
 
-    const onSubmit = (values: FormValues) => {
-        const product = products?.result.find(item => item._id === values.product)
-        const policy = policyOptions.find(item => item.value === values.policy)
-
-        let updatedData = values
-        if (product && policy) {
-            updatedData = {
-                ...values,
-                product: { _id: product._id, name: product.name },
-                policy: { _id: policy.value, name: policy.label },
-                type: "notification"
+            let updatedData = values
+            if (product && policy) {
+                updatedData = {
+                    ...values,
+                    product: { _id: product._id, name: product.name },
+                    policy: { _id: policy.value, name: policy.label },
+                    type: "notification"
+                }
             }
-        }
 
-        if (id && data) {
-            updateNotification({ id, notificationData: updatedData as INotification })
-        } else {
-            addNotification(updatedData as INotification)
-        }
-    }
+            if (id && data) {
+                updateNotification({ id, notificationData: updatedData as INotification })
+            } else {
+                addNotification(updatedData as INotification)
+            }
+        }, [id, data, addNotification, updateNotification, products, policyOptions])
 
-    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    const { handleSubmit, renderSingleInput, setValue, reset, watch } = useDynamicForm({
+        fields,
+        defaultValues,
+        schema: customValidator(fields),
+        onSubmit: handleSave
+    })
 
     useEffect(() => {
         if (products?.result) {
@@ -136,38 +139,25 @@ const AddPolicyType = () => {
                 setPolicyOptions(transformedPolicies)
             }
         }
-    }, [id, data, products])
+    }, [id, data, products, setValue])
 
     useEffect(() => {
-        if (isAddSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/notifications")
-            }, 2000);
+        if (addStatus.isSuccess || updateStatus.isSuccess) {
+            const timeout = setTimeout(() => navigate('/notifications'), 2000)
             return () => clearTimeout(timeout)
         }
-    }, [isAddSuccess])
-
-    useEffect(() => {
-        if (isUpdateSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/notifications")
-            }, 2000);
-            return () => clearTimeout(timeout)
-        }
-    }, [isUpdateSuccess])
-
+    }, [addStatus.isSuccess, updateStatus.isSuccess, navigate])
 
     return <>
-        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+        {addStatus.isSuccess && <Toast type="success" message={addStatus.data?.message} />}
+        {addStatus.isError && <Toast type="error" message={addStatus.error as string} />}
+        {updateStatus.isSuccess && <Toast type={updateStatus.data === 'No Changes Detected' ? 'info' : 'success'} message={updateStatus.data} />}
+        {updateStatus.isError && <Toast type="error" message={updateStatus.error as string} />}
 
         <Box>
             <DataContainer config={config} />
             <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Box component="form" onSubmit={handleSubmit(handleSave)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Product */}
@@ -203,7 +193,7 @@ const AddPolicyType = () => {
                             Reset
                         </Button>
                         <Button
-                            loading={id ? updateLoading : addLoading}
+                            loading={id ? updateStatus.isLoading : addStatus.isLoading}
                             type='submit'
                             variant='contained'
                             sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
@@ -214,6 +204,6 @@ const AddPolicyType = () => {
             </Paper>
         </Box>
     </>
-}
+})
 
 export default AddPolicyType

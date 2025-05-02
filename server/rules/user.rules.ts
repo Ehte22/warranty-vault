@@ -13,11 +13,11 @@ export const registerRules: validationRulesSchema = {
 }
 
 export const sendOTPRules: validationRulesSchema = {
-    username: { required: true, email: true },
+    username: { required: true },
 }
 
 export const verifyOTPRules: validationRulesSchema = {
-    username: { required: true, email: true },
+    username: { required: true },
     otp: { required: true }
 }
 

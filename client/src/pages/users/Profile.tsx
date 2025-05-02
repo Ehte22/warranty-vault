@@ -205,54 +205,6 @@ const Profile = () => {
                                     />
                                 </Grid2>
 
-                                <Grid2 size={{ xs: 12, md: 6 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Plan"
-                                        variant="outlined"
-                                        size="small"
-                                        slotProps={{ input: { readOnly: true } }}
-                                        value={data?.plan || ""}
-                                        sx={textFieldStyle}
-                                    />
-                                </Grid2>
-
-                                {data?.plan !== "Free" && <Grid2 size={{ xs: 12, md: 6 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Subscription Start Date"
-                                        variant="outlined"
-                                        size="small"
-                                        slotProps={{ input: { readOnly: true } }}
-                                        value={new Date(data?.subscription?.startDate as string).toISOString().split("T")[0] || ""}
-                                        sx={textFieldStyle}
-                                    />
-                                </Grid2>}
-
-                                {data?.plan !== "Free" && <Grid2 size={{ xs: 12, md: 6 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Subscription Expiry Date"
-                                        variant="outlined"
-                                        size="small"
-                                        slotProps={{ input: { readOnly: true } }}
-                                        value={new Date(data?.subscription?.expiryDate as string).toISOString().split("T")[0] || ""}
-                                        sx={textFieldStyle}
-                                    />
-                                </Grid2>}
-
-                                <Grid2 size={{ xs: 12, md: 6 }}>
-                                    <TextField
-                                        fullWidth
-                                        label="Points"
-                                        variant="outlined"
-                                        size="small"
-                                        slotProps={{ input: { readOnly: true } }}
-                                        value={data?.points}
-                                        sx={textFieldStyle}
-                                    />
-                                </Grid2>
-
                             </Grid2>
                         </Box>
                         : <>

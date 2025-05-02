@@ -1,7 +1,7 @@
 import { Chip, Paper, Stack } from '@mui/material';
 import DataContainer, { DataContainerConfig } from '../../components/DataContainer'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
 import Toast from '../../components/Toast';
@@ -9,16 +9,16 @@ import Loader from '../../components/Loader';
 import { useDeleteCouponMutation, useGetCouponsQuery, useUpdateCouponStatusMutation } from '../../redux/apis/coupon.api';
 import { ICoupon } from '../../models/coupon.interface';
 
-const Plans = () => {
+const Coupons = React.memo(() => {
     const [searchQuery, setSearchQuery] = useState<string>("")
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: "Coupons",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
         onSearch: setSearchQuery,
-    }
+    }), [])
 
     const [coupons, setCoupons] = useState<ICoupon[]>([])
     const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
@@ -29,10 +29,10 @@ const Plans = () => {
         limit: pagination.pageSize,
         searchQuery: debounceSearchQuery.toLowerCase(),
     })
-    const [deleteCoupon, { data: message, isSuccess }] = useDeleteCouponMutation()
-    const [updateCouponsStatus, { data: statusMessage, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdateCouponStatusMutation()
+    const [deleteCoupon, { data: deleteMsg, isSuccess: deleteSuccess }] = useDeleteCouponMutation()
+    const [updateCouponsStatus, { data: statusMsg, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdateCouponStatusMutation()
 
-    const columns: GridColDef[] = [
+    const columns: GridColDef[] = useMemo(() => [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
         { field: 'code', headerName: 'Code', minWidth: 150, flex: 1 },
         { field: 'discountType', headerName: 'Discount Type', minWidth: 150, flex: 1 },
@@ -87,7 +87,11 @@ const Plans = () => {
                 </>
             }
         }
-    ];
+    ], [deleteCoupon, updateCouponsStatus])
+
+    const handlePaginationChange = useCallback((params: { page: number, pageSize: number }) => {
+        setPagination({ page: params.page, pageSize: params.pageSize });
+    }, [])
 
     useEffect(() => {
         if (data?.result) {
@@ -103,8 +107,8 @@ const Plans = () => {
     }
 
     return <>
-        {isSuccess && <Toast type='success' message={message as string} />}
-        {statusUpdateSuccess && <Toast type="success" message={statusMessage} />}
+        {deleteSuccess && <Toast type='success' message={deleteMsg as string} />}
+        {statusUpdateSuccess && <Toast type="success" message={statusMsg} />}
         {statusUpdateError && <Toast type="error" message={statusError as string} />}
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
@@ -117,13 +121,11 @@ const Plans = () => {
                 pageSizeOptions={[5, 10, 20, 50]}
                 paginationModel={{ page: pagination.page, pageSize: pagination.pageSize }}
                 getRowId={(row) => row._id}
-                onPaginationModelChange={(params) => {
-                    setPagination({ page: params.page, pageSize: params.pageSize })
-                }}
+                onPaginationModelChange={handlePaginationChange}
                 sx={{ border: 0 }}
             />
         </Paper >
     </>
-}
+})
 
-export default Plans
+export default Coupons

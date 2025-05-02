@@ -5,31 +5,9 @@ import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAddBrandMutation, useGetBrandByIdQuery, useUpdateBrandMutation } from '../../redux/apis/brand.api'
-import { useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useImagePreview } from '../../context/ImageContext'
 import Toast from '../../components/Toast'
-
-const fields: FieldConfig[] = [
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "description",
-        type: "textarea",
-        placeholder: "Description",
-        rules: { required: false, min: 2, max: 500 }
-    },
-    {
-        name: "logo",
-        type: "file",
-        label: "Logo",
-        placeholder: "Logo",
-        rules: { required: false, file: true }
-    },
-]
 
 const defaultValues = {
     name: "",
@@ -37,94 +15,106 @@ const defaultValues = {
     logo: ""
 }
 
-const AddBrand = () => {
+const AddBrand = React.memo(() => {
     const { id } = useParams()
     const { setPreviewImages } = useImagePreview()
     const navigate = useNavigate()
 
-    const [addBrand, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddBrandMutation()
-    const [updateBrand, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateBrandMutation()
-    const { data } = useGetBrandByIdQuery(id as string, { skip: !id })
+    const [addBrand, addStatus] = useAddBrandMutation()
+    const [updateBrand, updateStatus] = useUpdateBrandMutation()
+    const { data: brandData } = useGetBrandByIdQuery(id as string, { skip: !id })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: id ? "Edit Brand" : "Add Brand",
         backLink: "../",
-    }
+    }), [id])
 
-    const schema = customValidator(fields)
+    const fields: FieldConfig[] = useMemo(() => [
+        {
+            name: "name",
+            type: "text",
+            placeholder: "Name",
+            rules: { required: true, min: 2, max: 100 }
+        },
+        {
+            name: "description",
+            type: "textarea",
+            placeholder: "Description",
+            rules: { required: false, min: 2, max: 500 }
+        },
+        {
+            name: "logo",
+            type: "file",
+            label: "Logo",
+            placeholder: "Logo",
+            rules: { required: false, file: true }
+        },
+    ], [])
 
-    type FormValues = z.infer<typeof schema>
 
-    const onSubmit = (values: FormValues) => {
-        const formData = new FormData()
+    const handleSave = useCallback(
+        (values: z.infer<ReturnType<typeof customValidator>>) => {
+            const formData = new FormData()
+            const payload: Record<string, any> = { ...values, type: "brand" }
 
-        const updatedData: Record<string, any> = { ...values, type: "brand" }
+            Object.entries(payload).forEach(([key, value]) => {
+                if (typeof value === 'object' && value !== null) {
+                    Object.values(value).forEach((item: any) => {
+                        formData.append(key, item);
+                    });
+                } else {
+                    formData.append(key, value);
+                }
+            });
 
-        Object.keys(updatedData).forEach((key) => {
-            if (typeof updatedData[key] === "object") {
-                Object.keys(updatedData[key]).forEach((item) => {
-                    formData.append(key, updatedData[key][item])
-                })
-            } else {
-                formData.append(key, updatedData[key])
-            }
+            id && brandData
+                ? updateBrand({ id, brandData: formData })
+                : addBrand(formData);
+        }, [id, brandData, addBrand, updateBrand])
+
+    const { handleSubmit, renderSingleInput, setValue, reset } =
+        useDynamicForm({
+            fields,
+            defaultValues,
+            schema: customValidator(fields),
+            onSubmit: handleSave
         })
 
-        if (id && data) {
-            updateBrand({ id, brandData: formData })
-        } else {
-            addBrand(formData)
-        }
-    }
-
-    const handleReset = () => {
+    const handleReset = useCallback(() => {
         reset()
         setPreviewImages([])
-    }
+    }, [reset, setPreviewImages])
 
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
 
     useEffect(() => {
-        if (id && data) {
-            setValue("name", data.name)
-            setValue("description", data.description)
+        if (id && brandData) {
+            setValue("name", brandData.name)
+            setValue("description", brandData.description)
 
-            if (data.logo) {
-                setValue("logo", data.logo)
-                setPreviewImages([data.logo])
+            if (brandData.logo) {
+                setValue("logo", brandData.logo)
+                setPreviewImages([brandData.logo])
             }
         }
-    }, [id, data])
+    }, [id, brandData, setValue])
 
     useEffect(() => {
-        if (isAddSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/brands")
-            }, 2000);
+        if (addStatus.isSuccess || updateStatus.isSuccess) {
+            const timeout = setTimeout(() => navigate('/brands'), 2000)
             return () => clearTimeout(timeout)
         }
-    }, [isAddSuccess])
-
-    useEffect(() => {
-        if (isUpdateSuccess) {
-            setTimeout(() => {
-                navigate("/brands")
-            }, 2000);
-        }
-    }, [isUpdateSuccess])
-
+    }, [addStatus.isSuccess, updateStatus.isSuccess, navigate])
 
     return <>
-        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+        {addStatus.isSuccess && <Toast type="success" message={addStatus.data?.message} />}
+        {addStatus.isError && <Toast type="error" message={addStatus.error as string} />}
+        {updateStatus.isSuccess && <Toast type={updateStatus.data === 'No Changes Detected' ? 'info' : 'success'} message={updateStatus.data} />}
+        {updateStatus.isError && <Toast type="error" message={updateStatus.error as string} />}
 
         <Box>
             <DataContainer config={config} />
             <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Box component="form" onSubmit={handleSubmit(handleSave)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Name */}
@@ -155,7 +145,7 @@ const AddBrand = () => {
                             Reset
                         </Button>
                         <Button
-                            loading={id ? updateLoading : addLoading}
+                            loading={id ? updateStatus.isLoading : addStatus.isLoading}
                             type='submit'
                             variant='contained'
                             sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
@@ -166,6 +156,6 @@ const AddBrand = () => {
             </Paper>
         </Box>
     </>
-}
+})
 
 export default AddBrand

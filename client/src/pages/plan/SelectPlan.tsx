@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, Typography, Button, Box, Divider, ToggleButtonGroup, ToggleButton, Paper, Badge, Grid2, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import { useGetPlansQuery, useSelectPlanMutation } from "../../redux/apis/plan.api";
@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { useApplyCouponMutation } from "../../redux/apis/coupon.api";
 
-const SelectPlan = () => {
+const SelectPlan = React.memo(() => {
     const [selectedPlan, setSelectedPlan] = useState<string>("");
     const [selectedPlanPrice, setSelectedPlanPrice] = useState<string>("");
     const [billingCycle, setBillingCycle] = useState<{ [key: string]: "monthly" | "yearly" }>({
@@ -17,9 +17,9 @@ const SelectPlan = () => {
         Pro: "monthly",
         Family: "monthly",
     });
-    const [openModal, setOpenModal] = useState(false);
-    const [coupon, setCoupon] = useState("");
-    const [discountedPrice, setDiscountedPrice] = useState("");
+    const [openModal, setOpenModal] = useState<boolean>(false);
+    const [coupon, setCoupon] = useState<string>("");
+    const [discountedPrice, setDiscountedPrice] = useState<string>("");
 
     const navigate = useNavigate()
     const { user } = useSelector((state: RootState) => state.auth)
@@ -30,14 +30,26 @@ const SelectPlan = () => {
     const [initiatePayment] = useInitiatePaymentMutation()
     const [verifyPayment, { data: paymentData, isSuccess: paymentSuccess, error: paymentErrorData, isError: paymentError }] = useVerifyPaymentMutation()
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setCoupon("")
         setSelectedPlanPrice("")
         setDiscountedPrice("")
         setOpenModal(false)
-    };
+    }, [])
 
-    const handlePay = async (plan: string, billingCycle: string) => {
+    const handleBillingChange = useCallback((plan: string, newCycle: "monthly" | "yearly") => {
+        if (newCycle) {
+            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }));
+        }
+    }, [])
+
+    const handleApplyCoupon = useCallback((plan: string) => {
+        if (coupon && plan === "Pro" || plan === "Family") {
+            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan] })
+        }
+    }, [coupon, billingCycle, applyCoupon])
+
+    const handlePay = useCallback(async (plan: string, billingCycle: string) => {
         setOpenModal(true)
         setSelectedPlan(plan);
         if (plan === "Free") {
@@ -74,19 +86,7 @@ const SelectPlan = () => {
             razor.open();
 
         }
-    };
-
-    const handleBillingChange = (plan: string, newCycle: "monthly" | "yearly") => {
-        if (newCycle) {
-            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }));
-        }
-    };
-
-    const handleApplyCoupon = (plan: string) => {
-        if (coupon && plan === "Pro" || plan === "Family") {
-            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan] })
-        }
-    }
+    }, [coupon, selectPlan, initiatePayment, verifyPayment, user])
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -95,19 +95,14 @@ const SelectPlan = () => {
         if (result) {
             try {
                 const parsedResult = JSON.parse(decodeURIComponent(result));
-                // Store the user info in localStorage
                 localStorage.setItem("user", JSON.stringify(parsedResult));
-
-                // Remove the result query param from the URL to prevent infinite reload
                 window.history.replaceState(null, "", window.location.pathname);
-
-                // Reload the page to apply changes
                 window.location.reload();
             } catch (error) {
                 console.error("Error parsing result:", error);
             }
         }
-    }, []); // This will run only once when the component mounts
+    }, [])
 
     useEffect(() => {
         if (isSuccess) {
@@ -118,10 +113,10 @@ const SelectPlan = () => {
     }, [isSuccess, navigate])
 
     useEffect(() => {
-        if (isApplyCouponSuccess) {
-            setDiscountedPrice(couponData.finalAmount.toString())
+        if (isApplyCouponSuccess && couponData) {
+            setDiscountedPrice(couponData.finalAmount.toString());
         }
-    }, [couponData])
+    }, [isApplyCouponSuccess, couponData])
 
     return <>
         {paymentSuccess && <Toast type="success" message={paymentData.message} />}
@@ -303,6 +298,6 @@ const SelectPlan = () => {
 
         </Box>
     </>
-};
+})
 
 export default SelectPlan;

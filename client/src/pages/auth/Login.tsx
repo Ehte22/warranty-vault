@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
     Container,
     Paper,
@@ -47,27 +47,26 @@ const textFieldStyles = {
     },
 };
 
-const fields: FieldConfig[] = [
-    {
-        name: "username",
-        label: "Username",
-        type: "text",
-        rules: { required: true }
-    },
-    {
-        name: "password",
-        label: "Password",
-        type: "text",
-        rules: { required: true }
-    },
-]
-
-
-const Login: React.FC = () => {
+const Login: React.FC = React.memo(() => {
 
     const [signIn, { data, error, isSuccess, isError, isLoading }] = useSignInMutation()
 
     const navigate = useNavigate()
+
+    const fields: FieldConfig[] = useMemo(() => [
+        {
+            name: "username",
+            label: "Username",
+            type: "text",
+            rules: { required: true }
+        },
+        {
+            name: "password",
+            label: "Password",
+            type: "text",
+            rules: { required: true }
+        },
+    ], [])
 
     const schema = customValidator(fields)
 
@@ -167,6 +166,6 @@ const Login: React.FC = () => {
         </Container>
     </>
 
-};
+})
 
 export default Login;

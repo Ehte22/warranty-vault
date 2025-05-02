@@ -4,7 +4,7 @@ import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Toast from '../../components/Toast'
 import { useAddCouponMutation, useGetCouponByIdQuery, useUpdateCouponMutation } from '../../redux/apis/coupon.api'
 import { useGetUsersQuery } from '../../redux/apis/user.api'
@@ -21,23 +21,23 @@ const defaultValues = {
   usersAllowed: [],
 }
 
-const AddPlan = () => {
+const AddPlan = React.memo(() => {
   const { id } = useParams()
   const navigate = useNavigate()
 
   const [userOptions, setUsersOptions] = useState<{ label: string, value?: string }[]>([])
 
-  const [addPlan, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddCouponMutation()
-  const [updatePlan, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateCouponMutation()
-  const { data } = useGetCouponByIdQuery(id as string, { skip: !id })
+  const [addPlan, addStatus] = useAddCouponMutation()
+  const [updatePlan, updateStatus] = useUpdateCouponMutation()
+  const { data: couponData } = useGetCouponByIdQuery(id as string, { skip: !id })
   const { data: users } = useGetUsersQuery({ isFetchAll: true })
 
-  const config: DataContainerConfig = {
-    pageTitle: id ? "Edit Coupon" : "Add Coupon",
-    backLink: "../",
-  }
+  const config: DataContainerConfig = useMemo(() => ({
+    pageTitle: id ? 'Edit Coupon' : 'Add Coupon',
+    backLink: '../'
+  }), [id])
 
-  const fields: FieldConfig[] = [
+  const fields: FieldConfig[] = useMemo(() => ([
     {
       name: "code",
       type: "text",
@@ -92,84 +92,66 @@ const AddPlan = () => {
       placeholder: "Select Users",
       rules: { required: false, array: true },
     },
-  ]
+  ]), [userOptions])
 
-  const schema = customValidator(fields)
 
-  type FormValues = z.infer<typeof schema>
+  const handleSave = useCallback(
+    (values: z.infer<ReturnType<typeof customValidator>>) => {
+      const mappedUsers = values.usersAllowed && users?.result
+        ? users.result
+          .filter(user => values.usersAllowed.includes(user._id))
+          .map(({ _id, name }) => ({ _id, name }))
+        : []
 
-  const onSubmit = (values: FormValues) => {
-    let x = values.usersAllowed
+      const payload = { ...values, usersAllowed: mappedUsers } as ICoupon
 
-    if (Array.isArray(x)) {
-      x = users?.result
-        .filter((item) => x.includes(item._id))
-        .map(user => ({ _id: user._id, name: user.name }))
-    }
+      id && couponData ? updatePlan({ id, couponData: payload }) : addPlan(payload)
+    }, [id, couponData, addPlan, updatePlan])
 
-    const couponData = { ...values, usersAllowed: x } as ICoupon
-
-    if (id && data) {
-      updatePlan({ id, couponData })
-    } else {
-      addPlan(couponData)
-    }
-  }
-
-  const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+  const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({
+    fields,
+    defaultValues,
+    schema: customValidator(fields),
+    onSubmit: handleSave
+  })
 
   useEffect(() => {
-    if (id && data) {
-      setValue("code", data.code)
-      setValue("discountType", data.discountType)
-      setValue("discountValue", data.discountValue)
-      setValue("expiryDate", data.expiryDate)
-      setValue("usageLimit", data.usageLimit)
-      setValue("minPurchase", data.minPurchase)
-      setValue("maxDiscount", data.maxDiscount)
-      setValue("usersAllowed", data.usersAllowed?.map(item => item._id) || [])
+    if (id && couponData) {
+      setValue("code", couponData.code)
+      setValue("discountType", couponData.discountType)
+      setValue("discountValue", couponData.discountValue)
+      setValue("expiryDate", couponData.expiryDate)
+      setValue("usageLimit", couponData.usageLimit)
+      setValue("minPurchase", couponData.minPurchase)
+      setValue("maxDiscount", couponData.maxDiscount)
+      setValue("usersAllowed", couponData.usersAllowed?.map(item => item._id) || [])
 
     }
-  }, [id, data])
+  }, [id, couponData, setValue])
 
   useEffect(() => {
     if (users?.result) {
-      const transformedData = users.result.map((item) => ({ label: item.name, value: item._id }))
-      if (transformedData) {
-        setUsersOptions(transformedData)
-      }
+      setUsersOptions(users.result.map((item) => ({ label: item.name, value: item._id })))
     }
   }, [users?.result])
 
   useEffect(() => {
-    if (isAddSuccess) {
-      const timeout = setTimeout(() => {
-        navigate("/coupons")
-      }, 2000);
+    if (addStatus.isSuccess || updateStatus.isSuccess) {
+      const timeout = setTimeout(() => navigate('/coupons'), 2000)
       return () => clearTimeout(timeout)
     }
-  }, [isAddSuccess])
-
-  useEffect(() => {
-    if (isUpdateSuccess) {
-      const timeout = setTimeout(() => {
-        navigate("/coupons")
-      }, 2000);
-      return () => clearTimeout(timeout)
-    }
-  }, [isUpdateSuccess])
+  }, [addStatus.isSuccess, updateStatus.isSuccess, navigate])
 
   return <>
-    {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-    {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-    {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-    {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+    {addStatus.isSuccess && <Toast type="success" message={addStatus.data?.message} />}
+    {addStatus.isError && <Toast type="error" message={addStatus.error as string} />}
+    {updateStatus.isSuccess && <Toast type={updateStatus.data === "No Changes Detected" ? "info" : "success"} message={updateStatus.data} />}
+    {updateStatus.isError && <Toast type="error" message={updateStatus.error as string} />}
 
     <Box>
       <DataContainer config={config} />
       <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+        <Box component="form" onSubmit={handleSubmit(handleSave)}>
           <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
             {/* Code */}
@@ -225,9 +207,9 @@ const AddPlan = () => {
               Reset
             </Button>
             <Button
-              loading={id ? updateLoading : addLoading}
               type='submit'
               variant='contained'
+              loading={id ? updateStatus.isLoading : addStatus.isLoading}
               sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
               Save
             </Button>
@@ -236,6 +218,6 @@ const AddPlan = () => {
       </Paper >
     </Box >
   </>
-}
+})
 
 export default AddPlan

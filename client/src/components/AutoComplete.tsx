@@ -32,7 +32,10 @@ const AutoComplete: React.FC<IFieldProps> = ({ controllerField, field, errors })
                 sx={textFieldStyles}
                 disablePortal
                 options={field?.options || []}
-                renderInput={(params) => <TextField error={isError} {...params} label={field.placeholder} />}
+                renderInput={(params) => <TextField
+                    variant='outlined'
+                    error={isError}
+                    {...params} label={field.placeholder} />}
             />
         </Paper>
     </>

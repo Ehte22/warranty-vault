@@ -4,36 +4,16 @@ import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import Toast from '../../components/Toast'
 import { useAddPolicyTypeMutation, useGetPolicyTypeByIdQuery, useUpdatePolicyTypeMutation } from '../../redux/apis/policyType.api'
 
-const fields: FieldConfig[] = [
-    {
-        name: "name",
-        type: "text",
-        placeholder: "Name",
-        rules: { required: true, min: 2, max: 100 }
-    },
-    {
-        name: "description",
-        type: "textarea",
-        placeholder: "Description",
-        rules: { required: false, min: 2, max: 500 }
-    },
-]
-
-const defaultValues = {
-    name: "",
-    description: "",
-}
-
-const AddPolicyType = () => {
+const AddPolicyType = React.memo(() => {
     const { id } = useParams()
     const navigate = useNavigate()
 
-    const [addPolicyType, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddPolicyTypeMutation()
-    const [updatePolicyType, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdatePolicyTypeMutation()
+    const [addPolicyType, add] = useAddPolicyTypeMutation()
+    const [updatePolicyType, update] = useUpdatePolicyTypeMutation()
     const { data } = useGetPolicyTypeByIdQuery(id as string, { skip: !id })
 
     const config: DataContainerConfig = {
@@ -41,58 +21,67 @@ const AddPolicyType = () => {
         backLink: "../",
     }
 
-    const schema = customValidator(fields)
+    const fields: FieldConfig[] = [
+        {
+            name: "name",
+            type: "text",
+            placeholder: "Name",
+            rules: { required: true, min: 2, max: 100 }
+        },
+        {
+            name: "description",
+            type: "textarea",
+            placeholder: "Description",
+            rules: { required: false, min: 2, max: 500 }
+        },
+    ]
 
-    type FormValues = z.infer<typeof schema>
-
-    const onSubmit = (values: FormValues) => {
-        const policyTypeData = { name: values.name, description: values.description, type: "policyType" }
-        if (id && data) {
-            updatePolicyType({ id, policyTypeData })
-        } else {
-            addPolicyType(policyTypeData)
-        }
+    const defaultValues = {
+        name: "",
+        description: "",
     }
 
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    const handleSave = useCallback(
+        (values: z.infer<ReturnType<typeof customValidator>>) => {
+            const policyTypeData = { name: values.name, description: values.description, type: "policyType" }
+            if (id && data) {
+                updatePolicyType({ id, policyTypeData })
+            } else {
+                addPolicyType(policyTypeData)
+            }
+        }, [id, data, addPolicyType, updatePolicyType])
+
+    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({
+        fields,
+        defaultValues,
+        schema: customValidator(fields),
+        onSubmit: handleSave
+    })
 
     useEffect(() => {
         if (id && data) {
             setValue("name", data.name)
             setValue("description", data.description)
         }
-    }, [id, data])
+    }, [id, data, setValue])
 
     useEffect(() => {
-        if (isAddSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/policy-types")
-            }, 2000);
+        if (add.isSuccess || update.isSuccess) {
+            const timeout = setTimeout(() => navigate('/policy-types'), 2000)
             return () => clearTimeout(timeout)
         }
-    }, [isAddSuccess])
-
-    useEffect(() => {
-        if (isUpdateSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/policy-types")
-            }, 2000);
-            return () => clearTimeout(timeout)
-        }
-    }, [isUpdateSuccess])
-
+    }, [add.isSuccess, update.isSuccess, navigate])
 
     return <>
-        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+        {add.isSuccess && <Toast type="success" message={add.data?.message} />}
+        {add.isError && <Toast type="error" message={add.error as string} />}
+        {update.isSuccess && <Toast type={update.data === 'No Changes Detected' ? 'info' : 'success'} message={update.data} />}
+        {update.isError && <Toast type="error" message={update.error as string} />}
 
         <Box>
             <DataContainer config={config} />
             <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Box component="form" onSubmit={handleSubmit(handleSave)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Name */}
@@ -118,7 +107,7 @@ const AddPolicyType = () => {
                             Reset
                         </Button>
                         <Button
-                            loading={id ? updateLoading : addLoading}
+                            loading={add.isLoading || update.isLoading}
                             type='submit'
                             variant='contained'
                             sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
@@ -129,6 +118,6 @@ const AddPolicyType = () => {
             </Paper>
         </Box>
     </>
-}
+})
 
 export default AddPolicyType

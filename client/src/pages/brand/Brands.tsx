@@ -2,18 +2,20 @@ import { Paper } from '@mui/material';
 import DataContainer, { DataContainerConfig } from '../../components/DataContainer'
 import { useDeleteBrandMutation, useGetBrandsQuery } from '../../redux/apis/brand.api'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { IBrand } from '../../models/brand.interface';
 import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
 import Toast from '../../components/Toast';
 import Loader from '../../components/Loader';
 
-const Brands = () => {
+const Brands = React.memo(() => {
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<string>("")
+    const [brands, setBrands] = useState<IBrand[]>([])
+    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: "Brands",
         showAddBtn: true,
         showRefreshButton: true,
@@ -21,10 +23,8 @@ const Brands = () => {
         showSelector: true,
         onSearch: setSearchQuery,
         onSelect: setSelectedUser
-    }
+    }), [])
 
-    const [brands, setBrands] = useState<IBrand[]>([])
-    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
     const { data, isLoading } = useGetBrandsQuery({
@@ -35,7 +35,7 @@ const Brands = () => {
     })
     const [deleteBrand, { data: message, isSuccess }] = useDeleteBrandMutation()
 
-    const columns: GridColDef[] = [
+    const columns: GridColDef[] = useMemo(() => [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4 },
         { field: 'name', headerName: 'Brand Name', minWidth: 200, flex: 1 },
         {
@@ -76,14 +76,18 @@ const Brands = () => {
                 </>
             }
         }
-    ];
+    ], [deleteBrand])
+
+    const handlePaginationChange = useCallback((params: { page: number, pageSize: number }) => {
+        setPagination({ page: params.page, pageSize: params.pageSize });
+    }, [])
 
     useEffect(() => {
         if (data?.result) {
-            const x = data.result.map((item, index) => {
+            const updatedData = data.result.map((item, index) => {
                 return { ...item, serialNo: index + 1 }
             })
-            setBrands(x)
+            setBrands(updatedData)
         }
     }, [data?.result])
 
@@ -104,13 +108,11 @@ const Brands = () => {
                 pageSizeOptions={[5, 10, 20, 50]}
                 paginationModel={{ page: pagination.page, pageSize: pagination.pageSize }}
                 getRowId={(row) => row._id}
-                onPaginationModelChange={(params) => {
-                    setPagination({ page: params.page, pageSize: params.pageSize })
-                }}
+                onPaginationModelChange={handlePaginationChange}
                 sx={{ border: 0 }}
             />
         </Paper >
     </>
-}
+})
 
 export default Brands

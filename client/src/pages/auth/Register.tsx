@@ -1,5 +1,5 @@
 import { Box, Button, Container, FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput, Paper, TextField, Typography } from '@mui/material'
-import { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -40,48 +40,7 @@ const textFieldStyles = {
     },
 };
 
-const fields: FieldConfig[] = [
-    {
-        name: "name",
-        label: "Name",
-        type: "text",
-        rules: { required: true }
-    },
-    {
-        name: "email",
-        label: "Email Address",
-        type: "text",
-        rules: { required: true, email: true }
-    },
-    {
-        name: "phone",
-        label: "Phone Number",
-        type: "text",
-        rules: { required: true, pattern: /^[6-9]\d{9}$/, patternMessage: "Please enter a valid phone number" }
-    },
-    {
-        name: "password",
-        label: "Password",
-        type: "text",
-        rules: { required: true, min: 8, max: 16 }
-    },
-    {
-        name: "confirmPassword",
-        label: "Confirm Password",
-        placeholder: "Confirm Password",
-        type: "text",
-        rules: { required: true }
-    },
-    {
-        name: "referrer",
-        placeholder: "Referral Code",
-        type: "text",
-        rules: { required: false }
-    },
-]
-
-
-const Register = () => {
+const Register = React.memo(() => {
     const [signUp, { data, error, isSuccess, isLoading, isError }] = useSignUpMutation()
 
     const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({
@@ -90,8 +49,51 @@ const Register = () => {
     });
     const [isPassMatchError, setIsPassMatchError] = useState<boolean>(false)
 
+    const navigate = useNavigate()
+    const { user } = useSelector((state: RootState) => state.auth)
+
     const queryParams = new URLSearchParams(location.search);
     const referrerCode = queryParams.get("ref")
+
+    const fields: FieldConfig[] = useMemo(() => [
+        {
+            name: "name",
+            label: "Name",
+            type: "text",
+            rules: { required: true }
+        },
+        {
+            name: "email",
+            label: "Email Address",
+            type: "text",
+            rules: { required: true, email: true }
+        },
+        {
+            name: "phone",
+            label: "Phone Number",
+            type: "text",
+            rules: { required: true, pattern: /^[6-9]\d{9}$/, patternMessage: "Please enter a valid phone number" }
+        },
+        {
+            name: "password",
+            label: "Password",
+            type: "text",
+            rules: { required: true, min: 8, max: 16 }
+        },
+        {
+            name: "confirmPassword",
+            label: "Confirm Password",
+            placeholder: "Confirm Password",
+            type: "text",
+            rules: { required: true }
+        },
+        {
+            name: "referrer",
+            placeholder: "Referral Code",
+            type: "text",
+            rules: { required: false }
+        },
+    ], [])
 
     const defaultValues = {
         name: "",
@@ -101,10 +103,6 @@ const Register = () => {
         confirmPassword: "",
         referrer: referrerCode || ""
     }
-
-    const navigate = useNavigate()
-
-    const { user } = useSelector((state: RootState) => state.auth)
 
     const handleClickShowPassword = (field: string) => {
         setShowPassword((prevState) => ({
@@ -311,6 +309,6 @@ const Register = () => {
             </Paper>
         </Container>
     </>
-}
+})
 
 export default Register

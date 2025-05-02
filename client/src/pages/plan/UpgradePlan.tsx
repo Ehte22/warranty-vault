@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { Card, CardContent, Typography, Button, Box, Divider, ToggleButtonGroup, ToggleButton, Paper, Badge, Grid2, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material"
 import CheckIcon from "@mui/icons-material/Check"
 import { useGetPlansQuery, useSelectPlanMutation } from "../../redux/apis/plan.api"
@@ -11,7 +11,7 @@ import { useApplyCouponMutation } from "../../redux/apis/coupon.api"
 import { IPlan } from "../../models/plan.interface"
 import Loader from "../../components/Loader"
 
-const UpgradePlan = () => {
+const UpgradePlan = React.memo(() => {
     const [selectedPlan, setSelectedPlan] = useState<string>("")
     const [selectedPlanPrice, setSelectedPlanPrice] = useState<string>("")
     const [originalPrice, setOriginalPrice] = useState<string>("")
@@ -37,15 +37,27 @@ const UpgradePlan = () => {
     const [verifyPayment, { data: paymentData, isSuccess: paymentSuccess, error: paymentErrorData, isError: paymentError }] = useVerifyPaymentMutation()
 
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setCoupon("")
         setSelectedPlanPrice("")
         setPoints("")
         setOpenModal(false)
         setIsPointsApplied(false)
-    }
+    }, [])
 
-    const handleSelect = async (plan: string, billingCycle: string) => {
+    const handleBillingChange = useCallback((plan: string, newCycle: "monthly" | "yearly") => {
+        if (newCycle) {
+            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }));
+        }
+    }, [])
+
+    const handleApplyCoupon = useCallback((plan: string) => {
+        if (coupon && plan === "Pro" || plan === "Family") {
+            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan], points: +points || 0 })
+        }
+    }, [coupon, billingCycle, applyCoupon, points,])
+
+    const handleSelect = useCallback(async (plan: string, billingCycle: string) => {
         setOpenModal(true)
         setSelectedPlan(plan)
         if (plan === "Free") {
@@ -83,25 +95,13 @@ const UpgradePlan = () => {
             razor.open()
 
         }
-    }
+    }, [coupon, selectPlan, initiatePayment, verifyPayment, user, points])
 
     const handleSelectPlan = (plan: IPlan) => {
         setOpenModal(true)
         setSelectedPlan(plan.name)
         setSelectedPlanPrice(plan.price[billingCycle[plan.name]])
         setOriginalPrice(plan.price[billingCycle[plan.name]])
-    }
-
-    const handleBillingChange = (plan: string, newCycle: "monthly" | "yearly") => {
-        if (newCycle) {
-            setBillingCycle((prev) => ({ ...prev, [plan]: newCycle }))
-        }
-    }
-
-    const handleApplyCoupon = (plan: string) => {
-        if (coupon && plan === "Pro" || plan === "Family") {
-            applyCoupon({ code: coupon, selectedPlan: plan, billingCycle: billingCycle[plan], points: +points || 0 })
-        }
     }
 
     const handleApplyPoints = () => {
@@ -374,6 +374,6 @@ const UpgradePlan = () => {
 
         </Box >
     </>
-}
+})
 
 export default UpgradePlan

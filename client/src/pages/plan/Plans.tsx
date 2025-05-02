@@ -1,7 +1,7 @@
 import { Chip, Paper, Stack } from '@mui/material';
 import DataContainer, { DataContainerConfig } from '../../components/DataContainer'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ActionsMenu from '../../components/ActionsMenu';
 import { useDebounce } from '../../utils/useDebounce';
 import Toast from '../../components/Toast';
@@ -9,21 +9,21 @@ import { IPlan } from '../../models/plan.interface';
 import { useDeletePlanMutation, useGetPlansQuery, useUpdatePlanStatusMutation } from '../../redux/apis/plan.api';
 import Loader from '../../components/Loader';
 
-const Plans = () => {
+const Plans = React.memo(() => {
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<string>("")
+    const [plans, setPlans] = useState<IPlan[]>([])
+    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: "Plans",
         showAddBtn: true,
         showRefreshButton: true,
         showSearchBar: true,
         onSearch: setSearchQuery,
         onSelect: setSelectedUser
-    }
+    }), [])
 
-    const [plans, setPlans] = useState<IPlan[]>([])
-    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
     const { data, isLoading } = useGetPlansQuery({
@@ -32,10 +32,10 @@ const Plans = () => {
         searchQuery: debounceSearchQuery.toLowerCase(),
         selectedUser
     })
-    const [deletePolicyTypes, { data: message, isSuccess }] = useDeletePlanMutation()
+    const [deletePlan, { data: message, isSuccess }] = useDeletePlanMutation()
     const [updateStatus, { data: statusMessage, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdatePlanStatusMutation()
 
-    const columns: GridColDef[] = [
+    const columns: GridColDef[] = useMemo(() => [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
         { field: 'name', headerName: 'Name', minWidth: 150, flex: 1 },
         {
@@ -73,11 +73,11 @@ const Plans = () => {
             filterable: false,
             renderCell: (params) => {
                 return <>
-                    <ActionsMenu id={params.row._id} deleteAction={deletePolicyTypes} />
+                    <ActionsMenu id={params.row._id} deleteAction={deletePlan} />
                 </>
             }
         }
-    ];
+    ], [updateStatus, deletePlan])
 
     useEffect(() => {
         if (data?.result) {
@@ -87,6 +87,10 @@ const Plans = () => {
             setPlans(x)
         }
     }, [data?.result])
+
+    const handlePaginationChange = useCallback((params: { page: number, pageSize: number }) => {
+        setPagination({ page: params.page, pageSize: params.pageSize });
+    }, [])
 
     if (isLoading) {
         return <Loader />
@@ -107,13 +111,11 @@ const Plans = () => {
                 pageSizeOptions={[5, 10, 20, 50]}
                 paginationModel={{ page: pagination.page, pageSize: pagination.pageSize }}
                 getRowId={(row) => row._id}
-                onPaginationModelChange={(params) => {
-                    setPagination({ page: params.page, pageSize: params.pageSize })
-                }}
+                onPaginationModelChange={handlePaginationChange}
                 sx={{ border: 0 }}
             />
         </Paper >
     </>
-}
+})
 
 export default Plans

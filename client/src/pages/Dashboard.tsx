@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Grid2, Card, CardContent, Typography, Box } from "@mui/material"
 import { Bar, Pie } from "react-chartjs-2"
 import "chart.js/auto"
@@ -7,7 +7,7 @@ import { useGetUserDashboardQuery } from "../redux/apis/dashboard.api"
 import Loader from "../components/Loader"
 import DataContainer, { DataContainerConfig } from "../components/DataContainer"
 
-const Dashboard = () => {
+const Dashboard = React.memo(() => {
     const [dashboardData, setDashboardData] = useState<IUserDashboardData | null>(null)
     const [selectedUser, setSelectedUser] = useState<string>("")
 
@@ -154,6 +154,6 @@ const Dashboard = () => {
             </Grid2>
         </Box>
     </>
-}
+})
 
 export default Dashboard

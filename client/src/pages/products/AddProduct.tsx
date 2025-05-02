@@ -4,7 +4,7 @@ import useDynamicForm, { FieldConfig } from '../../hooks/useDynamicForm'
 import { customValidator } from '../../utils/validator'
 import { z } from 'zod'
 import { useGetBrandsQuery } from '../../redux/apis/brand.api'
-import { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useImagePreview } from '../../context/ImageContext'
 import { useAddProductMutation, useGetProductByIdQuery, useUpdateProductMutation } from '../../redux/apis/product.api'
@@ -18,24 +18,24 @@ const defaultValues = {
     image: ""
 }
 
-const AddProduct = () => {
+const AddProduct = React.memo(() => {
     const [brandOptions, setBrandOptions] = useState<{ label: string, value?: string }[]>([])
 
     const { id } = useParams()
     const { setPreviewImages } = useImagePreview()
     const navigate = useNavigate()
 
-    const [addProduct, { data: addData, error: addError, isLoading: addLoading, isSuccess: isAddSuccess, isError: isAddError }] = useAddProductMutation()
-    const [updateProduct, { data: updateData, error: updateError, isLoading: updateLoading, isSuccess: isUpdateSuccess, isError: isUpdateError }] = useUpdateProductMutation()
+    const [addProduct, add] = useAddProductMutation()
+    const [updateProduct, update] = useUpdateProductMutation()
     const { data } = useGetProductByIdQuery(id as string, { skip: !id })
     const { data: brands } = useGetBrandsQuery({ isFetchAll: true })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: id ? "Edit Product" : "Add Product",
         backLink: "../",
-    }
+    }), [id])
 
-    const fields: FieldConfig[] = [
+    const fields: FieldConfig[] = useMemo(() => [
         {
             name: "name",
             type: "text",
@@ -67,59 +67,61 @@ const AddProduct = () => {
             label: "Image",
             rules: { required: false, file: true }
         },
-    ]
+    ], [brandOptions])
 
-    const schema = customValidator(fields)
+    const handleSave = useCallback(
+        (values: z.infer<ReturnType<typeof customValidator>>) => {
+            const brand = brands?.result.find(item => item._id === values.brand)
 
-    type FormValues = z.infer<typeof schema>
-
-    const onSubmit = (values: FormValues) => {
-        const brand = brands?.result.find(item => item._id === values.brand)
-
-        let updatedData = values
-        if (brand) {
-            updatedData = { ...values, brand: { _id: brand._id, name: brand.name }, type: "product" }
-        }
-
-        const formData = new FormData()
-
-        Object.keys(updatedData).forEach((key) => {
-            const value = updatedData[key];
-
-            if (value instanceof FileList) {
-                Array.from(value).forEach((file) => {
-                    formData.append(key, file);
-                });
-            } else if (typeof value === "object" && value !== null) {
-                if (Array.isArray(value)) {
-                    value.forEach((item, index) => {
-                        formData.append(`${key}[${index}]`, JSON.stringify(item));
-                    });
-                } else {
-                    Object.entries(value).forEach(([objKey, objValue]) => {
-                        formData.append(`${key}[${objKey}]`, objValue as any);
-                    });
-                }
-            } else {
-                formData.append(key, value);
+            let updatedData = values
+            if (brand) {
+                updatedData = { ...values, brand: { _id: brand._id, name: brand.name }, type: "product" }
             }
-        });
+
+            const formData = new FormData()
+
+            Object.keys(updatedData).forEach((key) => {
+                const value = updatedData[key];
+
+                if (value instanceof FileList) {
+                    Array.from(value).forEach((file) => {
+                        formData.append(key, file);
+                    });
+                } else if (typeof value === "object" && value !== null) {
+                    if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            formData.append(`${key}[${index}]`, JSON.stringify(item));
+                        });
+                    } else {
+                        Object.entries(value).forEach(([objKey, objValue]) => {
+                            formData.append(`${key}[${objKey}]`, objValue as any);
+                        });
+                    }
+                } else {
+                    formData.append(key, value);
+                }
+            });
 
 
-        if (id && data) {
-            updateProduct({ id, productData: formData })
-        } else {
-            addProduct(formData)
-        }
+            if (id && data) {
+                updateProduct({ id, productData: formData })
+            } else {
+                addProduct(formData)
+            }
 
-    }
+        }, [id, data, addProduct, updateProduct, brands])
 
-    const handleReset = () => {
+    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({
+        fields,
+        defaultValues,
+        schema: customValidator(fields),
+        onSubmit: handleSave
+    })
+
+    const handleReset = useCallback(() => {
         reset()
         setPreviewImages([])
-    }
-
-    const { handleSubmit, renderSingleInput, setValue, reset } = useDynamicForm({ fields, defaultValues, schema, onSubmit })
+    }, [reset, setPreviewImages])
 
     useEffect(() => {
         if (id && data) {
@@ -145,35 +147,22 @@ const AddProduct = () => {
     }, [brands?.result])
 
     useEffect(() => {
-        if (isAddSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/products")
-            }, 2000);
+        if (add.isSuccess || update.isSuccess) {
+            const timeout = setTimeout(() => navigate('/products'), 2000)
             return () => clearTimeout(timeout)
         }
-    }, [isAddSuccess])
-
-    useEffect(() => {
-        if (isUpdateSuccess) {
-            const timeout = setTimeout(() => {
-                navigate("/products")
-            }, 2000);
-            return () => clearTimeout(timeout)
-        }
-    }, [isUpdateSuccess])
-
+    }, [add.isSuccess, update.isSuccess, navigate])
 
     return <>
-        {isAddSuccess && !id && <Toast type="success" message={addData?.message} />}
-        {isAddError && !id && <Toast type="error" message={addError as string} />}
-
-        {isUpdateSuccess && id && <Toast type={updateData === "No Changes Detected" ? "info" : "success"} message={updateData as string} />}
-        {isUpdateError && id && <Toast type="error" message={updateError as string} />}
+        {add.isSuccess && <Toast type="success" message={add.data?.message} />}
+        {add.isError && <Toast type="error" message={add.error as string} />}
+        {update.isSuccess && <Toast type={update.data === 'No Changes Detected' ? 'info' : 'success'} message={update.data} />}
+        {update.isError && <Toast type="error" message={update.error as string} />}
 
         <Box>
             <DataContainer config={config} />
             <Paper sx={{ mt: 2, pt: 4, pb: 3 }}>
-                <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Box component="form" onSubmit={handleSubmit(handleSave)}>
                     <Grid2 container columnSpacing={2} rowSpacing={3} sx={{ px: 3 }} >
 
                         {/* Name */}
@@ -215,7 +204,7 @@ const AddProduct = () => {
                         </Button>
                         <Button
                             type='submit'
-                            loading={addLoading || updateLoading}
+                            loading={add.isLoading || update.isLoading}
                             variant='contained'
                             sx={{ ml: 2, background: "#00c979", color: "white", py: 0.65 }}>
                             Save
@@ -225,6 +214,6 @@ const AddProduct = () => {
             </Paper>
         </Box>
     </>
-}
+})
 
 export default AddProduct

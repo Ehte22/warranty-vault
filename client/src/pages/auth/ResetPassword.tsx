@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Container,
     Paper,
@@ -48,23 +48,7 @@ const textFieldStyles = {
     },
 };
 
-const fields: FieldConfig[] = [
-    {
-        name: "password",
-        label: "Password",
-        type: "text",
-        rules: { required: true, min: 8, max: 16 }
-    },
-    {
-        name: "confirmPassword",
-        label: "Confirm Password",
-        type: "text",
-        rules: { required: true }
-    },
-]
-
-
-const ResetPassword: React.FC = () => {
+const ResetPassword: React.FC = React.memo(() => {
 
     const [isPassMatchError, setIsPassMatchError] = useState<boolean>(false)
     const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({
@@ -75,6 +59,21 @@ const ResetPassword: React.FC = () => {
     const [ResetPassword, { data, error, isSuccess, isError, isLoading }] = useResetPasswordMutation()
 
     const navigate = useNavigate()
+
+    const fields: FieldConfig[] = useMemo(() => [
+        {
+            name: "password",
+            label: "Password",
+            type: "text",
+            rules: { required: true, min: 8, max: 16 }
+        },
+        {
+            name: "confirmPassword",
+            label: "Confirm Password",
+            type: "text",
+            rules: { required: true }
+        },
+    ], [])
 
     const handleClickShowPassword = (field: string) => {
         setShowPassword({ ...showPassword, [field]: !showPassword[field] })
@@ -225,6 +224,6 @@ const ResetPassword: React.FC = () => {
         </Container>
     </>
 
-};
+})
 
 export default ResetPassword;

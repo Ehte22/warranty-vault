@@ -84,7 +84,11 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Layout />} >
 
-                <Route index element={<Protected roles={user?.role === "Admin" ? ["Admin"] : ["User", "Admin"]} compo={user?.role === "Admin" ? <ErrorBoundary><AdminDashboard /> </ErrorBoundary> : <ErrorBoundary><Dashboard /> </ErrorBoundary>} />} />
+                <Route index element={<Protected roles={user?.role === "Admin" ? ["Admin"] : ["User", "Admin"]}
+                  compo={user?.role === "Admin"
+                    ? <ErrorBoundary><AdminDashboard /> </ErrorBoundary>
+                    : <ErrorBoundary><Dashboard /> </ErrorBoundary>} />}
+                />
                 <Route path="user-dashboard" element={<Protected roles={["User", "Admin"]} compo={<ErrorBoundary><Dashboard /> </ErrorBoundary>} />} />
                 <Route path="admin" element={<Protected roles={["Admin"]} compo={<ErrorBoundary><AdminDashboard /> </ErrorBoundary>} />} />
 
@@ -142,13 +146,13 @@ const App = () => {
 
               </Route>
 
-              <Route path="sign-in" element={<Login />} />
-              <Route path="sign-up" element={<Register />} />
-              <Route path="select-plan" element={<SelectPlan />} />
-              <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="reset-password" element={<ResetPassword />} />
-              <Route path="unauthorized" element={<Unauthorized />} />
-              <Route path="*" element={<PageNotFound />} />
+              <Route path="sign-in" element={<ErrorBoundary><Login /></ErrorBoundary>} />
+              <Route path="sign-up" element={<ErrorBoundary><Register /></ErrorBoundary>} />
+              <Route path="select-plan" element={<ErrorBoundary><SelectPlan /></ErrorBoundary>} />
+              <Route path="forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
+              <Route path="reset-password" element={<ErrorBoundary><ResetPassword /></ErrorBoundary>} />
+              <Route path="unauthorized" element={<ErrorBoundary><Unauthorized /></ErrorBoundary>} />
+              <Route path="*" element={<ErrorBoundary><PageNotFound /></ErrorBoundary>} />
 
             </Routes>
           </Suspense>

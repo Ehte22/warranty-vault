@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
     Container,
     Paper,
@@ -55,15 +55,15 @@ const fields: FieldConfig[] = [
 ]
 
 
-const ForgotPassword: React.FC = () => {
+const ForgotPassword: React.FC = React.memo(() => {
 
     const [forgotPassword, { data, error, isSuccess, isError, isLoading }] = useForgotPasswordMutation()
 
-    const schema = customValidator(fields)
+    const schema = useMemo(() => customValidator(fields), [])
 
     type FormValues = z.infer<typeof schema>
 
-    const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } })
+    const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: "" } })
 
     const onSubmit = (values: FormValues) => {
         forgotPassword(values.email)
@@ -121,6 +121,6 @@ const ForgotPassword: React.FC = () => {
         </Container>
     </>
 
-};
+})
 
 export default ForgotPassword;

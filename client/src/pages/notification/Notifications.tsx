@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import DataContainer, { DataContainerConfig } from '../../components/DataContainer'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import ActionsMenu from '../../components/ActionsMenu';
@@ -9,11 +9,13 @@ import { INotification } from '../../models/notification.interface';
 import { useDeleteNotificationMutation, useGetNotificationQuery } from '../../redux/apis/notification.api';
 import Loader from '../../components/Loader';
 
-const Notifications = () => {
+const Notifications = React.memo(() => {
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<string>("")
+    const [notifications, setNotifications] = useState<INotification[]>([])
+    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: "Notifications",
         showAddBtn: true,
         showRefreshButton: true,
@@ -21,10 +23,8 @@ const Notifications = () => {
         showSelector: true,
         onSearch: setSearchQuery,
         onSelect: setSelectedUser
-    }
+    }), [])
 
-    const [notifications, setNotifications] = useState<INotification[]>([])
-    const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
     const { data, isLoading } = useGetNotificationQuery({
@@ -33,9 +33,9 @@ const Notifications = () => {
         searchQuery: debounceSearchQuery.toLowerCase(),
         selectedUser
     })
-    const [deletePolicy, { data: message, isSuccess }] = useDeleteNotificationMutation()
+    const [deleteNotification, { data: message, isSuccess }] = useDeleteNotificationMutation()
 
-    const columns: GridColDef[] = [
+    const columns: GridColDef[] = useMemo(() => [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
         {
             field: 'product', headerName: 'Product', minWidth: 150, flex: 1,
@@ -75,11 +75,11 @@ const Notifications = () => {
             filterable: false,
             renderCell: (params) => {
                 return <>
-                    <ActionsMenu id={params.row._id} deleteAction={deletePolicy} />
+                    <ActionsMenu id={params.row._id} deleteAction={deleteNotification} />
                 </>
             }
         }
-    ];
+    ], [deleteNotification])
 
     useEffect(() => {
         if (data?.result) {
@@ -89,6 +89,10 @@ const Notifications = () => {
             setNotifications(x)
         }
     }, [data?.result])
+
+    const handlePaginationChange = useCallback((params: { page: number, pageSize: number }) => {
+        setPagination({ page: params.page, pageSize: params.pageSize });
+    }, [])
 
     if (isLoading) {
         return <Loader />
@@ -107,13 +111,11 @@ const Notifications = () => {
                 pageSizeOptions={[5, 10, 20, 50]}
                 paginationModel={{ page: pagination.page, pageSize: pagination.pageSize }}
                 getRowId={(row) => row._id}
-                onPaginationModelChange={(params) => {
-                    setPagination({ page: params.page, pageSize: params.pageSize })
-                }}
+                onPaginationModelChange={handlePaginationChange}
                 sx={{ border: 0 }}
             />
         </Paper >
     </>
-}
+})
 
 export default Notifications

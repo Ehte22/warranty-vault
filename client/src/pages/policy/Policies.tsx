@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import DataContainer, { DataContainerConfig } from '../../components/DataContainer'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import ActionsMenu from '../../components/ActionsMenu';
@@ -9,13 +9,13 @@ import { IPolicy } from '../../models/policy.interface';
 import { useDeletePolicyMutation, useGetPoliciesQuery } from '../../redux/apis/policy.api';
 import Loader from '../../components/Loader';
 
-const Policies = () => {
+const Policies = React.memo(() => {
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [selectedUser, setSelectedUser] = useState<string>("")
     const [policies, setPolicies] = useState<IPolicy[]>([])
     const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
 
-    const config: DataContainerConfig = {
+    const config: DataContainerConfig = useMemo(() => ({
         pageTitle: "Policies",
         showAddBtn: true,
         showRefreshButton: true,
@@ -23,7 +23,7 @@ const Policies = () => {
         showSelector: true,
         onSearch: setSearchQuery,
         onSelect: setSelectedUser
-    }
+    }), [])
 
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
@@ -35,7 +35,7 @@ const Policies = () => {
     })
     const [deletePolicy, { data: message, isSuccess }] = useDeletePolicyMutation()
 
-    const columns: GridColDef[] = [
+    const columns: GridColDef[] = useMemo(() => [
         { field: 'serialNo', headerName: 'Sr. No.', minWidth: 70, flex: 0.4, },
         {
             field: 'name', headerName: 'Name', minWidth: 200, flex: 1,
@@ -87,7 +87,7 @@ const Policies = () => {
                 </>
             }
         }
-    ];
+    ], [deletePolicy])
 
     useEffect(() => {
         if (data?.result) {
@@ -97,6 +97,10 @@ const Policies = () => {
             setPolicies(x)
         }
     }, [data?.result])
+
+    const handlePaginationChange = useCallback((params: { page: number, pageSize: number }) => {
+        setPagination({ page: params.page, pageSize: params.pageSize });
+    }, [])
 
     if (isLoading) {
         return <Loader />
@@ -115,13 +119,11 @@ const Policies = () => {
                 pageSizeOptions={[5, 10, 20, 50]}
                 paginationModel={{ page: pagination.page, pageSize: pagination.pageSize }}
                 getRowId={(row) => row._id}
-                onPaginationModelChange={(params) => {
-                    setPagination({ page: params.page, pageSize: params.pageSize })
-                }}
+                onPaginationModelChange={handlePaginationChange}
                 sx={{ border: 0 }}
             />
         </Paper >
     </>
-}
+})
 
 export default Policies
