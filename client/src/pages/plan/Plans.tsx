@@ -11,7 +11,6 @@ import Loader from '../../components/Loader';
 
 const Plans = React.memo(() => {
     const [searchQuery, setSearchQuery] = useState<string>("")
-    const [selectedUser, setSelectedUser] = useState<string>("")
     const [plans, setPlans] = useState<IPlan[]>([])
     const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
 
@@ -21,8 +20,7 @@ const Plans = React.memo(() => {
         showRefreshButton: true,
         showSearchBar: true,
         onSearch: setSearchQuery,
-        onSelect: setSelectedUser
-    }), [])
+    }), [setSearchQuery])
 
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
@@ -30,8 +28,8 @@ const Plans = React.memo(() => {
         page: pagination.page + 1,
         limit: pagination.pageSize,
         searchQuery: debounceSearchQuery.toLowerCase(),
-        selectedUser
     })
+
     const [deletePlan, { data: message, isSuccess }] = useDeletePlanMutation()
     const [updateStatus, { data: statusMessage, error: statusError, isSuccess: statusUpdateSuccess, isError: statusUpdateError }] = useUpdatePlanStatusMutation()
 
@@ -97,9 +95,9 @@ const Plans = React.memo(() => {
     }
 
     return <>
-        {isSuccess && <Toast type='success' message={message as string} />}
+        {isSuccess && <Toast type='success' message={message} />}
         {statusUpdateSuccess && <Toast type="success" message={statusMessage} />}
-        {statusUpdateError && <Toast type="error" message={statusError as string} />}
+        {statusUpdateError && <Toast type="error" message={String(statusError)} />}
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid

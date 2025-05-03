@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     Container,
     Paper,
@@ -56,7 +56,7 @@ const ResetPassword: React.FC = React.memo(() => {
         cpassword: false
     })
 
-    const [ResetPassword, { data, error, isSuccess, isError, isLoading }] = useResetPasswordMutation()
+    const [resetPassword, { data, error, isSuccess, isError, isLoading }] = useResetPasswordMutation()
 
     const navigate = useNavigate()
 
@@ -96,11 +96,11 @@ const ResetPassword: React.FC = React.memo(() => {
 
     const { register, handleSubmit, formState: { errors }, watch } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } })
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = useCallback(() => (values: FormValues) => {
         if (!isPassMatchError && token) {
-            ResetPassword({ password: values.password, confirmPassword: values.confirmPassword, token })
+            resetPassword({ password: values.password, confirmPassword: values.confirmPassword, token })
         }
-    }
+    }, [isPassMatchError, token, resetPassword])
 
     useEffect(() => {
         const subscription = watch((values) => {
@@ -126,7 +126,7 @@ const ResetPassword: React.FC = React.memo(() => {
 
     return <>
         {isSuccess && <Toast type="success" message={data} />}
-        {isError && <Toast type="error" message={error as string} />}
+        {isError && <Toast type="error" message={String(error)} />}
         <Container
             component="main"
             maxWidth={false}

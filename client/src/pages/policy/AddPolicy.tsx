@@ -178,9 +178,9 @@ const AddPolicy = React.memo(() => {
 
     return <>
         {add.isSuccess && <Toast type="success" message={add.data?.message} />}
-        {add.isError && <Toast type="error" message={add.error as string} />}
+        {add.isError && <Toast type="error" message={String(add.error)} />}
         {update.isSuccess && <Toast type={update.data === 'No Changes Detected' ? 'info' : 'success'} message={update.data} />}
-        {update.isError && <Toast type="error" message={update.error as string} />}
+        {update.isError && <Toast type="error" message={String(update.error)} />}
 
         <Box>
             <DataContainer config={config} />

@@ -1,5 +1,5 @@
 import { Box, Button, Container, FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput, Paper, TextField, Typography } from '@mui/material'
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -125,11 +125,11 @@ const Register = React.memo(() => {
 
     const { register, handleSubmit, formState: { errors }, watch } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues })
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = useCallback((values: FormValues) => {
         if (!isPassMatchError) {
             signUp(values as IUser)
         }
-    }
+    }, [isPassMatchError, signUp])
 
     useEffect(() => {
         const subscription = watch((values) => {
@@ -154,7 +154,7 @@ const Register = React.memo(() => {
 
     return <>
         {isSuccess && <Toast type='success' message={data.message} />}
-        {isError && <Toast type='error' message={error as string} />}
+        {isError && <Toast type='error' message={String(error)} />}
         <Container
             component="main"
             maxWidth={false}

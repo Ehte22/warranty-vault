@@ -120,10 +120,10 @@ const SelectPlan = React.memo(() => {
 
     return <>
         {paymentSuccess && <Toast type="success" message={paymentData.message} />}
-        {paymentError && <Toast type="error" message={paymentErrorData as string} />}
-
+        {paymentError && <Toast type="error" message={String(paymentErrorData)} />}
         {isApplyCouponSuccess && <Toast type="success" message={couponData.message} />}
-        {isApplyCouponError && <Toast type="error" message={applyCouponError as string} />}
+        {isApplyCouponError && <Toast type="error" message={String(applyCouponError)} />}
+
         <Box sx={{ height: "100vh", px: { xs: 3, md: 4, lg: 12, xl: 28, } }} >
             <Grid2 container spacing={3} sx={{ minHeight: "100%", alignItems: "center", py: 8 }}>
                 {data?.result.map((plan) => {

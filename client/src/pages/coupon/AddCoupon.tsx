@@ -144,9 +144,9 @@ const AddPlan = React.memo(() => {
 
   return <>
     {addStatus.isSuccess && <Toast type="success" message={addStatus.data?.message} />}
-    {addStatus.isError && <Toast type="error" message={addStatus.error as string} />}
+    {addStatus.isError && <Toast type="error" message={String(addStatus.error)} />}
     {updateStatus.isSuccess && <Toast type={updateStatus.data === "No Changes Detected" ? "info" : "success"} message={updateStatus.data} />}
-    {updateStatus.isError && <Toast type="error" message={updateStatus.error as string} />}
+    {updateStatus.isError && <Toast type="error" message={String(updateStatus.error)} />}
 
     <Box>
       <DataContainer config={config} />

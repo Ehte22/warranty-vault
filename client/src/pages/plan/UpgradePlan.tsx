@@ -157,10 +157,10 @@ const UpgradePlan = React.memo(() => {
 
     return <>
         {paymentSuccess && <Toast type="success" message={paymentData.message} />}
-        {paymentError && <Toast type="error" message={paymentErrorData as string} />}
-
+        {paymentError && <Toast type="error" message={String(paymentErrorData)} />}
         {isApplyCouponSuccess && <Toast type="success" message={couponData.message} />}
-        {isApplyCouponError && <Toast type="error" message={applyCouponError as string} />}
+        {isApplyCouponError && <Toast type="error" message={String(applyCouponError)} />}
+
         <Box>
             <Grid2 container spacing={3} sx={{ minHeight: "100%", alignItems: "center", py: 8, justifyContent: "center" }}>
                 {filteredPlan.map((plan) => {

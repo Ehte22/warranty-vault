@@ -23,7 +23,7 @@ const Policies = React.memo(() => {
         showSelector: true,
         onSearch: setSearchQuery,
         onSelect: setSelectedUser
-    }), [])
+    }), [setSearchQuery, setSelectedUser])
 
     const debounceSearchQuery = useDebounce(searchQuery, 500)
 
@@ -107,7 +107,7 @@ const Policies = React.memo(() => {
     }
 
     return <>
-        {isSuccess && <Toast type='success' message={message as string} />}
+        {isSuccess && <Toast type='success' message={message} />}
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid

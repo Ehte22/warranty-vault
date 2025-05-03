@@ -96,7 +96,8 @@ const Brands = React.memo(() => {
     }
 
     return <>
-        {isSuccess && <Toast type='success' message={message as string} />}
+        {isSuccess && <Toast type='success' message={message} />}
+
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid

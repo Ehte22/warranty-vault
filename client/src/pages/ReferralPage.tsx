@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Typography, TextField, Button, Card, CardContent, List, ListItem, Box, Paper } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useGetUserByIdQuery } from '../redux/apis/user.api';
@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import Toast from '../components/Toast';
 
-const ReferralPage = () => {
+const ReferralPage = React.memo(() => {
     const [userId, setUserId] = useState<string>("")
     const [isCopied, setIsCopied] = useState(false)
 
@@ -156,6 +156,6 @@ const ReferralPage = () => {
 
 
     </>
-}
+})
 
 export default ReferralPage

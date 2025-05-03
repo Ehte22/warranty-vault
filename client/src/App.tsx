@@ -36,8 +36,6 @@ const Register = lazy(() => import("./pages/auth/Register"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
-// import Users from "./pages/users/Users";
-
 const theme = createTheme({
   palette: {
     mode: "light",

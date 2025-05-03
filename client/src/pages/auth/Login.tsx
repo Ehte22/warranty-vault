@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
     Container,
     Paper,
@@ -74,9 +74,9 @@ const Login: React.FC = React.memo(() => {
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { username: "", password: "" } })
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = useCallback((values: FormValues) => {
         signIn({ username: values.username, password: values.password })
-    }
+    }, [signIn])
 
     useEffect(() => {
         if (isSuccess) {
@@ -90,7 +90,7 @@ const Login: React.FC = React.memo(() => {
 
     return <>
         {isSuccess && <Toast type="success" message={data.message} />}
-        {isError && <Toast type="error" message={error as string} />}
+        {isError && <Toast type="error" message={String(error)} />}
         <Container
             component="main"
             maxWidth={false}

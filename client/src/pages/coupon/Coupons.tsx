@@ -18,7 +18,7 @@ const Coupons = React.memo(() => {
         showRefreshButton: true,
         showSearchBar: true,
         onSearch: setSearchQuery,
-    }), [])
+    }), [setSearchQuery])
 
     const [coupons, setCoupons] = useState<ICoupon[]>([])
     const [pagination, setPagination] = useState<{ page: number, pageSize: number }>({ page: 0, pageSize: 10 })
@@ -107,9 +107,9 @@ const Coupons = React.memo(() => {
     }
 
     return <>
-        {deleteSuccess && <Toast type='success' message={deleteMsg as string} />}
+        {deleteSuccess && <Toast type='success' message={String(deleteMsg)} />}
         {statusUpdateSuccess && <Toast type="success" message={statusMsg} />}
-        {statusUpdateError && <Toast type="error" message={statusError as string} />}
+        {statusUpdateError && <Toast type="error" message={String(statusError)} />}
         <DataContainer config={config} />
         <Paper sx={{ width: '100%', mt: 2 }}>
             <DataGrid

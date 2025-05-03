@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
     Container,
     Paper,
@@ -45,33 +45,33 @@ const textFieldStyles = {
     },
 };
 
-const fields: FieldConfig[] = [
-    {
-        name: "email",
-        label: "Email Address",
-        type: "text",
-        rules: { required: true }
-    },
-]
-
 
 const ForgotPassword: React.FC = React.memo(() => {
 
     const [forgotPassword, { data, error, isSuccess, isError, isLoading }] = useForgotPasswordMutation()
 
-    const schema = useMemo(() => customValidator(fields), [])
+    const fields: FieldConfig[] = useMemo(() => [
+        {
+            name: "email",
+            label: "Email Address",
+            type: "text",
+            rules: { required: true }
+        },
+    ], [])
+
+    const schema = customValidator(fields)
 
     type FormValues = z.infer<typeof schema>
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: "" } })
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = useCallback((values: FormValues) => {
         forgotPassword(values.email)
-    }
+    }, [forgotPassword])
 
     return <>
         {isSuccess && <Toast type="success" message={data} />}
-        {isError && <Toast type="error" message={error as string} />}
+        {isError && <Toast type="error" message={String(error)} />}
         <Container
             component="main"
             maxWidth={false}

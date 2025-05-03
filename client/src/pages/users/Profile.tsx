@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, Avatar, Typography, Button, Box, TextField, Grid2 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -38,28 +38,7 @@ const textFieldStyle = {
     },
 }
 
-const fields: FieldConfig[] = [
-    {
-        name: "name",
-        label: "Name",
-        type: "text",
-        rules: { required: true }
-    },
-    {
-        name: "email",
-        label: "Email Address",
-        type: "text",
-        rules: { required: true, email: true }
-    },
-    {
-        name: "phone",
-        label: "Phone Number",
-        type: "text",
-        rules: { required: true, pattern: /^[6-9]\d{9}$/, patternMessage: "Please enter a valid phone number" }
-    },
-]
-
-const Profile = () => {
+const Profile = React.memo(() => {
     const [isEditing, setIsEditing] = useState(false);
     const [profile, setProfile] = useState<File | string>("")
     const [profileUrl, setProfileUrl] = useState<string>("")
@@ -68,6 +47,27 @@ const Profile = () => {
 
     const { data } = useGetUserByIdQuery(id || "", { skip: !id })
     const [updateUser, { data: updateMessage, isSuccess, isError, error: updateError, isLoading }] = useUpdateUserMutation()
+
+    const fields: FieldConfig[] = useMemo(() => [
+        {
+            name: "name",
+            label: "Name",
+            type: "text",
+            rules: { required: true }
+        },
+        {
+            name: "email",
+            label: "Email Address",
+            type: "text",
+            rules: { required: true, email: true }
+        },
+        {
+            name: "phone",
+            label: "Phone Number",
+            type: "text",
+            rules: { required: true, pattern: /^[6-9]\d{9}$/, patternMessage: "Please enter a valid phone number" }
+        },
+    ], [])
 
     const defaultValues = {
         name: "",
@@ -82,7 +82,7 @@ const Profile = () => {
 
     const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues })
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = useCallback((values: FormValues) => {
         const formData = new FormData()
 
         Object.keys(values).forEach((key) => {
@@ -102,7 +102,7 @@ const Profile = () => {
         if (id) {
             updateUser({ id, userData: formData })
         }
-    }
+    }, [id, profile, updateUser])
 
     useEffect(() => {
         if (data) {
@@ -255,6 +255,6 @@ const Profile = () => {
             </Card>
         </Box>
     </>
-};
+})
 
 export default Profile;
